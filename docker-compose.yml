@@ -1,0 +1,43 @@
+version: '3.7'
+services:
+  search:
+    image: ${REGISTRY:-docker.io}/cnxta/ion-search:0.1.0-SNAPSHOT
+    ports:
+      - target: 8080
+        published: 9042
+        protocol: tcp
+      - target: 10052
+        published: 10052
+        protocol: tcp
+    networks:
+      - cdr
+    depends_on:
+      - solr
+    deploy:
+      restart_policy:
+        condition: any
+    configs:
+      - source: search_config
+        target: /configs/search_config.yml
+    command:
+      - "--spring.config.additional-location=file:/configs/search_config.yml"
+  solr:
+    image: solr:8.1.1
+    ports:
+      - "9983:8983"
+    volumes:
+      - data:/opt/solr/server/solr/mycores
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr-precreate
+      - searchTerms
+    networks:
+      - cdr
+networks:
+  cdr:
+    external: true
+volumes:
+  data:
+configs:
+  search_config:
+    file: ./configs/search_config.yml

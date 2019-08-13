@@ -1,0 +1,18 @@
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+    org.springframework.web.client: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+spring:
+  profiles:
+    active: production
+  servlet:
+    multipart:
+      max-file-size: 10GB
+      max-request-size: 11GB
