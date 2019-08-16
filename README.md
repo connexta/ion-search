@@ -52,7 +52,7 @@ For more information about spotless checks see
 * To skip integration tests, add `-PskipITests`.
 
 ## Running
-### Configuration
+### Configuring
 1. The service can be configured with an external configuration file that will be applied to the docker container during deployment.
     The configuration YAML file can be found at `<PROJECT_ROOT>/configs/search_config.yml` and is not version-controlled.
     The properties in this file will be merged with any properties that you have configured in the service.
