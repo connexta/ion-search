@@ -64,7 +64,7 @@ For more information about spotless checks see
       host: search-stack_solr
       port: 8983
     endpointUrl:
-      retrieve: http://store-stack_store:9041/mis/product/
+      retrieve: http://store-stack_store:9042/mis/product/
     ```
 
 2. A Docker network named `cdr` is needed to run via docker-compose.
