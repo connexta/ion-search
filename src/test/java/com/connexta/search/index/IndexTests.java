@@ -46,7 +46,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class IndexITests {
+public class IndexTests {
 
   @MockBean private SolrClient mockSolrClient;
 
