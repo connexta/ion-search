@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  anchore: anchore/anchore-engine@1.4.0
 jobs:
   Full Build:
     machine:
@@ -39,9 +41,54 @@ jobs:
           name: OWASP
           command: |
             ./gradlew dependencyCheckAnalyze --info
+  Create Docker Image:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - run:
+          command: 'docker build -t "${IMAGE_REPO_AND_NAME}" .'
+      - run: mkdir -p workspace
+      - run:
+          command: 'docker save ${IMAGE_REPO_AND_NAME} > workspace/temp_archive.tar'
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - circle-test_latest.tar
+  Scan Docker Image:
+    executor: anchore/anchore_engine
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          command: 'ls -al /tmp/workspace'
+      - run:
+          command: 'docker load -i /tmp/workspace/temp_archive.tar'
+      - anchore/analyze_local_image:
+          dockerfile_path: ./Dockerfile
+          image_name: '${IMAGE_REPO_AND_NAME}'
+          policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
+          policy_failure: true
+          timeout: '500'
+      - anchore/parse_reports
+      - store_artifacts:
+          path: anchore-reports
 workflows:
   version: 2.1
   default:
     jobs:
       - Full Build
-      - OWASP
+      - OWASP:
+          requires:
+            - Full Build
+      - Create Docker Image:
+          requires:
+            - OWASP
+      - Scan Docker Image:
+          requires:
+            - Create Docker Image
