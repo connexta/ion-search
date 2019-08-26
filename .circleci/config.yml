@@ -32,11 +32,11 @@ jobs:
           path: ~/test-results
       - store_artifacts:
           path: ~/test-results/junit
-      - run: mkdir -p workspace
+      - run: mkdir -p tmp/workspace
       - run:
-          command: 'docker save ${IMAGE_REPO_AND_NAME} > workspace/temp_archive.tar'
+          command: 'docker save ${IMAGE_REPO_AND_NAME} > tmp/workspace/temp_archive.tar'
       - persist_to_workspace:
-          root: workspace
+          root: tmp/workspace
           paths:
             - circle-test_latest.tar
   OWASP:
