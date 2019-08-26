@@ -34,11 +34,11 @@ jobs:
           path: ~/test-results/junit
       - run: mkdir -p workspace
       - run:
-          command: 'docker save cnxta/ion-search > workspace/temp_archive.tar'
+          command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
       - persist_to_workspace:
           root: workspace
           paths:
-            - circle-test_latest.tar
+            - ion-search.tar
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk
@@ -59,7 +59,7 @@ jobs:
       - run:
           command: 'ls -al /tmp/workspace'
       - run:
-          command: 'docker load -i /tmp/workspace/temp_archive.tar'
+          command: 'docker load -i /tmp/workspace/ion-search.tar'
       - anchore/analyze_local_image:
           dockerfile_path: ./Dockerfile
           image_name: 'cnxta/ion-search'
