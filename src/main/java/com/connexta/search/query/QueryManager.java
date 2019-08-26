@@ -9,8 +9,14 @@ package com.connexta.search.query;
 import com.connexta.search.query.exceptions.QueryException;
 import java.net.URI;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 public interface QueryManager {
 
-  List<URI> find(String keyword) throws QueryException;
+  @NotNull
+  List<URI> find(
+      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 100) final String keyword)
+      throws QueryException;
 }
