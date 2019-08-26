@@ -24,7 +24,6 @@ plugins {
 }
 
 group = "com.connexta.search"
-version = "0.1.0-SNAPSHOT"
 
 repositories {
     mavenLocal()
@@ -103,7 +102,7 @@ bootJar {
 
 docker {
     files tasks.bootJar.outputs
-    name "cnxta/ion-search:${project.version}"
+    name "cnxta/ion-search"
     buildArgs([JAR_FILE: "${tasks.bootJar.outputs.files.singleFile.name}"])
 }
 

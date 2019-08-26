@@ -21,7 +21,6 @@ jobs:
       - run:
           name: Building
           command: |
-            echo ${IMAGE_REPO_AND_NAME}
             ./gradlew clean build --info
       - run:
           name: Save test results
@@ -35,7 +34,7 @@ jobs:
           path: ~/test-results/junit
       - run: mkdir -p workspace
       - run:
-          command: 'docker save ${IMAGE_REPO_AND_NAME} > workspace/temp_archive.tar'
+          command: 'docker save cnxta/ion-search > workspace/temp_archive.tar'
       - persist_to_workspace:
           root: workspace
           paths:
@@ -63,7 +62,7 @@ jobs:
           command: 'docker load -i /tmp/workspace/temp_archive.tar'
       - anchore/analyze_local_image:
           dockerfile_path: ./Dockerfile
-          image_name: '${IMAGE_REPO_AND_NAME}'
+          image_name: 'cnxta/ion-search'
           policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
           policy_failure: true
           timeout: '500'
