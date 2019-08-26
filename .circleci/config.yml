@@ -21,6 +21,7 @@ jobs:
       - run:
           name: Building
           command: |
+            echo ${IMAGE_REPO_AND_NAME}
             ./gradlew clean build --info
       - run:
           name: Save test results
@@ -32,11 +33,11 @@ jobs:
           path: ~/test-results
       - store_artifacts:
           path: ~/test-results/junit
-      - run: mkdir -p tmp/workspace
+      - run: mkdir -p workspace
       - run:
-          command: 'docker save ${IMAGE_REPO_AND_NAME} > tmp/workspace/temp_archive.tar'
+          command: 'docker save ${IMAGE_REPO_AND_NAME} > workspace/temp_archive.tar'
       - persist_to_workspace:
-          root: tmp/workspace
+          root: workspace
           paths:
             - circle-test_latest.tar
   OWASP:
