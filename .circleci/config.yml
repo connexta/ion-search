@@ -77,6 +77,6 @@ workflows:
       - OWASP:
           requires:
             - Full Build
-      - Scan Docker Image:
-          requires:
-            - Full Build
+#      - Scan Docker Image:
+#          requires:
+#            - Full Build
