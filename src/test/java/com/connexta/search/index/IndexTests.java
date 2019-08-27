@@ -18,7 +18,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -36,7 +35,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -158,14 +157,15 @@ public class IndexTests {
 
   /** @see SolrClient#query(String, SolrParams, METHOD) */
   @ParameterizedTest
-  @MethodSource("exceptionsToTest")
-  public void testSolrClientErrorsQuerying(Exception exception) throws Exception {
+  @ValueSource(classes = {IOException.class, SolrServerException.class, RuntimeException.class})
+  public void testSolrClientErrorsWhenQuerying(Class<? extends Throwable> throwable)
+      throws Exception {
     final String id = "00067360b70e4acfab561fe593ad3f7a";
     when(mockSolrClient.query(
             eq("searchTerms"),
             argThat(solrQuery -> StringUtils.equals(solrQuery.get("q"), "id:" + id)),
             eq(METHOD.GET)))
-        .thenThrow(exception);
+        .thenThrow(throwable);
 
     mockMvc
         .perform(
@@ -191,8 +191,9 @@ public class IndexTests {
 
   /** @see SolrClient#add(String, SolrInputDocument, int) */
   @ParameterizedTest
-  @MethodSource("exceptionsToTest")
-  public void testSolrClientErrorsWhenSaving(Exception exception) throws Exception {
+  @ValueSource(classes = {IOException.class, SolrServerException.class, RuntimeException.class})
+  public void testSolrClientErrorsWhenSaving(final Class<? extends Throwable> throwable)
+      throws Exception {
     final String id = "00067360b70e4acfab561fe593ad3f7a";
 
     final SolrDocumentList mockSolrDocumentList = mock(SolrDocumentList.class);
@@ -208,7 +209,7 @@ public class IndexTests {
     final String contents =
         "All the color had been leached from Winterfell until only grey and white remained";
     when(mockSolrClient.add(eq("searchTerms"), hasIndexFieldValues(id, contents), anyInt()))
-        .thenThrow(exception);
+        .thenThrow(throwable);
 
     mockMvc
         .perform(
@@ -237,9 +238,5 @@ public class IndexTests {
             StringUtils.equals((String) solrInputDocument.getField("id").getValue(), id)
                 && StringUtils.equals(
                     (String) solrInputDocument.getField("contents").getValue(), contents));
-  }
-
-  private static Stream<Exception> exceptionsToTest() {
-    return Stream.of(new IOException(), new SolrServerException(""), new RuntimeException());
   }
 }

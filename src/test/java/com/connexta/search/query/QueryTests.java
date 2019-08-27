@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrClient;
@@ -27,7 +26,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -69,10 +68,10 @@ public class QueryTests {
 
   /** @see SolrClient#query(SolrParams, METHOD) */
   @ParameterizedTest
-  @MethodSource("exceptionsToTest")
-  public void testSolrCommunicationError(Exception exception) throws Exception {
+  @ValueSource(classes = {IOException.class, SolrServerException.class, RuntimeException.class})
+  public void testSolrClientErrors(Class<? extends Throwable> throwable) throws Exception {
     when(mockSolrClient.query(eq("searchTerms"), any(SolrQuery.class), eq(SolrRequest.METHOD.GET)))
-        .thenThrow(exception);
+        .thenThrow(throwable);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath("/search");
@@ -80,9 +79,5 @@ public class QueryTests {
     mockMvc
         .perform(MockMvcRequestBuilders.get(uriBuilder.build()))
         .andExpect(status().isInternalServerError());
-  }
-
-  private static Stream<Exception> exceptionsToTest() {
-    return Stream.of(new IOException(), new SolrServerException(""), new RuntimeException());
   }
 }
