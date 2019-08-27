@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   search:
-    image: ${REGISTRY:-docker.io}/cnxta/ion-search:0.1.0-SNAPSHOT
+    image: ${REGISTRY:-docker.io}/cnxta/ion-search
     ports:
       - target: 8080
         published: 9041
