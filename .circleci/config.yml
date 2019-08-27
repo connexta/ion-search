@@ -40,6 +40,9 @@ jobs:
           root: workspace
           paths:
             - ion-search.tar
+  sonar:
+    steps:
+      - sonar/scan:
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk
