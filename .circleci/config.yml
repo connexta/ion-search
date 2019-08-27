@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   anchore: anchore/anchore-engine@1.4.0
+  sonar: bulderbank/sonar@1.2.1
 jobs:
   Full Build:
     machine:
