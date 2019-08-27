@@ -26,11 +26,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -41,20 +40,23 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
+@Testcontainers
 @DirtiesContext
 public class SearchITests {
 
   private static final int SOLR_PORT = 8983;
 
-  @ClassRule
+  @Container
   public static final GenericContainer solrContainer =
       new GenericContainer("solr:8.1.1")
           .withCommand("solr-create -c " + SOLR_COLLECTION)
@@ -77,8 +79,8 @@ public class SearchITests {
   @Value("${endpointUrl.retrieve}")
   private String retrieveEndpoint;
 
-  @Before
-  public void before() throws IOException, SolrServerException {
+  @BeforeEach
+  public void beforeEach() throws IOException, SolrServerException {
     solrClient.deleteByQuery(SOLR_COLLECTION, "*");
     solrClient.commit(SOLR_COLLECTION);
   }
@@ -142,7 +144,7 @@ public class SearchITests {
   }
 
   @Test
-  @Ignore("TODO check that the product exists before storing cst")
+  @Disabled("TODO check that the product exists before storing cst")
   public void testStoreMetadataProductIdNotFound() {}
 
   @Test
