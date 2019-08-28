@@ -39,7 +39,6 @@ jobs:
           root: workspace
           paths:
             - ion-search.tar
-
   sonar:
     docker: &image
       - image: circleci/openjdk:11-jdk
