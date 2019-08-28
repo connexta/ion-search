@@ -9,21 +9,22 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install java 11
+          name: Install Java 11
           command: |
             sudo add-apt-repository ppa:openjdk-r/ppa
             sudo apt-get update -q
             sudo apt install -y openjdk-11-jdk
       - run:
-          name: Install Java 11
+          name: Change to Java 11
           command:
             sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
         # Restore local artifact cache
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "pom.xml" }}
-            # Fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            # when lock file changes, use increasingly general patterns to restore cache
+            - gradle-repo-v1-{{ .Branch }}-{{ checksum "dependencies.lockfile" }}
+            - gradle-repo-v1-{{ .Branch }}-
+            - gradle-repo-v1-
       - run:
           name: Building and Testing
           command: |
@@ -37,8 +38,8 @@ jobs:
         # Cache local artifact repository
       - save_cache:
           paths:
-            - ~/.m2
-          key: v1-dependencies-{{ checksum "pom.xml" }}
+            - ~/.gradle
+          key: gradle-repo-v1-{{ .Branch }}-{{ checksum "dependencies.lockfile" }}
       - store_test_results:
           path: ~/test-results
       - store_artifacts:
@@ -55,12 +56,13 @@ jobs:
       - image: circleci/openjdk:11-jdk
     steps:
       - setup_remote_docker:
-            docker_layer_caching: true
+          docker_layer_caching: true
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "pom.xml" }}
-            # Fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            # when lock file changes, use increasingly general patterns to restore cache
+            - gradle-repo-v1-{{ .Branch }}-{{ checksum "dependencies.lockfile" }}
+            - gradle-repo-v1-{{ .Branch }}-
+            - gradle-repo-v1-
       - checkout
       - run:
           name: Sonar Scan
@@ -78,9 +80,10 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "pom.xml" }}
-            # Fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            # when lock file changes, use increasingly general patterns to restore cache
+            - gradle-repo-v1-{{ .Branch }}-{{ checksum "dependencies.lockfile" }}
+            - gradle-repo-v1-{{ .Branch }}-
+            - gradle-repo-v1-
       - checkout
       - run:
           name: OWASP
