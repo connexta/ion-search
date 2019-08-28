@@ -50,7 +50,7 @@ jobs:
           root: workspace
           paths:
             - ion-search.tar
-  sonar:
+  sonarqube:
     docker:
       - image: circleci/openjdk:11-jdk
     steps:
@@ -114,7 +114,7 @@ workflows:
       - OWASP:
           requires:
             - Full Build
-      - sonar:
+      - sonarqube:
           requires:
             - Full Build
 # TODO Find a way to suppress vulnerabilities and/or upgrade container dependencies
