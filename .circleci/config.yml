@@ -22,7 +22,6 @@ jobs:
       - restore_cache: &restore_cache
           keys:
             # Use increasingly general patterns to restore cache
-            # - gradle-repo-v1-{{ .Branch }}-{{ checksum "dependencies.lockfile" }}
             - gradle-repo-v1-{{ .Branch }}-
             - gradle-repo-v1-
       - run:
@@ -40,7 +39,7 @@ jobs:
           paths:
             - ~/.gradle
             - ~/.m2
-          key: gradle-repo-v1-{{ .Branch }}-{{ checksum "dependencies.lockfile" }}
+          key: gradle-repo-v1-{{ .Branch }}
       - store_test_results:
           path: ~/test-results
       - store_artifacts:
