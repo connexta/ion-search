@@ -1,7 +1,6 @@
 version: 2.1
 orbs:
   anchore: anchore/anchore-engine@1.4.0
-  sonar: bulderbank/sonar@1.2.1
 jobs:
   Full Build:
     machine:
@@ -41,8 +40,18 @@ jobs:
           paths:
             - ion-search.tar
   sonar:
+    machine:
+      image: circleci/classic:latest
+      docker_layer_caching: true
     steps:
-      - sonar/scan:
+      - attach_workspace:
+          at: ~/
+      - run:
+        name: Start Sonar server
+       command: docker run -d --name sonarqube -p 9000:9000 -p 9092:9092 sonarqube:lts
+      - run:
+          name: Sonar Scan
+          command: docker run -ti --mount "type=volume,source=$CIRCLE_WORKING_DIRECTORY,target=/root" --link sonarqube newtmitch/sonar-scanner -Dsonar.projectBaseDir=/root -Dsonar.java.binaries=**/classes -Dsonar.projectKey="ion-search" -Dsonar.externalIssuesReportPaths=$CIRCLE_WORKING_DIRECTORY
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk
@@ -79,6 +88,9 @@ workflows:
     jobs:
       - Full Build
       - OWASP:
+          requires:
+            - Full Build
+      - sonar:
           requires:
             - Full Build
 # TODO Find a way to suppress vulnerabilities and/or upgrade container dependencies
