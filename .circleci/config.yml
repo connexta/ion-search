@@ -39,6 +39,7 @@ jobs:
           root: workspace
           paths:
             - ion-search.tar
+
   sonar:
     machine:
       image: circleci/classic:latest
