@@ -25,7 +25,7 @@ jobs:
             # Fallback to using the latest cache if no exact match is found
             - v1-dependencies-
       - run:
-          name: Building
+          name: Building and Testing
           command: |
             ./gradlew clean build --info
       - run:
@@ -70,6 +70,7 @@ jobs:
             -Donsar.projectName="ion-search" \
             -Dsonar.organization=cx \
             -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.java.binaries=**/build/classes \
             -Dsonar.login=$SONAR_TOKEN
   OWASP:
     docker:
