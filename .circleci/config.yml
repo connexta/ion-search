@@ -67,7 +67,7 @@ jobs:
           command: |
             ./gradlew sonarqube -x test \
             -Dsonar.projectKey=ion-search \
-            -Donsar.projectName="ion-search"
+            -Donsar.projectName="ion-search" \
             -Dsonar.organization=cx \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN
