@@ -51,8 +51,7 @@ jobs:
           paths:
             - ion-search.tar
   sonar:
-    docker:
-      machine: *virtual_machine
+    machine: *virtual_machine
     steps:
       - run: *install_java
       - run: *configure_java
