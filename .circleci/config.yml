@@ -60,12 +60,16 @@ jobs:
       - run:
           name: Sonar Scan
           command: |
-            ./gradlew sonarqube -x test \
+            ./gradlew sonarqube \
             -Dsonar.projectKey=ion-search \
             -Donsar.projectName="ion-search" \
             -Dsonar.organization=cx \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.java.binaries=**/build/classes \
+            -Dsonar.pullrequest.key=$CIRCLE_PR_NUMBER \
+            -Dsonar.pullrequest.branch=$CIRCLE_BRANCH
+            -Dsonar.pullrequest.base=master \
+            -Dsonar.pullrequest.provider=github \
             -Dsonar.login=$SONAR_TOKEN
   OWASP:
     docker:
