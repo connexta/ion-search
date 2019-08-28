@@ -15,7 +15,7 @@ jobs:
             sudo apt-get update -q
             sudo apt install -y openjdk-11-jdk
       - run:
-          name: Set default java 11
+          name: Install Java 11
           command:
             sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
         # Restore local artifact repository cache
