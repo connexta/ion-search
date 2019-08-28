@@ -67,7 +67,7 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.java.binaries=**/build/classes \
             -Dsonar.pullrequest.key=$CIRCLE_PR_NUMBER \
-            -Dsonar.pullrequest.branch=$CIRCLE_BRANCH
+            -Dsonar.pullrequest.branch=$CIRCLE_BRANCH \
             -Dsonar.pullrequest.base=master \
             -Dsonar.pullrequest.provider=github \
             -Dsonar.login=$SONAR_TOKEN
