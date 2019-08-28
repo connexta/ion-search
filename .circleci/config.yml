@@ -18,7 +18,7 @@ jobs:
           name: Install Java 11
           command:
             sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
-        # Restore local artifact repository cache
+        # Restore local artifact cache
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
