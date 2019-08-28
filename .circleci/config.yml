@@ -49,10 +49,12 @@ jobs:
           at: ~/
       - run:
         name: Start Sonar server
-       command: docker run -d --name sonarqube -p 9000:9000 -p 9092:9092 sonarqube:lts
+        command: |
+         docker run -d --name sonarqube -p 9000:9000 -p 9092:9092 sonarqube:lts
       - run:
           name: Sonar Scan
-          command: docker run -ti --mount "type=volume,source=$CIRCLE_WORKING_DIRECTORY,target=/root" --link sonarqube newtmitch/sonar-scanner -Dsonar.projectBaseDir=/root -Dsonar.java.binaries=**/classes -Dsonar.projectKey="ion-search" -Dsonar.externalIssuesReportPaths=$CIRCLE_WORKING_DIRECTORY
+          command: |
+            docker run -ti --mount "type=volume,source=$CIRCLE_WORKING_DIRECTORY,target=/root" --link sonarqube newtmitch/sonar-scanner -Dsonar.projectBaseDir=/root -Dsonar.java.binaries=**/classes -Dsonar.projectKey="ion-search" -Dsonar.externalIssuesReportPaths=$CIRCLE_WORKING_DIRECTORY
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk
