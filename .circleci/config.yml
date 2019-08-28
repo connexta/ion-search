@@ -54,7 +54,7 @@ jobs:
       - run:
           name: Sonar Scan
           command: |
-            docker run -ti --mount "type=volume,source=$CIRCLE_WORKING_DIRECTORY,target=/root" --link sonarqube newtmitch/sonar-scanner -Dsonar.projectBaseDir=/root -Dsonar.java.binaries=**/classes -Dsonar.projectKey="ion-search" -Dsonar.externalIssuesReportPaths=$CIRCLE_WORKING_DIRECTORY
+            docker run -ti --mount "type=volume,source=/home/circleci/project,target=/root" --link sonarqube newtmitch/sonar-scanner -Dsonar.projectBaseDir=/root -Dsonar.java.binaries=**/classes -Dsonar.projectKey="ion-search" -Dsonar.externalIssuesReportPaths=$CIRCLE_WORKING_DIRECTORY
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk
