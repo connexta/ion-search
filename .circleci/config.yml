@@ -58,12 +58,12 @@ jobs:
       - run:
           name: Sonar Scan
           command: >
-            ./gradlew sonarqube -x dockerfileZip -x docker -x test
+            ./gradlew sonarqube -x dockerfileZip -x docker -x test --info
             -Dsonar.projectKey=$CIRCLE_PROJECT_REPONAME
             -Dsonar.organization=cx
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.java.binaries=**/build/classes
-            -Dsonar.pullrequest.key=$CIRCLE_PR_NUMBER
+            -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/}
             -Dsonar.pullrequest.branch=$CIRCLE_BRANCH
             -Dsonar.pullrequest.base=master
             -Dsonar.pullrequest.provider=github
@@ -121,6 +121,7 @@ workflows:
       - Sonar:
           requires:
             - Assemble
+          contexts: secrets
 # TODO Find a way to suppress vulnerabilities and/or upgrade container dependencies
 #      - Anchore:
 #          requires:
