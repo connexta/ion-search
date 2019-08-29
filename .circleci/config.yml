@@ -22,7 +22,7 @@ jobs:
             # Use increasingly general patterns to restore cache
             - gradle-repo-v1-{{ .Branch }}-
             - gradle-repo-v1-
-      - run: ./gradlew assemble
+      - run: ./gradlew assemble --info
         # Cache local artifact repository
       - save_cache:
           paths:
@@ -45,10 +45,7 @@ jobs:
       - restore_cache: *restore_cache
       - run: ./gradlew check
       - store_test_results:
-          path: build/test-results/test
-      - store_artifacts:
-          path: ~/project/build/test-results/test/*
-          destination: JUnit Test Results
+          path: /home/circleci/project/build/test-results
   Sonar:
     docker:
       - image: circleci/openjdk:11-jdk
@@ -68,14 +65,6 @@ jobs:
             -Dsonar.pullrequest.base=master
             -Dsonar.pullrequest.provider=github
             -Dsonar.login=$SONAR_TOKEN
-      - run:
-          name: Sonar Results
-          command: |
-            printf "For the results of the scan, visit https://sonarcloud.io/dashboard?id=$CIRCLE_PROJECT_REPONAME"
-            if [ ! -z ${CIRCLE_PULL_REQUEST} ]; then
-              printf "&pullRequest=$CIRCLE_PR_NUMBER"
-            fi
-            echo
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk
