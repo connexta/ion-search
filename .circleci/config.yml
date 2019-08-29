@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   anchore: anchore/anchore-engine@1.4.0
 jobs:
-  Build:
+  Assemble:
     machine: &virtual_machine
       image: circleci/classic:latest
       docker_layer_caching: true
@@ -23,10 +23,7 @@ jobs:
             # Use increasingly general patterns to restore cache
             - gradle-repo-v2-{{ .Branch }}-
             - gradle-repo-v2-
-      - run:
-          name: Building and Testing
-          command: |
-            ./gradlew clean build
+      - run: ./gradlew build assemble
         # Cache local artifact repository
       - save_cache:
           paths:
@@ -34,10 +31,6 @@ jobs:
             - ~/.m2
             - /tmp
           key: gradle-repo-v2-{{ .Branch }}
-      - store_test_results:
-          path: ~/project/build/test-results/test
-      - store_artifacts:
-          path: ~/project/build/test-results/test
       - run: mkdir -p workspace
       - run:
           command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
@@ -45,7 +38,19 @@ jobs:
           root: workspace
           paths:
             - ion-search.tar
-  sonar:
+  Test:
+    machine: *virtual_machine
+    steps:
+      - run: *install_java
+      - run: *configure_java
+      - restore_cache: *restore_cache
+      - checkout
+      - run: ./gradlew check
+      - store_test_results:
+          path: ~/project/build/test-results/test/*
+      - store_artifacts:
+          path: ~/project/build/test-results/test/*
+  Sonar:
     machine: *virtual_machine
     steps:
       - run: *install_java
@@ -102,14 +107,17 @@ workflows:
   version: 2.1
   Full Build:
     jobs:
-      - Build
+      - Assemble
+      - Test:
+          requires:
+            - Assemble
       - OWASP:
           requires:
-            - Build
-      - sonar:
+            - Assemble
+      - Sonar:
           requires:
-            - Build
+            - Assemble
 # TODO Find a way to suppress vulnerabilities and/or upgrade container dependencies
 #      - Scan Docker Image:
 #          requires:
-#            - Build
+#            - Assemble
