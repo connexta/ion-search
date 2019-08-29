@@ -35,9 +35,14 @@ jobs:
           key: gradle-repo-v1-{{ .Branch }}
       - store_test_results:
           path: ~/build/test-results
-      - run: mkdir -p workspace
+      - store_artifacts:
+          path: TEST**.xml
+          destination: artifact-file
       - run:
-          command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
+          name: Save Docker Image
+          command: |
+          mkdir -p workspace
+          'docker save cnxta/ion-search > workspace/ion-search.tar'
       - persist_to_workspace:
           root: workspace
           paths:
