@@ -57,7 +57,7 @@ jobs:
       - run:
           name: Sonar Scan
           command: |
-            ./gradlew sonarqube gradlew assemble -x dockerfileZip -x docker -x check \
+            ./gradlew sonarqube -x dockerfileZip -x docker -x check \
             -Dsonar.projectKey=ion-search \
             -Donsar.projectName="ion-search" \
             -Dsonar.organization=cx \
