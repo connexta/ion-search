@@ -21,16 +21,15 @@ jobs:
       - restore_cache: &restore_cache
           keys:
             # Use increasingly general patterns to restore cache
-            - gradle-repo-v2-{{ .Branch }}-
-            - gradle-repo-v2-
-      - run: ./gradlew build assemble
+            - gradle-repo-v1-{{ .Branch }}-
+            - gradle-repo-v1-
+      - run: ./gradlew assemble
         # Cache local artifact repository
       - save_cache:
           paths:
             - ~/.gradle
             - ~/.m2
-            - /tmp
-          key: gradle-repo-v2-{{ .Branch }}
+          key: gradle-repo-v1-{{ .Branch }}
       - run: mkdir -p workspace
       - run:
           command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
