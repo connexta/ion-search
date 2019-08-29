@@ -27,12 +27,6 @@ jobs:
           name: Building and Testing
           command: |
             ./gradlew clean build --info
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
         # Cache local artifact repository
       - save_cache:
           paths:
@@ -40,9 +34,7 @@ jobs:
             - ~/.m2
           key: gradle-repo-v1-{{ .Branch }}
       - store_test_results:
-          path: ~/test-results
-      - store_artifacts:
-          path: ~/test-results/junit
+          path: ~/build/test-results
       - run: mkdir -p workspace
       - run:
           command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
