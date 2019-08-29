@@ -41,8 +41,8 @@ jobs:
       - run:
           name: Save Docker Image
           command: |
-          mkdir -p workspace
-          'docker save cnxta/ion-search > workspace/ion-search.tar'
+            mkdir -p workspace
+            'docker save cnxta/ion-search > workspace/ion-search.tar'
       - persist_to_workspace:
           root: workspace
           paths:
