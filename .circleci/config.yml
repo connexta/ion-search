@@ -12,8 +12,8 @@ jobs:
           name: Install Java 11
           command: |
             sudo add-apt-repository ppa:openjdk-r/ppa
-            sudo apt-get update -q
-            sudo apt install -y openjdk-11-jdk
+            sudo apt-get  -qq update -q
+            sudo apt-get -q install -y openjdk-11-jdk
       - run: &configure_java
           name: Change to Java 11
           command:
@@ -71,6 +71,7 @@ jobs:
             -Dsonar.pullrequest.base=master \
             -Dsonar.pullrequest.provider=github \
             -Dsonar.login=$SONAR_TOKEN
+            echo "For the results of the scan, visit https://sonarcloud.io/dashboard?id=ion-search"
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk
