@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   anchore: anchore/anchore-engine@1.4.0
 jobs:
-  Full Build:
+  Build:
     machine: &virtual_machine
       image: circleci/classic:latest
       docker_layer_caching: true
@@ -21,8 +21,8 @@ jobs:
       - restore_cache: &restore_cache
           keys:
             # Use increasingly general patterns to restore cache
-            - gradle-repo-v1-{{ .Branch }}-
-            - gradle-repo-v1-
+            - gradle-repo-v2-{{ .Branch }}-
+            - gradle-repo-v2-
       - run:
           name: Building and Testing
           command: |
@@ -33,11 +33,11 @@ jobs:
             - ~/.gradle
             - ~/.m2
             - /tmp
-          key: gradle-repo-v1-{{ .Branch }}
+          key: gradle-repo-v2-{{ .Branch }}
       - store_test_results:
-          path: $CIRCLE_WORKING_DIRECTORY/build/test-results
+          path: ~/project/build/test-results/test
       - store_artifacts:
-          path: "**/TEST*.xml"
+          path: ~/project/build/test-results/test
       - run: mkdir -p workspace
       - run:
           command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
@@ -76,7 +76,7 @@ jobs:
       - run:
           name: OWASP
           command: |
-            ./gradlew dependencyCheckAnalyze --info -x test
+            ./gradlew dependencyCheckAnalyze -x test
   Scan Docker Image:
     executor: anchore/anchore_engine
     steps:
@@ -100,16 +100,16 @@ jobs:
           path: anchore-reports
 workflows:
   version: 2.1
-  default:
+  Full Build:
     jobs:
-      - Full Build
+      - Build
       - OWASP:
           requires:
-            - Full Build
+            - Build
       - sonar:
           requires:
-            - Full Build
+            - Build
 # TODO Find a way to suppress vulnerabilities and/or upgrade container dependencies
 #      - Scan Docker Image:
 #          requires:
-#            - Full Build
+#            - Build
