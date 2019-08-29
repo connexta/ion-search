@@ -6,6 +6,7 @@ jobs:
     docker:
       - image: circleci/openjdk:11-jdk
     steps:
+      - checkout
       - restore_cache: &restore_cache
           keys:
             # Use increasingly general patterns to restore cache
@@ -42,7 +43,6 @@ jobs:
           command:
             sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
       - restore_cache: *restore_cache
-      - checkout
       - run: ./gradlew check
       - store_test_results:
           path: ~/project/build/test-results/test/*
@@ -51,10 +51,10 @@ jobs:
   Sonar:
     machine: *virtual_machine
     steps:
+      - checkout
       - run: *install_java
       - run: *configure_java
       - restore_cache: *restore_cache
-      - checkout
       - run:
           name: Sonar Scan
           command: |
