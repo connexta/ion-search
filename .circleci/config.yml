@@ -35,7 +35,7 @@ jobs:
             - /tmp
           key: gradle-repo-v1-{{ .Branch }}
       - store_test_results:
-          path: ~/build/test-results
+          path: $CIRCLE_WORKING_DIRECTORY/build/test-results
       - store_artifacts:
           path: "**/TEST*.xml"
       - run: mkdir -p workspace
