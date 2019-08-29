@@ -36,13 +36,10 @@ jobs:
       - store_test_results:
           path: ~/build/test-results
       - store_artifacts:
-          path: TEST**.xml
-          destination: artifact-file
+          path: build/**/TEST**.xml
+      - run: mkdir -p workspace
       - run:
-          name: Save Docker Image
-          command: |
-            mkdir -p workspace
-            'docker save cnxta/ion-search > workspace/ion-search.tar'
+          command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
       - persist_to_workspace:
           root: workspace
           paths:
