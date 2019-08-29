@@ -3,21 +3,9 @@ orbs:
   anchore: anchore/anchore-engine@1.4.0
 jobs:
   Assemble:
-    machine: &virtual_machine
-      image: circleci/classic:latest
-      docker_layer_caching: true
+    docker:
+      - image: circleci/openjdk:11-jdk
     steps:
-      - checkout
-      - run: &install_java
-          name: Install Java 11
-          command: |
-            sudo add-apt-repository ppa:openjdk-r/ppa
-            sudo apt-get -qq update
-            sudo apt-get -qq install -y openjdk-11-jdk
-      - run: &configure_java
-          name: Change to Java 11
-          command:
-            sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
       - restore_cache: &restore_cache
           keys:
             # Use increasingly general patterns to restore cache
@@ -38,10 +26,21 @@ jobs:
           paths:
             - ion-search.tar
   Test:
-    machine: *virtual_machine
+    machine: &virtual_machine
+      image: circleci/classic:latest
+      docker_layer_caching: true
     steps:
-      - run: *install_java
-      - run: *configure_java
+      - checkout
+      - run: &install_java
+          name: Install Java 11
+          command: |
+            sudo add-apt-repository ppa:openjdk-r/ppa
+            sudo apt-get -qq update
+            sudo apt-get -qq install -y openjdk-11-jdk
+      - run: &configure_java
+          name: Change to Java 11
+          command:
+            sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
       - restore_cache: *restore_cache
       - checkout
       - run: ./gradlew check
