@@ -45,7 +45,7 @@ jobs:
       - restore_cache: *restore_cache
       - run: ./gradlew check
       - store_test_results:
-          path: /home/circleci/project/build/test-results
+          path: build/test-results
   Sonar:
     docker:
       - image: circleci/openjdk:11-jdk
