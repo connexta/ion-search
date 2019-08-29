@@ -56,18 +56,19 @@ jobs:
       - restore_cache: *restore_cache
       - run:
           name: Sonar Scan
-          command: |
-            ./gradlew sonarqube -x dockerfileZip -x docker -x test \
-            -Dsonar.projectKey=ion-search \
-            -Donsar.projectName="ion-search" \
-            -Dsonar.organization=cx \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.java.binaries=**/build/classes \
-            -Dsonar.pullrequest.key=$CIRCLE_PR_NUMBER \
-            -Dsonar.pullrequest.branch=$CIRCLE_BRANCH \
-            -Dsonar.pullrequest.base=master \
-            -Dsonar.pullrequest.provider=github \
+          command: >
+            ./gradlew sonarqube -x dockerfileZip -x docker -x test
+            -Dsonar.projectKey=ion-search
+            -Donsar.projectName="ion-search"
+            -Dsonar.organization=cx
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.java.binaries=**/build/classes
+            -Dsonar.pullrequest.key=$CIRCLE_PR_NUMBER
+            -Dsonar.pullrequest.branch=$CIRCLE_BRANCH
+            -Dsonar.pullrequest.base=master
+            -Dsonar.pullrequest.provider=github
             -Dsonar.login=$SONAR_TOKEN
+
             echo "For the results of the scan, visit https://sonarcloud.io/dashboard?id=ion-search"
   OWASP:
     docker:
