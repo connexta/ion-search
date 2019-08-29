@@ -45,9 +45,10 @@ jobs:
       - restore_cache: *restore_cache
       - run: ./gradlew check
       - store_test_results:
-          path: ~/project/build/test-results/test/*
+          path: build/test-results/test
       - store_artifacts:
           path: ~/project/build/test-results/test/*
+          destination: JUnit Test Results
   Sonar:
     docker:
       - image: circleci/openjdk:11-jdk
