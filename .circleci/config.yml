@@ -58,8 +58,7 @@ jobs:
           name: Sonar Scan
           command: >
             ./gradlew sonarqube -x dockerfileZip -x docker -x test
-            -Dsonar.projectKey=ion-search
-            -Donsar.projectName="ion-search"
+            -Dsonar.projectKey=$CIRCLE_PROJECT_REPONAME
             -Dsonar.organization=cx
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.java.binaries=**/build/classes
@@ -68,8 +67,14 @@ jobs:
             -Dsonar.pullrequest.base=master
             -Dsonar.pullrequest.provider=github
             -Dsonar.login=$SONAR_TOKEN
-
-            echo "For the results of the scan, visit https://sonarcloud.io/dashboard?id=ion-search"
+      - run:
+          name: Sonar Results
+          command: |
+            printf "For the results of the scan, visit https://sonarcloud.io/dashboard?id=$CIRCLE_PROJECT_REPONAME"
+            if [ ! -z ${CIRCLE_PULL_REQUEST} ]; then
+              printf "&pullRequest=$CIRCLE_PR_NUMBER"
+            fi
+            echo
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk
