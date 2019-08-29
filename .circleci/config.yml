@@ -26,17 +26,18 @@ jobs:
       - run:
           name: Building and Testing
           command: |
-            ./gradlew clean build --info
+            ./gradlew clean build
         # Cache local artifact repository
       - save_cache:
           paths:
             - ~/.gradle
             - ~/.m2
+            - /tmp
           key: gradle-repo-v1-{{ .Branch }}
       - store_test_results:
           path: ~/build/test-results
       - store_artifacts:
-          path: build/**/TEST*.xml
+          path: "**/TEST*.xml"
       - run: mkdir -p workspace
       - run:
           command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
