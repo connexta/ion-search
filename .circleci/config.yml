@@ -3,9 +3,19 @@ orbs:
   anchore: anchore/anchore-engine@1.4.0
 jobs:
   Assemble:
-    docker:
-      - image: circleci/openjdk:11-jdk
+    machine: &virtual_machine
+      image: circleci/classic:latest
+      docker_layer_caching: true
     steps:
+      - run: &install_java
+          name: Install Java 11
+          command: |
+            sudo add-apt-repository ppa:openjdk-r/ppa
+            sudo apt-get -qq update
+            sudo apt-get -qq install -y openjdk-11-jdk
+      - run: &configure_java
+          name: Change to Java 11
+          command: sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
       - checkout
       - restore_cache: &restore_cache
           keys:
@@ -27,21 +37,11 @@ jobs:
           paths:
             - ion-search.tar
   Test:
-    machine: &virtual_machine
-      image: circleci/classic:latest
-      docker_layer_caching: true
+    machine: *virtual_machine
     steps:
+      - run: *install_java
+      - run: *configure_java
       - checkout
-      - run: &install_java
-          name: Install Java 11
-          command: |
-            sudo add-apt-repository ppa:openjdk-r/ppa
-            sudo apt-get -qq update
-            sudo apt-get -qq install -y openjdk-11-jdk
-      - run: &configure_java
-          name: Change to Java 11
-          command:
-            sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
       - restore_cache: *restore_cache
       - run: ./gradlew check
       - store_test_results:
@@ -49,16 +49,15 @@ jobs:
       - store_artifacts:
           path: ~/project/build/test-results/test/*
   Sonar:
-    machine: *virtual_machine
+    docker:
+      - image: circleci/openjdk:11-jdk
     steps:
       - checkout
-      - run: *install_java
-      - run: *configure_java
       - restore_cache: *restore_cache
       - run:
           name: Sonar Scan
           command: |
-            ./gradlew sonarqube \
+            ./gradlew sonarqube gradlew assemble -x dockerfileZip -x docker -x check \
             -Dsonar.projectKey=ion-search \
             -Donsar.projectName="ion-search" \
             -Dsonar.organization=cx \
