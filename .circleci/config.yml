@@ -86,7 +86,7 @@ jobs:
           name: OWASP
           command: |
             ./gradlew dependencyCheckAnalyze -x test
-  Scan Docker Image:
+  Anchore:
     executor: anchore/anchore_engine
     steps:
       - setup_remote_docker:
@@ -122,6 +122,6 @@ workflows:
           requires:
             - Assemble
 # TODO Find a way to suppress vulnerabilities and/or upgrade container dependencies
-#      - Scan Docker Image:
+#      - Anchore:
 #          requires:
 #            - Assemble
