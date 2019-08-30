@@ -24,15 +24,16 @@ jobs:
             - gradle-repo-v1-
       - run:
           name: Gradle Tasks
-          command: >
-            ./gradlew build dependencyCheckAnalyze sonarqube --info
-              -Dsonar.projectKey=$CIRCLE_PROJECT_REPONAME
-              -Dsonar.organization=cx
-              -Dsonar.host.url=https://sonarcloud.io
-              -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/}
-              -Dsonar.pullrequest.branch=$CIRCLE_BRANCH
-              -Dsonar.pullrequest.base=master
-              -Dsonar.login=$SONAR_TOKEN
+          command: |
+            ./gradlew build dependencyCheckAnalyze
+            ./gradle sonarqube
+              -Dsonar.projectKey=$CIRCLE_PROJECT_REPONAME \
+              -Dsonar.organization=cx \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} \
+              -Dsonar.pullrequest.branch=$CIRCLE_BRANCH \
+              -Dsonar.pullrequest.base=master \
+              -Dsonar.login=$SONAR_TOKEN \
       - save_cache:
           paths:
             - ~/.gradle
