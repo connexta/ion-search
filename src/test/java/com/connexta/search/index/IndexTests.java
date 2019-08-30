@@ -35,6 +35,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.StringUtils;
 import org.apache.solr.common.params.SolrParams;
+import org.geotools.data.DataStore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@MockBean(DataStore.class)
 public class IndexTests {
 
   @MockBean private SolrClient mockSolrClient;

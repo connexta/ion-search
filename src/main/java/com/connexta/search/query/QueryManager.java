@@ -12,11 +12,12 @@ import java.util.List;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import org.geotools.filter.text.cql2.CQLException;
 
 public interface QueryManager {
 
   @NotNull
   List<URI> find(
-      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 100) final String keyword)
-      throws QueryException;
+      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 100) final String cqlString)
+      throws QueryException, CQLException;
 }

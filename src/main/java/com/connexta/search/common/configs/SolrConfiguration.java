@@ -6,37 +6,27 @@
  */
 package com.connexta.search.common.configs;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.solr.core.SolrTemplate;
-import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 
-@EnableSolrRepositories(basePackages = "com.connexta.search.common")
 @Configuration
 public class SolrConfiguration {
 
-  @Bean
-  public SolrClient solrClient(@NotNull final SolrClientConfiguration configuration) {
-    return new HttpSolrClient.Builder(
-            String.format("http://%s:%d/solr", configuration.getHost(), configuration.getPort()))
-        .build();
-  }
-
-  @Bean
-  public SolrTemplate solrTemplate(@NotNull final SolrClient client) {
-    return new SolrTemplate(client);
-  }
+  public static final String SOLR_COLLECTION = "searchTerms";
+  public static final String CONTENTS_ATTRIBUTE_NAME = "contents";
+  public static final String ID_ATTRIBUTE_NAME = "id";
+  public static final String LAYER_NAME = "";
 
   @Bean
   @Profile("production")
-  public SolrClientConfiguration solrClientConfiguration(
-      @NotBlank @Value("${solr.host}") final String host, @Value("${solr.port}") final int port) {
-    return new SolrClientConfiguration(host, port);
+  public URL solrUrl(
+      @NotBlank @Value("${solr.host}") final String host, @Value("${solr.port}") final int port)
+      throws MalformedURLException {
+    return new URL("http", host, port, "/solr");
   }
 }

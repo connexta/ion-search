@@ -6,50 +6,50 @@
  */
 package com.connexta.search.query;
 
-import com.connexta.search.common.Index;
-import com.connexta.search.common.IndexCrudRepository;
+import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.query.exceptions.QueryException;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessResourceFailureException;
+import org.geotools.data.DataStore;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.util.FeatureStreams;
+import org.geotools.filter.text.cql2.CQL;
+import org.geotools.filter.text.cql2.CQLException;
+import org.opengis.feature.Feature;
+import org.opengis.filter.Filter;
 
 @Slf4j
 public class QueryManagerImpl implements QueryManager {
 
-  @NotNull private final IndexCrudRepository indexCrudRepository;
   @NotBlank private final String endpointUrlRetrieve;
+  @NotNull private final DataStore dataStore;
 
   public QueryManagerImpl(
-      @NotNull final IndexCrudRepository indexCrudRepository,
-      @NotBlank final String retrieveEndpoint) {
-    this.indexCrudRepository = indexCrudRepository;
+      @NotNull final DataStore dataStore, @NotBlank final String retrieveEndpoint) {
     this.endpointUrlRetrieve = retrieveEndpoint;
+    this.dataStore = dataStore;
   }
 
+  /** TODO Implement error handling instead of throwing CQLException */
   @Override
-  public List<URI> find(String keyword) throws QueryException {
-    final List<Index> matchingIndices;
+  public List<URI> find(final String cqlString) throws QueryException, CQLException {
+    final List<String> matchingIds;
     try {
-      matchingIndices = indexCrudRepository.findByContents(keyword);
-    } catch (RuntimeException e) {
-      // TODO remove this check once solr is deployed independently
-      if (e instanceof DataAccessResourceFailureException && indexCrudRepository.count() == 0) {
-        log.warn("Solr is empty. Returning empty search results.");
-        return Collections.emptyList();
-      }
-
-      throw new QueryException("Unable to search for " + keyword, e);
+      matchingIds = doQuery(cqlString);
+    } catch (RuntimeException | IOException e) {
+      throw new QueryException("Unable to search for " + cqlString, e);
     }
 
     final List<URI> uris = new ArrayList<>();
-    for (final Index index : matchingIndices) {
-      final String id = index.getId();
+    for (final String id : matchingIds) {
       final URI uri;
       try {
         uri = new URI(endpointUrlRetrieve + id);
@@ -64,5 +64,18 @@ public class QueryManagerImpl implements QueryManager {
     }
 
     return Collections.unmodifiableList(uris);
+  }
+
+  private List<String> doQuery(@NotBlank final String cqlString) throws CQLException, IOException {
+    final Filter filter = CQL.toFilter(cqlString);
+    final SimpleFeatureCollection simpleFeatureCollection =
+        dataStore.getFeatureSource(SolrConfiguration.LAYER_NAME).getFeatures(filter);
+    final List<Feature> features =
+        FeatureStreams.toFeatureStream(simpleFeatureCollection).collect(Collectors.toList());
+    return features.stream()
+        .map(
+            feature ->
+                feature.getProperty(SolrConfiguration.ID_ATTRIBUTE_NAME).getValue().toString())
+        .collect(Collectors.toList());
   }
 }

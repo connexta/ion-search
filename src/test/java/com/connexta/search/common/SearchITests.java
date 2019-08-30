@@ -6,20 +6,21 @@
  */
 package com.connexta.search.common;
 
-import static com.connexta.search.common.Index.SOLR_COLLECTION;
+import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-import com.connexta.search.common.configs.SolrClientConfiguration;
+import com.connexta.search.common.configs.SolrConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
@@ -72,9 +73,12 @@ public class SearchITests {
   static class Config {
 
     @Bean
-    public SolrClientConfiguration testSolrClientConfiguration() {
-      return new SolrClientConfiguration(
-          solrContainer.getContainerIpAddress(), solrContainer.getMappedPort(SOLR_PORT));
+    public URL solrUrl() throws MalformedURLException {
+      return new URL(
+          "http",
+          solrContainer.getContainerIpAddress(),
+          solrContainer.getMappedPort(SOLR_PORT),
+          "/solr");
     }
   }
 
@@ -86,6 +90,7 @@ public class SearchITests {
 
   @BeforeEach
   public void beforeEach() throws IOException, SolrServerException {
+    // TODO shouldn't
     solrClient.deleteByQuery(SOLR_COLLECTION, "*");
     solrClient.commit(SOLR_COLLECTION);
   }
@@ -145,7 +150,8 @@ public class SearchITests {
     // then
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", queryKeyword);
+    queryUriBuilder.setParameter(
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + queryKeyword + "'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(productLocation));
@@ -175,7 +181,8 @@ public class SearchITests {
     // then
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", queryKeyword);
+    queryUriBuilder.setParameter(
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + queryKeyword + "'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(equalTo(productLocation)));
@@ -209,19 +216,30 @@ public class SearchITests {
     // then query should still work
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", queryKeyword);
+    queryUriBuilder.setParameter(
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + queryKeyword + "'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(productLocation));
   }
 
-  @Test
-  public void testQuery() throws Exception {
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(
+      strings = {
+        SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " = 'first product metadata'",
+        SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE 'first'",
+        "id='000b27ffc35d46d9ba041f663d9ccaff'"
+      })
+  public void testQuery(final String cqlString) throws Exception {
     // given a product is indexed
     final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
     restTemplate.put(
         firstLocation + "/cst",
         createIndexRequest("{\"ext.extracted.text\":\"first product metadata\"}"));
+    final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
+    final String firstLocation = retrieveEndpoint + firstId;
+    final String firstProductContents = "first product metadata";
+    restTemplate.put(firstLocation + "/cst", createIndexRequest(firstProductContents));
 
     // and another product is indexed
     final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
@@ -241,7 +259,7 @@ public class SearchITests {
     queryUriBuilder.setParameter("q", "metadata");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
-        hasItems(firstLocation, secondLocation, thirdLocation));
+        allOf(hasItem(firstLocation), not(hasItem(secondLocation)), not(hasItem(thirdLocation))));
   }
 
   @Test
@@ -267,7 +285,8 @@ public class SearchITests {
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", "this keyword doesn't match any product");
+    queryUriBuilder.setParameter(
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE 'this doesn't match any product'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         allOf(
@@ -276,6 +295,7 @@ public class SearchITests {
             not(hasItem(thirdLocation))));
   }
 
+  // TODO test multiple results
   @Test
   public void testQueryMultipleResults() throws Exception {
     // given a product is indexed
@@ -301,7 +321,8 @@ public class SearchITests {
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", firstProductKeyword);
+    queryUriBuilder.setParameter(
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + firstProductKeyword + "'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(firstLocation));
@@ -311,7 +332,10 @@ public class SearchITests {
   public void testQueryWhenSolrIsEmpty() throws Exception {
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", "nothing is in solr so this won't match anything");
+    queryUriBuilder.setParameter(
+        "q",
+        SolrConfiguration.CONTENTS_ATTRIBUTE_NAME
+            + " LIKE 'nothing is in solr so this wont match anything'");
     assertThat(
         (List<URI>) restTemplate.getForObject(queryUriBuilder.build(), List.class), is(empty()));
   }

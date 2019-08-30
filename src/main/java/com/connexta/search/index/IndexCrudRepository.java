@@ -4,7 +4,7 @@
  * Released under the GNU Lesser General Public License version 3; see
  * https://www.gnu.org/licenses/lgpl-3.0.html
  */
-package com.connexta.search.common;
+package com.connexta.search.index;
 
 import java.util.List;
 import org.springframework.data.solr.UncategorizedSolrException;

@@ -27,8 +27,13 @@ group = "com.connexta.search"
 
 repositories {
     mavenLocal()
-    mavenCentral()
     maven { url "https://artifacts.codice.org/content/repositories/ion-releases/" }
+    // Geotools
+    maven { url "http://download.java.net/maven/2" }
+    maven { url "http://download.osgeo.org/webdav/geotools/" }
+    maven { url "http://repo.boundlessgeo.com/main" }
+    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -52,6 +57,11 @@ dependencies {
         exclude group: "junit", module: "junit" // excludes JUnit 4
     }
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.5.2"
+
+    // geotools
+    implementation "org.geotools:gt-shapefile:21.2"
+    implementation "org.geotools:gt-swing:21.2"
+    implementation "org.geotools:gt-solr:21.2"
 }
 
 sourceCompatibility = 1.11
