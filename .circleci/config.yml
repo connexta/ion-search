@@ -39,10 +39,11 @@ jobs:
             - ~/.m2
           key: gradle-repo-v1-{{ .Branch }}
       - store_test_results:
-          path: build/test-results
+          path: build/test-results/test/*
+          desitination: Test Results
       - store_artifacts:
-          path: build/reports/dependency-check-report.htmt
-          destination: owasp
+          path: build/reports/dependency-check-report.html
+          destination: OWASP
       - run:
           name: Make workspace directory
           command: mkdir -p workspace
