@@ -25,8 +25,7 @@ jobs:
       - run:
           name: Gradle Tasks
           command: |
-            ./gradlew build dependencyCheckAnalyze
-            ./gradle sonarqube
+            ./gradlew build dependencyCheckAnalyze sonarqube \
               -Dsonar.projectKey=$CIRCLE_PROJECT_REPONAME \
               -Dsonar.organization=cx \
               -Dsonar.host.url=https://sonarcloud.io \
