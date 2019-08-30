@@ -83,7 +83,3 @@ workflows:
     jobs:
       - Full Build:
           context: secrets
-# TODO Find a way to suppress vulnerabilities and/or upgrade container dependencies
-#      - Anchore:
-#          requires:
-#            - Full Build
