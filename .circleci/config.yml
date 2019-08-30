@@ -42,7 +42,7 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/test-results/test
-          desitination: "Test Results"
+          desitination: JUnit
       - store_artifacts:
           path: build/reports/dependency-check-report.html
           destination: OWASP
