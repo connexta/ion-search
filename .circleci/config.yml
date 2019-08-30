@@ -32,6 +32,7 @@ jobs:
               -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} \
               -Dsonar.pullrequest.branch=$CIRCLE_BRANCH \
               -Dsonar.pullrequest.base=master \
+              -Dsonar.verbose=true \
               -Dsonar.login=$SONAR_TOKEN \
       - save_cache:
           paths:
