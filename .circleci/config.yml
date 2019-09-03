@@ -25,14 +25,10 @@ jobs:
       - run:
           name: Gradle Tasks
           command: |
-            ./gradlew build dependencyCheckAnalyze sonarqube \
-              -Dsonar.projectKey=$CIRCLE_PROJECT_REPONAME \
-              -Dsonar.organization=cx \
-              -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} \
-              -Dsonar.pullrequest.branch=$CIRCLE_BRANCH \
-              -Dsonar.pullrequest.base=master \
-              -Dsonar.login=$SONAR_TOKEN \
+            if [[ ! -z $CIRCLE_PULL_REQUEST ]];
+            then
+              ./gradlew build dependencyCheckAnalyze sonarqube -Dsonar.pullrequest.provider=GitHub -Dsonar.pullrequest.github.repository=connexta/ion-search -Dsonar.projectKey=$CIRCLE_PROJECT_REPONAME -Dsonar.organization=cx -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} -Dsonar.pullrequest.base=master --info
+            fi
       - save_cache:
           paths:
             - ~/.gradle
