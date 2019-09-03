@@ -1,21 +1,21 @@
 version: 2.1
-#orbs:
-#  anchore: anchore/anchore-engine@1.4.0
+orbs:
+  anchore: anchore/anchore-engine@1.4.0
 jobs:
   Full Build:
     machine: &virtual_machine
       image: circleci/classic:latest
       docker_layer_caching: true
     steps:
-#      - run: &install_java
-#          name: Install Java 11
-#          command: |
-#            sudo add-apt-repository ppa:openjdk-r/ppa
-#            sudo apt-get -qq update
-#            sudo apt-get -qq install -y openjdk-11-jdk
-#      - run: &configure_java
-#          name: Change to Java 11
-#          command: sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
+      - run: &install_java
+          name: Install Java 11
+          command: |
+            sudo add-apt-repository ppa:openjdk-r/ppa
+            sudo apt-get -qq update
+            sudo apt-get -qq install -y openjdk-11-jdk
+      - run: &configure_java
+          name: Change to Java 11
+          command: sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
       - checkout
 #      - restore_cache: &restore_cache
 #          keys:
@@ -52,27 +52,27 @@ jobs:
 #          root: workspace
 #          paths:
 #            - ion-search.tar
-#  Anchore:
-#    executor: anchore/anchore_engine
-#    steps:
-#      - setup_remote_docker:
-#          docker_layer_caching: true
-#      - checkout
-#      - attach_workspace:
-#          at: /tmp/workspace
-#      - run:
-#          command: 'ls -al /tmp/workspace'
-#      - run:
-#          command: 'docker load -i /tmp/workspace/ion-search.tar'
-#      - anchore/analyze_local_image:
-#          dockerfile_path: ./Dockerfile
-#          image_name: 'cnxta/ion-search'
-#          policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
-#          policy_failure: true
-#          timeout: '500'
-#      - anchore/parse_reports
-#      - store_artifacts:
-#          path: anchore-reports
+  Anchore:
+    executor: anchore/anchore_engine
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          command: 'ls -al /tmp/workspace'
+      - run:
+          command: 'docker load -i /tmp/workspace/ion-search.tar'
+      - anchore/analyze_local_image:
+          dockerfile_path: ./Dockerfile
+          image_name: 'cnxta/ion-search'
+          policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
+          policy_failure: true
+          timeout: '500'
+      - anchore/parse_reports
+      - store_artifacts:
+          path: anchore-reports
 workflows:
   version: 2.1
   Full Build:
