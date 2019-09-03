@@ -4,24 +4,24 @@ orbs:
 jobs:
   Full Build:
     machine: &virtual_machine
-      image: circleci/classic:latest
+      image: circleci/openjdk:11-jdk
       docker_layer_caching: true
     steps:
-      - run: &install_java
-          name: Install Java 11
-          command: |
-            sudo add-apt-repository ppa:openjdk-r/ppa
-            sudo apt-get -qq update
-            sudo apt-get -qq install -y openjdk-11-jdk
-      - run: &configure_java
-          name: Change to Java 11
-          command: sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
-      - checkout
-      - restore_cache: &restore_cache
-          keys:
-            # Use increasingly general patterns to restore cache
-            - gradle-repo-v1-{{ .Branch }}-
-            - gradle-repo-v1-
+#      - run: &install_java
+#          name: Install Java 11
+#          command: |
+#            sudo add-apt-repository ppa:openjdk-r/ppa
+#            sudo apt-get -qq update
+#            sudo apt-get -qq install -y openjdk-11-jdk
+#      - run: &configure_java
+#          name: Change to Java 11
+#          command: sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
+#      - checkout
+#      - restore_cache: &restore_cache
+#          keys:
+#            # Use increasingly general patterns to restore cache
+#            - gradle-repo-v1-{{ .Branch }}-
+#            - gradle-repo-v1-
       - run:
           name: Gradle Tasks
           command: |
@@ -29,50 +29,50 @@ jobs:
             then
               ./gradlew sonarqube -Dsonar.pullrequest.provider=GitHub -Dsonar.pullrequest.github.repository=connexta/ion-search -Dsonar.projectKey=$CIRCLE_PROJECT_REPONAME -Dsonar.organization=cx -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} -Dsonar.pullrequest.base=master --info
             fi
-      - save_cache:
-          paths:
-            - ~/.gradle
-            - ~/.m2
-          key: gradle-repo-v1-{{ .Branch }}
-      - store_test_results:
-          path: build/test-results
-      - store_artifacts:
-          path: build/test-results/test
-          desitination: JUnit
-      - store_artifacts:
-          path: build/reports/dependency-check-report.html
-          destination: OWASP
-      - run:
-          name: Make workspace directory
-          command: mkdir -p workspace
-      - run:
-          name: Create docker images
-          command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - ion-search.tar
-  Anchore:
-    executor: anchore/anchore_engine
-    steps:
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - checkout
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          command: 'ls -al /tmp/workspace'
-      - run:
-          command: 'docker load -i /tmp/workspace/ion-search.tar'
-      - anchore/analyze_local_image:
-          dockerfile_path: ./Dockerfile
-          image_name: 'cnxta/ion-search'
-          policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
-          policy_failure: true
-          timeout: '500'
-      - anchore/parse_reports
-      - store_artifacts:
-          path: anchore-reports
+#      - save_cache:
+#          paths:
+#            - ~/.gradle
+#            - ~/.m2
+#          key: gradle-repo-v1-{{ .Branch }}
+#      - store_test_results:
+#          path: build/test-results
+#      - store_artifacts:
+#          path: build/test-results/test
+#          desitination: JUnit
+#      - store_artifacts:
+#          path: build/reports/dependency-check-report.html
+#          destination: OWASP
+#      - run:
+#          name: Make workspace directory
+#          command: mkdir -p workspace
+#      - run:
+#          name: Create docker images
+#          command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
+#      - persist_to_workspace:
+#          root: workspace
+#          paths:
+#            - ion-search.tar
+#  Anchore:
+#    executor: anchore/anchore_engine
+#    steps:
+#      - setup_remote_docker:
+#          docker_layer_caching: true
+#      - checkout
+#      - attach_workspace:
+#          at: /tmp/workspace
+#      - run:
+#          command: 'ls -al /tmp/workspace'
+#      - run:
+#          command: 'docker load -i /tmp/workspace/ion-search.tar'
+#      - anchore/analyze_local_image:
+#          dockerfile_path: ./Dockerfile
+#          image_name: 'cnxta/ion-search'
+#          policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
+#          policy_failure: true
+#          timeout: '500'
+#      - anchore/parse_reports
+#      - store_artifacts:
+#          path: anchore-reports
 workflows:
   version: 2.1
   Full Build:
