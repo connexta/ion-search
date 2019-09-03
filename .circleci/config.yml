@@ -16,7 +16,7 @@ jobs:
 #      - run: &configure_java
 #          name: Change to Java 11
 #          command: sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
-#      - checkout
+      - checkout
 #      - restore_cache: &restore_cache
 #          keys:
 #            # Use increasingly general patterns to restore cache
