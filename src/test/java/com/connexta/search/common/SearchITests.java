@@ -98,11 +98,11 @@ public class SearchITests {
     restTemplate.put(
         productLocation + "/cst",
         createIndexRequest(
-            "{contents:\""
+            "{ \"ext.extracted.text\" : \""
                 + ("All the color had been leached from "
                     + queryKeyword
                     + " until only grey and white remained")
-                + "\""));
+                + " \" }"));
 
     // then
     final URIBuilder queryUriBuilder = new URIBuilder();
@@ -118,7 +118,7 @@ public class SearchITests {
     // given index an initial product
     restTemplate.put(
         (retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff") + "/cst",
-        createIndexRequest("{contents:\"first product metadata\""));
+        createIndexRequest("{ \"ext.extracted.text\" : \"" + ("First product metadata") + " \" }"));
 
     // and create the index request for another product
     final String queryKeyword = "Winterfell";
@@ -128,11 +128,11 @@ public class SearchITests {
     restTemplate.put(
         productLocation + "/cst",
         createIndexRequest(
-            "{contents:\""
+            "{ \"ext.extracted.text\" : \""
                 + ("All the color had been leached from "
                     + queryKeyword
                     + " until only grey and white remained")
-                + "\""));
+                + " \" }"));
 
     // then
     final URIBuilder queryUriBuilder = new URIBuilder();
@@ -156,13 +156,17 @@ public class SearchITests {
     restTemplate.put(
         productLocation + "/cst",
         createIndexRequest(
-            "{contents:\"All the color had been leached from "
-                + queryKeyword
-                + " until only grey and white remained\""));
+            "{ \"ext.extracted.text\" : \""
+                + ("All the color had been leached from "
+                    + queryKeyword
+                    + " until only grey and white remained")
+                + " \" }"));
 
     // when index it again (override or same file doesn't matter)
     // TODO fix status code returned here
-    restTemplate.put(productLocation + "/cst", createIndexRequest("{contents:\"new contents\""));
+    restTemplate.put(
+        productLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"new \"ext.extracted.text\"\"}"));
 
     // then query should still work
     final URIBuilder queryUriBuilder = new URIBuilder();
@@ -178,22 +182,25 @@ public class SearchITests {
     // given a product is indexed
     final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
     restTemplate.put(
-        firstLocation + "/cst", createIndexRequest("{contents:\"first product metadata\""));
+        firstLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"first product metadata\"}"));
 
     // and another product is indexed
     final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
     restTemplate.put(
-        secondLocation + "/cst", createIndexRequest("{contents:\"second product metadata\""));
+        secondLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
     final String thirdLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
     restTemplate.put(
-        thirdLocation + "/cst", createIndexRequest("{contents:\"third product metadata\""));
+        thirdLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", "contents");
+    queryUriBuilder.setParameter("q", "metadata");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItems(firstLocation, secondLocation, thirdLocation));
@@ -204,17 +211,20 @@ public class SearchITests {
     // given a product is indexed
     final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
     restTemplate.put(
-        firstLocation + "/cst", createIndexRequest("{contents:\"first product metadata\""));
+        firstLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"first product metadata\"}"));
 
     // and another product is indexed
     final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
     restTemplate.put(
-        secondLocation + "/cst", createIndexRequest("{contents:\"second product metadata\""));
+        secondLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
     final String thirdLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
     restTemplate.put(
-        thirdLocation + "/cst", createIndexRequest("{contents:\"third product metadata\""));
+        thirdLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
@@ -235,17 +245,20 @@ public class SearchITests {
     final String firstProductKeyword = "first";
     restTemplate.put(
         firstLocation + "/cst",
-        createIndexRequest("{contents:\"" + firstProductKeyword + " product metadata\""));
+        createIndexRequest(
+            "{\"ext.extracted.text\":\"" + firstProductKeyword + " product metadata\"}"));
 
     // and another product is indexed
     final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
     restTemplate.put(
-        secondLocation + "/cst", createIndexRequest("{contents:\"second product metadata\""));
+        secondLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
     final String thirdLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
     restTemplate.put(
-        thirdLocation + "/cst", createIndexRequest("{contents:\"third product metadata\""));
+        thirdLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();

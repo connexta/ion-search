@@ -40,7 +40,6 @@ public class IndexController implements IndexApi {
     // TODO validate Accept-Version
     // TODO validate productId
 
-    final Long fileSize = file.getSize();
     // TODO validate that fileSize is (0 GB, 10 GB]
 
     final String mediaType = file.getContentType();

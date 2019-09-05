@@ -8,13 +8,13 @@ package com.connexta.search.index;
 
 import com.connexta.search.common.Index;
 import com.connexta.search.index.exceptions.IndexException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.data.repository.CrudRepository;
 
 @Slf4j
@@ -47,7 +47,7 @@ public class IndexManagerImpl implements IndexManager {
 
     final Index index;
     try {
-      index = new Index(productId, IOUtils.toString(inputStream, StandardCharsets.UTF_8));
+      index = new Index(productId, parseJson(inputStream).get("ext.extracted.text").asText());
     } catch (IOException e) {
       throw new IndexException("Unable to convert InputStream to String", e);
     }
@@ -58,5 +58,11 @@ public class IndexManagerImpl implements IndexManager {
     } catch (final Exception e) {
       throw new IndexException("Unable to save index", e);
     }
+  }
+
+  private JsonNode parseJson(InputStream stream) throws IOException {
+    final ObjectMapper objectMapper;
+    objectMapper = new ObjectMapper();
+    return objectMapper.readTree(stream);
   }
 }
