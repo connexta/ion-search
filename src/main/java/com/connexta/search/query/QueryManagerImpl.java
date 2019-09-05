@@ -55,10 +55,9 @@ public class QueryManagerImpl implements QueryManager {
         uri = new URI(endpointUrlRetrieve + id);
       } catch (URISyntaxException e) {
         throw new QueryException(
-            "Unable to construct retrieve URI from endpointUrlRetrieve="
-                + endpointUrlRetrieve
-                + " and id="
-                + id,
+            String.format(
+                "Unable to construct retrieve URI from endpointUrlRetrieve=%s and id=%s",
+                endpointUrlRetrieve, id),
             e);
       }
       uris.add(uri);

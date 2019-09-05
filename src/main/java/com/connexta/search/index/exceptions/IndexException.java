@@ -6,13 +6,20 @@
  */
 package com.connexta.search.index.exceptions;
 
-public class IndexException extends Exception {
+import com.connexta.search.common.exceptions.DetailedResponseStatusException;
+import org.springframework.http.HttpStatus;
 
-  public IndexException(String message, Throwable cause) {
-    super(message, cause);
+/**
+ * This exception means the indexing service was unable to successful complete a request to make
+ * data searchable.
+ */
+public class IndexException extends DetailedResponseStatusException {
+
+  public IndexException(HttpStatus status, String reason, Throwable cause) {
+    super(status, reason, cause);
   }
 
-  public IndexException(String message) {
-    super(message);
+  public IndexException(HttpStatus status, String reason) {
+    super(status, reason);
   }
 }

@@ -6,9 +6,22 @@
  */
 package com.connexta.search.query.exceptions;
 
-public class QueryException extends Exception {
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
-  public QueryException(String message, Throwable cause) {
-    super(message, cause);
+import com.connexta.search.common.exceptions.DetailedResponseStatusException;
+import org.springframework.http.HttpStatus;
+
+/**
+ * This exception means the query service was unable to successfully fulfill a request. This is also
+ * the base class of more specialized query exceptions.
+ */
+public class QueryException extends DetailedResponseStatusException {
+
+  public QueryException(HttpStatus status, String reason, Throwable cause) {
+    super(status, reason, cause);
+  }
+
+  public QueryException(String reason, Throwable cause) {
+    this(INTERNAL_SERVER_ERROR, reason, cause);
   }
 }

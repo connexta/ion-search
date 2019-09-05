@@ -15,5 +15,5 @@ public interface IndexManager {
 
   void index(
       @NotBlank String productId, @NotBlank String mediaType, @NotNull InputStream inputStream)
-      throws UnsupportedOperationException, IndexException;
+      throws IndexException;
 }

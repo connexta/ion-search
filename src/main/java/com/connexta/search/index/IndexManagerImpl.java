@@ -6,6 +6,8 @@
  */
 package com.connexta.search.index;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
 import com.connexta.search.common.Index;
 import com.connexta.search.index.exceptions.IndexException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,6 +41,7 @@ public class IndexManagerImpl implements IndexManager {
 
     if (!StringUtils.equals(mediaType, ContentType.APPLICATION_JSON.getMimeType())) {
       throw new IndexException(
+          INTERNAL_SERVER_ERROR,
           "Expected the content type to be "
               + ContentType.APPLICATION_JSON.getMimeType()
               + " , but was "
@@ -49,24 +52,25 @@ public class IndexManagerImpl implements IndexManager {
     try {
       idAlreadyExists = crudRepository.existsById(productId);
     } catch (final Exception e) {
-      throw new IndexException("Unable to query index", e);
+      throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to query index", e);
     }
     if (idAlreadyExists) {
-      throw new IndexException("Product already exists. Overriding is not supported");
+      throw new IndexException(
+          INTERNAL_SERVER_ERROR, "Product already exists. Overriding is not supported");
     }
 
     final String contents;
     try {
       contents = getElement(parseJson(inputStream), EXT_EXTRACTED_TEXT);
     } catch (IOException e) {
-      throw new IndexException("Unable to convert InputStream to JSON", e);
+      throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to convert InputStream to JSON", e);
     }
 
     log.info("Attempting to index product id {}", productId);
     try {
       crudRepository.save(new Index(productId, contents));
     } catch (final Exception e) {
-      throw new IndexException("Unable to save index", e);
+      throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
     }
   }
 
@@ -78,7 +82,7 @@ public class IndexManagerImpl implements IndexManager {
 
   private static String getElement(JsonNode json, String fieldName) throws IndexException {
     if (json.get(fieldName) == null) {
-      throw new IndexException("JSON is malformed");
+      throw new IndexException(INTERNAL_SERVER_ERROR, "JSON is malformed");
     }
     return json.get(fieldName).asText();
   }

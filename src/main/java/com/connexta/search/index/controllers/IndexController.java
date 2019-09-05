@@ -48,29 +48,14 @@ public class IndexController implements IndexApi {
     try {
       inputStream = file.getInputStream();
     } catch (IOException e) {
-      log.warn(
-          "Unable to read file for index request with params acceptVersion={}, productId={}, mediaType={}",
-          acceptVersion,
-          productId,
-          mediaType,
+      throw new IndexException(
+          HttpStatus.BAD_REQUEST,
+          String.format(
+              "Unable to read file for index request with params acceptVersion=%s, productId=%s, mediaType=%s",
+              acceptVersion, productId, mediaType),
           e);
-      return ResponseEntity.badRequest().build();
     }
-
-    try {
-      indexManager.index(productId, mediaType, inputStream);
-    } catch (IndexException e) {
-      log.warn(
-          "Unable to complete index request with params acceptVersion={}, productId={}, metadataType={}}, mediaType={}",
-          acceptVersion,
-          productId,
-          mediaType,
-          e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-    } catch (UnsupportedOperationException e) {
-      return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
-    }
-
+    indexManager.index(productId, mediaType, inputStream);
     return ResponseEntity.ok().build();
   }
 }
