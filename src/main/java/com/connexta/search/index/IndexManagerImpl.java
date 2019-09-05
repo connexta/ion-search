@@ -16,10 +16,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 public class IndexManagerImpl implements IndexManager {
 
+  public static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
   private final CrudRepository crudRepository;
 
   public IndexManagerImpl(@NotNull final CrudRepository crudRepository) {
@@ -30,10 +33,13 @@ public class IndexManagerImpl implements IndexManager {
   public void index(
       @NotBlank final String productId,
       @NotBlank final String mediaType,
-      @NotNull final InputStream inputStream)
+      @NotNull final MultipartFile file)
       throws IndexException {
-    // TODO verify Media Type for CST
     // TODO check that the product exists in S3
+
+    if (!mediaType.equals(MediaType.APPLICATION_JSON_VALUE)) {
+      throw new IndexException("The CST file's media type is not application/json");
+    }
 
     final boolean idAlreadyExists;
     try {
@@ -47,9 +53,10 @@ public class IndexManagerImpl implements IndexManager {
 
     final Index index;
     try {
-      index = new Index(productId, parseJson(inputStream).get("ext.extracted.text").asText());
+      JsonNode jsonNode = parseJson(file.getInputStream());
+      index = new Index(productId, getElement(jsonNode, EXT_EXTRACTED_TEXT));
     } catch (IOException e) {
-      throw new IndexException("Unable to convert InputStream to String", e);
+      throw new IndexException("Unable to convert InputStream to JSON", e);
     }
 
     log.info("Attempting to index product id {}", productId);
@@ -64,5 +71,9 @@ public class IndexManagerImpl implements IndexManager {
     final ObjectMapper objectMapper;
     objectMapper = new ObjectMapper();
     return objectMapper.readTree(stream);
+  }
+
+  private String getElement(JsonNode json, String fieldName) {
+    return json.get(fieldName).asText();
   }
 }

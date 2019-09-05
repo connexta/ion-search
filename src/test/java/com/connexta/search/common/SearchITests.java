@@ -280,20 +280,20 @@ public class SearchITests {
 
   private static HttpEntity createIndexRequest(final String fileString) throws IOException {
     // TODO replace with request class from api dependency
-    final InputStream thirdMetadataInputStream = IOUtils.toInputStream(fileString, "UTF-8");
+    final InputStream metadataInputStream = IOUtils.toInputStream(fileString, "UTF-8");
     final MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
     requestBody.add(
         "file",
-        new InputStreamResource(thirdMetadataInputStream) {
+        new InputStreamResource(metadataInputStream) {
 
           @Override
           public long contentLength() throws IOException {
-            return thirdMetadataInputStream.available();
+            return metadataInputStream.available();
           }
 
           @Override
           public String getFilename() {
-            return "test_file_name.txt";
+            return "test_file.json";
           }
         });
     final HttpHeaders httpHeaders = new HttpHeaders();
