@@ -78,7 +78,7 @@ public class IndexManagerImpl implements IndexManager {
 
   private static String getElement(JsonNode json, String fieldName) throws IndexException {
     if (json.get(fieldName) == null) {
-      throw new IndexException("JSON is null");
+      throw new IndexException("JSON is malformed");
     }
     return json.get(fieldName).asText();
   }
