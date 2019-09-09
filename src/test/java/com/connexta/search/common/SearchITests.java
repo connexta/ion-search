@@ -30,6 +30,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -39,6 +41,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.LinkedMultiValueMap;
@@ -88,13 +93,46 @@ public class SearchITests {
   @Test
   public void testContextLoads() {}
 
+  @ParameterizedTest
+  @ValueSource(strings = {"", " ", "text"})
+  public void testStoringValidCst(String contents) throws Exception {
+    // given
+    final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+
+    // when indexing a product
+    ResponseEntity<String> response =
+        restTemplate.exchange(
+            productLocation + "/cst",
+            HttpMethod.PUT,
+            createIndexRequest("{ \"ext.extracted.text\" : \"" + contents + "\" }"),
+            String.class);
+
+    // then
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"", "{}", "{ \"\": \"text\"}"})
+  public void testStoringInvalidCst(String contents) throws IOException {
+    // given
+    final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+
+    // when indexing a product
+    ResponseEntity<String> response =
+        restTemplate.exchange(
+            productLocation + "/cst", HttpMethod.PUT, createIndexRequest(contents), String.class);
+
+    // then
+    assertThat(response.getStatusCode(), is(HttpStatus.INTERNAL_SERVER_ERROR));
+  }
+
   @Test
   public void testStoreMetadataCstWhenSolrIsEmpty() throws Exception {
     // given
     final String queryKeyword = "Winterfell";
     final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
 
-    // when index a product
+    // when indexing a product
     restTemplate.put(
         productLocation + "/cst",
         createIndexRequest(
@@ -124,7 +162,7 @@ public class SearchITests {
     final String queryKeyword = "Winterfell";
     final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
 
-    // when index another product
+    // when indexing another product
     restTemplate.put(
         productLocation + "/cst",
         createIndexRequest(
@@ -162,7 +200,7 @@ public class SearchITests {
                     + " until only grey and white remained")
                 + " \" }"));
 
-    // when index it again (override or same file doesn't matter)
+    // when indexing it again (override or same file doesn't matter)
     // TODO fix status code returned here
     restTemplate.put(
         productLocation + "/cst",

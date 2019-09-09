@@ -9,6 +9,8 @@ package com.connexta.search.index.controllers;
 import com.connexta.search.index.IndexManager;
 import com.connexta.search.index.exceptions.IndexException;
 import com.connexta.search.rest.spring.IndexApi;
+import java.io.IOException;
+import java.io.InputStream;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -38,15 +40,25 @@ public class IndexController implements IndexApi {
     // TODO validate Accept-Version
     // TODO validate productId
 
-    // TODO validate that fileSize is (0 GB, 10 GB]
-
     final String mediaType = file.getContentType();
-    // TODO verify that mediaType is not blank and is a valid Content Type
 
     // TODO handle when CST has already been stored
 
+    final InputStream inputStream;
     try {
-      indexManager.index(productId, mediaType, file);
+      inputStream = file.getInputStream();
+    } catch (IOException e) {
+      log.warn(
+          "Unable to read file for index request with params acceptVersion={}, productId={}, mediaType={}",
+          acceptVersion,
+          productId,
+          mediaType,
+          e);
+      return ResponseEntity.badRequest().build();
+    }
+
+    try {
+      indexManager.index(productId, mediaType, inputStream);
     } catch (IndexException e) {
       log.warn(
           "Unable to complete index request with params acceptVersion={}, productId={}, metadataType={}}, mediaType={}",

@@ -15,14 +15,14 @@ import java.io.InputStream;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.http.MediaType;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 public class IndexManagerImpl implements IndexManager {
 
-  public static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
+  private static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
   private final CrudRepository crudRepository;
 
   public IndexManagerImpl(@NotNull final CrudRepository crudRepository) {
@@ -33,12 +33,16 @@ public class IndexManagerImpl implements IndexManager {
   public void index(
       @NotBlank final String productId,
       @NotBlank final String mediaType,
-      @NotNull final MultipartFile file)
+      @NotNull final InputStream inputStream)
       throws IndexException {
     // TODO check that the product exists in S3
 
-    if (!mediaType.equals(MediaType.APPLICATION_JSON_VALUE)) {
-      throw new IndexException("The CST file's media type is not application/json");
+    if (!StringUtils.equals(mediaType, ContentType.APPLICATION_JSON.getMimeType())) {
+      throw new IndexException(
+          "Expected the content type to be "
+              + ContentType.APPLICATION_JSON.getMimeType()
+              + " , but was "
+              + mediaType);
     }
 
     final boolean idAlreadyExists;
@@ -51,29 +55,31 @@ public class IndexManagerImpl implements IndexManager {
       throw new IndexException("Product already exists. Overriding is not supported");
     }
 
-    final Index index;
+    final String contents;
     try {
-      JsonNode jsonNode = parseJson(file.getInputStream());
-      index = new Index(productId, getElement(jsonNode, EXT_EXTRACTED_TEXT));
+      contents = getElement(parseJson(inputStream), EXT_EXTRACTED_TEXT);
     } catch (IOException e) {
       throw new IndexException("Unable to convert InputStream to JSON", e);
     }
 
     log.info("Attempting to index product id {}", productId);
     try {
-      crudRepository.save(index);
+      crudRepository.save(new Index(productId, contents));
     } catch (final Exception e) {
       throw new IndexException("Unable to save index", e);
     }
   }
 
-  private JsonNode parseJson(InputStream stream) throws IOException {
+  private static JsonNode parseJson(InputStream stream) throws IOException {
     final ObjectMapper objectMapper;
     objectMapper = new ObjectMapper();
     return objectMapper.readTree(stream);
   }
 
-  private String getElement(JsonNode json, String fieldName) {
+  private static String getElement(JsonNode json, String fieldName) throws IndexException {
+    if (json.get(fieldName) == null) {
+      throw new IndexException("JSON is null");
+    }
     return json.get(fieldName).asText();
   }
 }

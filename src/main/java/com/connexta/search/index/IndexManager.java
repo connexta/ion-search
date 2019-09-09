@@ -7,12 +7,13 @@
 package com.connexta.search.index;
 
 import com.connexta.search.index.exceptions.IndexException;
+import java.io.InputStream;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface IndexManager {
 
-  void index(@NotBlank String productId, @NotBlank String mediaType, @NotNull MultipartFile file)
+  void index(
+      @NotBlank String productId, @NotBlank String mediaType, @NotNull InputStream inputStream)
       throws UnsupportedOperationException, IndexException;
 }
