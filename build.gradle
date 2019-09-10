@@ -26,14 +26,26 @@ plugins {
 group = "com.connexta.search"
 
 repositories {
+    // Geotools
+    maven {
+        url "http://repo.boundlessgeo.com/main"
+    }
+    maven { url "http://download.osgeo.org/webdav/geotools/" }
+    maven { url "http://download.java.net/maven/2" }
     mavenLocal()
     maven { url "https://artifacts.codice.org/content/repositories/ion-releases/" }
-    // Geotools
-    maven { url "http://download.java.net/maven/2" }
-    maven { url "http://download.osgeo.org/webdav/geotools/" }
-    maven { url "http://repo.boundlessgeo.com/main" }
-    jcenter()
-    mavenCentral()
+    // Gradle ignore the the previous repos and tries to only download the commons-beanutils
+    // dependencies form jcenter and mavenCentral
+    jcenter() {
+        content {
+            excludeGroupByRegex "commons-beanutils"
+        }
+    }
+    mavenCentral() {
+        content {
+            excludeGroupByRegex "commons-beanutils"
+        }
+    }
 }
 
 dependencies {
