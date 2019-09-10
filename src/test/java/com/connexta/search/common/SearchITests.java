@@ -232,13 +232,9 @@ public class SearchITests {
       })
   public void testQuery(final String cqlString) throws Exception {
     // given a product is indexed
-    final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
-    restTemplate.put(
-        firstLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"first product metadata\"}"));
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstLocation = retrieveEndpoint + firstId;
-    final String firstProductContents = "first product metadata";
+    final String firstProductContents = "{\"ext.extracted.text\":\"first product metadata\"}";
     restTemplate.put(firstLocation + "/cst", createIndexRequest(firstProductContents));
 
     // and another product is indexed
@@ -256,7 +252,7 @@ public class SearchITests {
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", "metadata");
+    queryUriBuilder.setParameter("q", cqlString);
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         allOf(hasItem(firstLocation), not(hasItem(secondLocation)), not(hasItem(thirdLocation))));
