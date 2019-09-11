@@ -118,6 +118,22 @@ After configuring the build system:
 ./gradlew deploy
 ```
 
+### Querying
+The Search service indexes a CST file into Solr to provide attributes that can be used to form
+queries. These queries are formed by passing a valid CommonQL query string as a path parameter
+(`q`) on the query endpoint: `/search`. This endpoint takes the query string, creates a CommonQl
+filter and uses that to query Solr. If the query has any matches, a list of URLs for the matching
+products will be returned in the response.
+
+The following are valid query attributes:
+-   #### ID
+    The `id` query attribute refers to the unique ID that is associated with each product. A client
+    can perform keyword queries with this attribute.
+
+-   #### Contents
+    The `contents` query attribute refers to the `ext.extracted.text` field of the CST file. A client
+    can perform keyword queries with this attribute.
+
 ## Inspecting
 The service is deployed with (Springfox) **Swagger UI**.
 This library uses Spring Boot annotations to create documentation for the service endpoints.

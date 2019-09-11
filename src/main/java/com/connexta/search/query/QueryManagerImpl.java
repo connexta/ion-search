@@ -39,7 +39,6 @@ public class QueryManagerImpl implements QueryManager {
     this.dataStore = dataStore;
   }
 
-  /** TODO Implement error handling instead of throwing CQLException */
   @Override
   public List<URI> find(final String cqlString) throws QueryException {
     final List<String> matchingIds;
@@ -76,7 +75,7 @@ public class QueryManagerImpl implements QueryManager {
     try {
       filter = CQL.toFilter(cqlString);
     } catch (final CQLException e) {
-      throw new QueryException(HttpStatus.BAD_REQUEST, "query string has syntax errors", e);
+      throw new QueryException(HttpStatus.BAD_REQUEST, "Invalid CQL query string", e);
     }
 
     final SimpleFeatureCollection simpleFeatureCollection =
