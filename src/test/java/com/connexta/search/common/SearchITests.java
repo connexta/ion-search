@@ -282,7 +282,7 @@ public class SearchITests {
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
     queryUriBuilder.setParameter(
-        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE 'this doesn't match any product'");
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE 'this doesn''t match any product'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         allOf(

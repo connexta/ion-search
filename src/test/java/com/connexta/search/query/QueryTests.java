@@ -107,6 +107,13 @@ public class QueryTests {
         Arguments.of(
             "blank keyword",
             MockMvcRequestBuilders.get(
-                new URIBuilder().setPath("/search").setParameter("q", "").build())));
+                new URIBuilder().setPath("/search").setParameter("q", "").build())),
+        Arguments.of(
+            "invalid CQL query",
+            MockMvcRequestBuilders.get(
+                new URIBuilder()
+                    .setPath("/search")
+                    .setParameter("q", "contents SORTALIKE 'metadata'")
+                    .build())));
   }
 }

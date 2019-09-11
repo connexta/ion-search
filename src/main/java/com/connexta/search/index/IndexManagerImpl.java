@@ -9,7 +9,6 @@ package com.connexta.search.index;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
-import com.connexta.search.common.Index;
 import com.connexta.search.index.exceptions.IndexException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

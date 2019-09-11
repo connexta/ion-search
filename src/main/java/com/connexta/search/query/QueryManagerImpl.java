@@ -25,6 +25,7 @@ import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
+import org.springframework.http.HttpStatus;
 
 @Slf4j
 public class QueryManagerImpl implements QueryManager {
@@ -40,10 +41,13 @@ public class QueryManagerImpl implements QueryManager {
 
   /** TODO Implement error handling instead of throwing CQLException */
   @Override
-  public List<URI> find(final String cqlString) throws QueryException, CQLException {
+  public List<URI> find(final String cqlString) throws QueryException {
     final List<String> matchingIds;
     try {
       matchingIds = doQuery(cqlString);
+    } catch (QueryException e) {
+      // rethrow for the exception handler to take care of
+      throw e;
     } catch (RuntimeException | IOException e) {
       throw new QueryException("Unable to search for " + cqlString, e);
     }
@@ -66,8 +70,15 @@ public class QueryManagerImpl implements QueryManager {
     return Collections.unmodifiableList(uris);
   }
 
-  private List<String> doQuery(@NotBlank final String cqlString) throws CQLException, IOException {
-    final Filter filter = CQL.toFilter(cqlString);
+  private List<String> doQuery(@NotBlank final String cqlString)
+      throws QueryException, IOException {
+    final Filter filter;
+    try {
+      filter = CQL.toFilter(cqlString);
+    } catch (final CQLException e) {
+      throw new QueryException(HttpStatus.BAD_REQUEST, "query string has syntax errors", e);
+    }
+
     final SimpleFeatureCollection simpleFeatureCollection =
         dataStore.getFeatureSource(SolrConfiguration.LAYER_NAME).getFeatures(filter);
     final List<Feature> features =
