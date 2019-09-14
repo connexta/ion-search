@@ -17,6 +17,10 @@ import org.springframework.http.HttpStatus;
  */
 public class QueryException extends DetailedResponseStatusException {
 
+  public QueryException(HttpStatus status, String reason) {
+    super(status, reason);
+  }
+
   public QueryException(HttpStatus status, String reason, Throwable cause) {
     super(status, reason, cause);
   }

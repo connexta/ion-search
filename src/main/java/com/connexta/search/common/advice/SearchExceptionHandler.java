@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.validation.ConstraintViolationException;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -40,14 +41,18 @@ public class SearchExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(QueryException.class)
   protected ResponseEntity<Object> handleQueryException(
       @NotNull final QueryException e, final WebRequest request) {
-    log.warn("Query exception", e);
-    return new ResponseEntity<>(e, e.getStatus());
+    log.warn("Exception while processing query: {}. Returning {}.", e.getReason(), BAD_REQUEST, e);
+    Map<String, Object> serializableError =
+        detailedErrorAttributes.getErrorAttributes(request, false);
+    return handleExceptionInternal(e, serializableError, new HttpHeaders(), e.getStatus(), request);
   }
 
   @ExceptionHandler(IndexException.class)
   protected ResponseEntity<Object> handleIndexException(
       @NotNull final IndexException e, final WebRequest request) {
-    log.warn("Index exception", e);
-    return new ResponseEntity<>(e, e.getStatus());
+    log.warn("Exception while indexing: {}. Returning {}.", e.getReason(), e.getStatus(), e);
+    Map<String, Object> serializableError =
+        detailedErrorAttributes.getErrorAttributes(request, false);
+    return handleExceptionInternal(e, serializableError, new HttpHeaders(), e.getStatus(), request);
   }
 }

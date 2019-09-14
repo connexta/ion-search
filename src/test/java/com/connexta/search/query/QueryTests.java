@@ -45,6 +45,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @MockBean(SolrClient.class)
 public class QueryTests {
 
+  public static final String URI_QUERY_PARAMETER = "q";
+  public static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents LIKE 'queryKeyword'";
+  public static final String INVALID_CQL_QUERY = "contents SORTALIKE 'metadata'";
+  public static final String UNSUPPORTED_TERM_QUERY = "city LIKE 'Paradise City'";
+  public static final String SEARCH_ENDPOINT = "/search";
+
   @MockBean private DataStore mockDataStore;
 
   @Inject private MockMvc mockMvc;
@@ -72,10 +78,11 @@ public class QueryTests {
   public void testGetFeatureSourceErrors(final Class<? extends Throwable> throwableType)
       throws Exception {
     when(mockDataStore.getFeatureSource(eq(SolrConfiguration.LAYER_NAME))).thenThrow(throwableType);
+    when(mockDataStore.getTypeNames()).thenReturn(new String[] {"id", "contents"});
 
     final URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setPath("/search");
-    uriBuilder.setParameter("q", "contents LIKE 'queryKeyword'");
+    uriBuilder.setPath(SEARCH_ENDPOINT);
+    uriBuilder.setParameter(URI_QUERY_PARAMETER, CONTENTS_LIKE_QUERY_KEYWORD);
     mockMvc
         .perform(MockMvcRequestBuilders.get(uriBuilder.build()))
         .andExpect(status().isInternalServerError());
@@ -94,8 +101,8 @@ public class QueryTests {
         .thenReturn(mockSimpleFeatureSource);
 
     final URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setPath("/search");
-    uriBuilder.setParameter("q", "contents LIKE 'queryKeyword'");
+    uriBuilder.setPath(SEARCH_ENDPOINT);
+    uriBuilder.setParameter(URI_QUERY_PARAMETER, CONTENTS_LIKE_QUERY_KEYWORD);
     mockMvc
         .perform(MockMvcRequestBuilders.get(uriBuilder.build()))
         .andExpect(status().isInternalServerError());
@@ -107,13 +114,23 @@ public class QueryTests {
         Arguments.of(
             "blank keyword",
             MockMvcRequestBuilders.get(
-                new URIBuilder().setPath("/search").setParameter("q", "").build())),
+                new URIBuilder()
+                    .setPath(SEARCH_ENDPOINT)
+                    .setParameter(URI_QUERY_PARAMETER, "")
+                    .build())),
+        Arguments.of(
+            "unsupported query attribute",
+            MockMvcRequestBuilders.get(
+                new URIBuilder()
+                    .setPath(SEARCH_ENDPOINT)
+                    .setParameter(URI_QUERY_PARAMETER, UNSUPPORTED_TERM_QUERY)
+                    .build())),
         Arguments.of(
             "invalid CQL query",
             MockMvcRequestBuilders.get(
                 new URIBuilder()
-                    .setPath("/search")
-                    .setParameter("q", "contents SORTALIKE 'metadata'")
+                    .setPath(SEARCH_ENDPOINT)
+                    .setParameter(URI_QUERY_PARAMETER, INVALID_CQL_QUERY)
                     .build())));
   }
 }

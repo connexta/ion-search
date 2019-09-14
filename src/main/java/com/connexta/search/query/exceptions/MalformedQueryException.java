@@ -8,12 +8,14 @@ package com.connexta.search.query.exceptions;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-import org.springframework.http.HttpStatus;
-
 /** This exception means the query service was unable to parse the query. */
 public class MalformedQueryException extends QueryException {
 
-  public MalformedQueryException(HttpStatus status, String reason, Throwable cause) {
+  public MalformedQueryException(String reason, Throwable cause) {
     super(BAD_REQUEST, reason, cause);
+  }
+
+  public MalformedQueryException(String reason) {
+    super(BAD_REQUEST, reason);
   }
 }
