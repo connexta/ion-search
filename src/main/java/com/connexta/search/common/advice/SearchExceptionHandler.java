@@ -46,7 +46,7 @@ public class SearchExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(IndexException.class)
   protected ResponseEntity<Object> handleIndexException(
-      @NotNull final QueryException e, final WebRequest request) {
+      @NotNull final IndexException e, final WebRequest request) {
     log.warn("Index exception", e);
     return new ResponseEntity<>(e, e.getStatus());
   }

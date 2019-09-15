@@ -6,6 +6,7 @@
  */
 package com.connexta.search.index;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import com.connexta.search.common.Index;
@@ -55,8 +56,7 @@ public class IndexManagerImpl implements IndexManager {
       throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to query index", e);
     }
     if (idAlreadyExists) {
-      throw new IndexException(
-          INTERNAL_SERVER_ERROR, "Product already exists. Overriding is not supported");
+      throw new IndexException(BAD_REQUEST, "Product already exists. Overwriting is not supported");
     }
 
     final String contents;

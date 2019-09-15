@@ -12,7 +12,6 @@ import java.net.URI;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +26,6 @@ public class QueryController implements QueryApi {
 
   @Override
   public ResponseEntity<List<URI>> query(final String q) {
-    return new ResponseEntity<>(queryManager.find(q), HttpStatus.OK);
+    return ResponseEntity.ok(queryManager.find(q));
   }
 }
