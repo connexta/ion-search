@@ -46,9 +46,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 public class QueryTests {
 
   public static final String URI_QUERY_PARAMETER = "q";
-  public static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents LIKE 'queryKeyword'";
-  public static final String INVALID_CQL_QUERY = "contents SORTALIKE 'metadata'";
-  public static final String UNSUPPORTED_TERM_QUERY = "city LIKE 'Paradise City'";
+  public static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents%20LIKE%20'queryKeyword'";
+  public static final String INVALID_CQL_QUERY = "contents%20SORTALIKE%20'metadata'";
+  public static final String UNSUPPORTED_TERM_QUERY = "city%20LIKE%20'Paradise City'";
   public static final String SEARCH_ENDPOINT = "/search";
 
   @MockBean private DataStore mockDataStore;
