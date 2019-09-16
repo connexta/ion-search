@@ -26,22 +26,20 @@ plugins {
 group = "com.connexta.search"
 
 repositories {
-    // Geotools
     maven { url "https://artifacts.codice.org/content/repositories/ion-releases/" }
     maven { url "http://download.osgeo.org/webdav/geotools/" }
+    //Needed for common-beanutils:1.9.2:noclassprop dependency
     maven { url "http://repo.boundlessgeo.com/main" }
     mavenLocal()
-    jcenter()
-}
-
-configurations.all {
-    resolutionStrategy {
-        dependencySubstitution {
-            substitute module("commons-beanutils:commons-beanutils:1.9.2") with module("commons-beanutils:commons-beanutils:1.9.4")
+    jcenter() {
+        content {
+            // Geotools uses a special version of the beanutils dependency that has the
+            // classifier "noclassprop". The artifact with this classifier exists on a Geotool
+            // repository, but not in Maven Central or JCenter.
+            excludeGroupByRegex "commons-beanutils"
         }
     }
 }
-
 
 dependencies {
     annotationProcessor "org.projectlombok:lombok:1.18.10"
