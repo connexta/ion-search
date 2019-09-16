@@ -11,12 +11,10 @@ import com.connexta.search.query.exceptions.IllegalQueryException;
 import com.connexta.search.query.exceptions.MalformedQueryException;
 import com.connexta.search.query.exceptions.QueryException;
 import com.google.common.annotations.VisibleForTesting;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.geotools.filter.Filters;
 import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
@@ -44,7 +42,7 @@ public class CommonQl {
    * @throws QueryException
    */
   public CommonQl validate() {
-    List<String> unsupportedAttributes = getUnsupportedQueryAttributes();
+    Set<String> unsupportedAttributes = extractUnsupportedAttributes();
     if (!unsupportedAttributes.isEmpty()) {
       throw new IllegalQueryException(
           String.format(
@@ -57,7 +55,7 @@ public class CommonQl {
    * Create the OGC Filter object represented by the query string. Retain the constructed filter in
    * a field. Throw an exception if the query string cannot be parsed.
    *
-   * @return
+   * @return OCG Filter
    * @throws MalformedQueryException
    */
   public Filter getFilter() {
@@ -72,23 +70,20 @@ public class CommonQl {
   }
 
   /**
-   * A helper method that collects all of the {@link org.geotools.xml.schema.Attribute} names from a
-   * {@link Filter} and compares them to the list of {@link SolrConfiguration} query terms.
+   * Collect {@link org.geotools.xml.schema.Attribute} names of query attributes used in the query
+   * string that are not supported. If the collection is empty, the query string contains only valid
+   * attribute names.
    *
    * @returns List of unsupported attributes names found in the query string
    * @throws MalformedQueryException
    */
   @VisibleForTesting
-  public List<String> getUnsupportedQueryAttributes() {
-    List<String> unsupportedAttributes = new ArrayList<>();
-    Set<String> supportedAttributes = SolrConfiguration.QUERY_TERMS;
-    for (PropertyName propertyName : Filters.propertyNames(getFilter())) {
-      String propertyNameString = propertyName.getPropertyName();
-      if (supportedAttributes.stream()
-          .noneMatch(attributeName -> StringUtils.equals(attributeName, propertyNameString))) {
-        unsupportedAttributes.add(propertyNameString);
-      }
-    }
-    return unsupportedAttributes;
+  Set<String> extractUnsupportedAttributes() {
+    Set<String> properties =
+        Filters.propertyNames(getFilter()).stream()
+            .map(PropertyName::getPropertyName)
+            .collect(Collectors.toSet());
+    properties.removeAll(SolrConfiguration.QUERY_TERMS);
+    return properties;
   }
 }

@@ -45,7 +45,7 @@ class CommonQlTest {
     CommonQl object = new CommonQl(QUERY_UNMATCHED_DELIM);
     assertThrows(MalformedQueryException.class, object::getFilter);
     assertThrows(MalformedQueryException.class, object::validate);
-    assertThrows(MalformedQueryException.class, object::getUnsupportedQueryAttributes);
+    assertThrows(MalformedQueryException.class, object::extractUnsupportedAttributes);
   }
 
   @Test
@@ -58,7 +58,7 @@ class CommonQlTest {
   @Test
   public void testFindingUnsupportedAttributes() {
     assertThat(
-        new CommonQl(QUERY_UNSUPPORTED_ATTRIBUTE).getUnsupportedQueryAttributes(),
+        new CommonQl(QUERY_UNSUPPORTED_ATTRIBUTE).extractUnsupportedAttributes(),
         hasItem(INVALID_ATTRIBUTE_NAME));
   }
 }
