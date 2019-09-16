@@ -119,11 +119,11 @@ After configuring the build system:
 ```
 
 ### Querying
-The Search service indexes a CST file into Solr to provide attributes that can be used to form
-queries. These queries are formed by passing a valid CommonQL query string as a path parameter
-(`q`) on the query endpoint: `/search`. This endpoint takes the query string, creates a CommonQl
-filter and uses that to query Solr. If the query has any matches, a list of URLs for the matching
-products will be returned in the response.
+The Search service can be queried for products. See the [Query Service API](https://github.com/connexta/ion-query-api)
+for information about paths and parameters
+The query service supports a subset of the OGC Catalogue Common Query Language (OGC CommonQL).
+See [Annex B - BNF Definition of OGC CommonQL](http://docs.opengeospatial.org/is/12-168r6/12-168r6.html#62) 
+for the definition of grammar.
 
 The following are valid query attributes:
 -   #### ID
@@ -131,8 +131,7 @@ The following are valid query attributes:
     can perform keyword queries with this attribute.
 
 -   #### Contents
-    The `contents` query attribute refers to the `ext.extracted.text` field of the CST file. A client
-    can perform keyword queries with this attribute.
+    A client can perform keyword queries with this attribute.
 
 ## Inspecting
 The service is deployed with (Springfox) **Swagger UI**.
