@@ -27,26 +27,21 @@ group = "com.connexta.search"
 
 repositories {
     // Geotools
-    maven {
-        url "http://repo.boundlessgeo.com/main"
-    }
-    maven { url "http://download.osgeo.org/webdav/geotools/" }
-    maven { url "http://download.java.net/maven/2" }
-    mavenLocal()
     maven { url "https://artifacts.codice.org/content/repositories/ion-releases/" }
-    // Gradle ignore the the previous repos and tries to only download the commons-beanutils
-    // dependencies form jcenter and mavenCentral
-    jcenter() {
-        content {
-            excludeGroupByRegex "commons-beanutils"
-        }
-    }
-    mavenCentral() {
-        content {
-            excludeGroupByRegex "commons-beanutils"
+    maven { url "http://download.osgeo.org/webdav/geotools/" }
+    maven { url "http://repo.boundlessgeo.com/main" }
+    mavenLocal()
+    jcenter()
+}
+
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module("commons-beanutils:commons-beanutils:1.9.2") with module("commons-beanutils:commons-beanutils:1.9.4")
         }
     }
 }
+
 
 dependencies {
     annotationProcessor "org.projectlombok:lombok:1.18.10"
@@ -56,9 +51,10 @@ dependencies {
     implementation "io.springfox:springfox-swagger2:2.9.2"
     implementation "io.springfox:springfox-swagger-ui:2.9.2"
     implementation "javax.inject:javax.inject:1"
+    implementation "org.geotools:gt-solr:21.2"
     implementation "org.springframework.boot:spring-boot-starter-actuator:2.1.8.RELEASE"
     implementation "org.springframework.boot:spring-boot-starter-web:2.1.8.RELEASE"
-    implementation ("org.springframework.data:spring-data-solr:4.0.10.RELEASE") {
+    implementation("org.springframework.data:spring-data-solr:4.0.10.RELEASE") {
         exclude group: "junit", module: "junit" // excludes JUnit 4
     }
     testCompile "org.junit.jupiter:junit-jupiter-params:5.5.2"
@@ -69,11 +65,6 @@ dependencies {
         exclude group: "junit", module: "junit" // excludes JUnit 4
     }
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.5.2"
-
-    // geotools
-    implementation "org.geotools:gt-shapefile:21.2"
-    implementation "org.geotools:gt-swing:21.2"
-    implementation "org.geotools:gt-solr:21.2"
 }
 
 sourceCompatibility = 1.11
