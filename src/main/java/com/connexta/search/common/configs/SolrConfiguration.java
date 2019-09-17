@@ -27,9 +27,8 @@ public class SolrConfiguration {
 
   @Bean
   @Profile("production")
-  public URL solrUrl(
-      @NotBlank @Value("${solr.host}") final String host, @Value("${solr.port}") final int port)
+  public URL solrURL(@NotBlank @Value("${endpointUrl.solr}") final String solrEndpoint)
       throws MalformedURLException {
-    return new URL("http", host, port, "/solr");
+    return new URL(solrEndpoint);
   }
 }
