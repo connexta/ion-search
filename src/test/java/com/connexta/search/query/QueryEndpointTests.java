@@ -6,10 +6,16 @@
  */
 package com.connexta.search.query;
 
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.connexta.search.query.controllers.QueryController;
 import com.connexta.search.query.exceptions.IllegalQueryException;
 import com.connexta.search.query.exceptions.MalformedQueryException;
 import com.connexta.search.query.exceptions.QueryException;
+import java.util.ArrayList;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,13 +26,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.stream.Stream;
-
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(QueryController.class)
 public class QueryEndpointTests {

@@ -9,7 +9,6 @@ package com.connexta.search.query;
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.query.exceptions.IllegalQueryException;
 import com.connexta.search.query.exceptions.MalformedQueryException;
-import com.connexta.search.query.exceptions.QueryException;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -39,7 +38,7 @@ public class CommonQl {
    * attributes and throw an exception if an unsupported attribute is detected.
    *
    * @return this for fluent interface
-   * @throws QueryException
+   * @throws IllegalQueryException
    */
   public CommonQl validate() {
     Set<String> unsupportedAttributes = extractUnsupportedAttributes();
@@ -75,7 +74,6 @@ public class CommonQl {
    * attribute names.
    *
    * @returns List of unsupported attributes names found in the query string
-   * @throws MalformedQueryException
    */
   @VisibleForTesting
   Set<String> extractUnsupportedAttributes() {

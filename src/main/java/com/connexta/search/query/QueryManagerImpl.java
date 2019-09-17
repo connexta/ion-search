@@ -70,9 +70,9 @@ public class QueryManagerImpl implements QueryManager {
    * endpointUrlRetrieve}
    *
    * @param matchingIds
-   * @return
+   * @return A list product retrieve URIs
    */
-  public List<URI> getProductUris(List<String> matchingIds) {
+  private List<URI> getProductUris(List<String> matchingIds) {
     final List<URI> uris = new ArrayList<>();
     for (final String id : matchingIds) {
       final URI uri;
