@@ -14,6 +14,7 @@ import com.connexta.search.query.exceptions.IllegalQueryException;
 import com.connexta.search.query.exceptions.MalformedQueryException;
 import com.connexta.search.query.exceptions.QueryException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.apache.http.client.utils.URIBuilder;
@@ -40,6 +41,13 @@ public class QueryEndpointTests {
 
   @Inject private MockMvc mockMvc;
 
+  private static Stream<Arguments> requestsThatThrowErrors() {
+    return Stream.of(
+        Arguments.of(500, new QueryException(HttpStatus.INTERNAL_SERVER_ERROR, "Test")),
+        Arguments.of(400, new IllegalQueryException(Arrays.asList("Test"))),
+        Arguments.of(400, new MalformedQueryException(new RuntimeException())));
+  }
+
   @Test
   public void testQueryManagerReturnsList() throws Exception {
     given(queryManager.find(QUERY_STRING)).willReturn(new ArrayList<>());
@@ -61,12 +69,5 @@ public class QueryEndpointTests {
     mockMvc
         .perform(MockMvcRequestBuilders.get(uriBuilder.build()))
         .andExpect(status().is(responseStatus));
-  }
-
-  private static Stream<Arguments> requestsThatThrowErrors() {
-    return Stream.of(
-        Arguments.of(500, new QueryException(HttpStatus.INTERNAL_SERVER_ERROR, "Test")),
-        Arguments.of(400, new IllegalQueryException("Test")),
-        Arguments.of(400, new MalformedQueryException("Test")));
   }
 }

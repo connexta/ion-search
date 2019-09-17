@@ -11,11 +11,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 /** This exception means the query service was unable to parse the query. */
 public class MalformedQueryException extends QueryException {
 
-  public MalformedQueryException(String reason, Throwable cause) {
-    super(BAD_REQUEST, reason, cause);
-  }
-
-  public MalformedQueryException(String reason) {
-    super(BAD_REQUEST, reason);
+  public MalformedQueryException(Throwable cause) {
+    super(BAD_REQUEST, "Invalid CommonQL query string", cause);
   }
 }

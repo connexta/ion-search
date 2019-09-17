@@ -7,6 +7,8 @@
 package com.connexta.search.query;
 
 import com.connexta.search.common.configs.SolrConfiguration;
+import com.connexta.search.query.exceptions.IllegalQueryException;
+import com.connexta.search.query.exceptions.MalformedQueryException;
 import com.connexta.search.query.exceptions.QueryException;
 import java.io.IOException;
 import java.net.URI;
@@ -14,6 +16,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -21,9 +24,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.geotools.data.DataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.util.FeatureStreams;
+import org.geotools.filter.Filters;
+import org.geotools.filter.text.cql2.CQL;
+import org.geotools.filter.text.cql2.CQLException;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
-import org.springframework.http.HttpStatus;
+import org.opengis.filter.expression.PropertyName;
 
 @Slf4j
 public class QueryManagerImpl implements QueryManager {
@@ -35,6 +41,36 @@ public class QueryManagerImpl implements QueryManager {
       @NotNull final DataStore dataStore, @NotBlank final String retrieveEndpoint) {
     this.endpointUrlRetrieve = retrieveEndpoint;
     this.dataStore = dataStore;
+  }
+
+  /**
+   * Create the OGC Filter object represented by the query string. Throw an exception if the query
+   * string cannot be parsed or contains unsupported attributes
+   *
+   * @return OCG Filter * @throws IllegalQueryException * @throws MalformedQueryException * @throws
+   * @throws IllegalQueryException
+   * @throws MalformedQueryException
+   */
+  public static Filter getFilter(final String queryString)
+      throws MalformedQueryException, IllegalQueryException {
+    final Filter filter;
+    try {
+      filter = CQL.toFilter(queryString);
+    } catch (final CQLException e) {
+      throw new MalformedQueryException(e);
+    }
+
+    final Set<String> unsupportedAttributes =
+        Filters.propertyNames(filter).stream()
+            .map(PropertyName::getPropertyName)
+            .collect(Collectors.toSet());
+    unsupportedAttributes.removeAll(
+        com.connexta.search.common.configs.SolrConfiguration.QUERY_TERMS);
+    if (!unsupportedAttributes.isEmpty()) {
+      throw new IllegalQueryException(unsupportedAttributes);
+    }
+
+    return filter;
   }
 
   @Override
@@ -53,7 +89,7 @@ public class QueryManagerImpl implements QueryManager {
   }
 
   private List<String> doQuery(@NotBlank final String cqlString) throws IOException {
-    final Filter filter = new CommonQl(cqlString).validate().getFilter();
+    final Filter filter = getFilter(cqlString);
     final SimpleFeatureCollection simpleFeatureCollection =
         dataStore.getFeatureSource(SolrConfiguration.LAYER_NAME).getFeatures(filter);
     final List<Feature> features =
@@ -80,7 +116,6 @@ public class QueryManagerImpl implements QueryManager {
         uri = new URI(endpointUrlRetrieve + id);
       } catch (URISyntaxException e) {
         throw new QueryException(
-            HttpStatus.INTERNAL_SERVER_ERROR,
             String.format(
                 "Unable to construct retrieve URI from endpointUrlRetrieve=%s and id=%s",
                 endpointUrlRetrieve, id),
