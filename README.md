@@ -123,7 +123,7 @@ The Search service can be queried for products. See the [Query Service API](http
 for information about paths and parameters
 The query service supports a subset of the OGC Catalogue Common Query Language (OGC CommonQL).
 See [Annex B - BNF Definition of OGC CommonQL](http://docs.opengeospatial.org/is/12-168r6/12-168r6.html#62)
-for the definition of grammar.
+for the definition of the grammar.
 
 The following are valid query attributes:
 -   #### ID

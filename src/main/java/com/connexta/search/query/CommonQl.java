@@ -39,6 +39,7 @@ public class CommonQl {
    *
    * @return this for fluent interface
    * @throws IllegalQueryException
+   * @throws MalformedQueryException
    */
   public CommonQl validate() {
     Set<String> unsupportedAttributes = extractUnsupportedAttributes();
@@ -74,6 +75,7 @@ public class CommonQl {
    * attribute names.
    *
    * @returns List of unsupported attributes names found in the query string
+   * @throws MalformedQueryException
    */
   @VisibleForTesting
   Set<String> extractUnsupportedAttributes() {
