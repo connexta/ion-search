@@ -26,19 +26,10 @@ plugins {
 group = "com.connexta.search"
 
 repositories {
+    mavenLocal()
     maven { url "https://artifacts.codice.org/content/repositories/ion-releases/" }
     maven { url "http://download.osgeo.org/webdav/geotools/" }
-    //Needed for common-beanutils:1.9.2:noclassprop dependency
-    maven { url "http://repo.boundlessgeo.com/main" }
-    mavenLocal()
-    jcenter() {
-        content {
-            // Geotools uses a special version of the beanutils dependency that has the
-            // classifier "noclassprop". The artifact with this classifier exists on a Geotool
-            // repository, but not in Maven Central or JCenter.
-            excludeGroupByRegex "commons-beanutils"
-        }
-    }
+    mavenCentral()
 }
 
 dependencies {
@@ -49,7 +40,18 @@ dependencies {
     implementation "io.springfox:springfox-swagger2:2.9.2"
     implementation "io.springfox:springfox-swagger-ui:2.9.2"
     implementation "javax.inject:javax.inject:1"
-    implementation "org.geotools:gt-solr:21.2"
+    implementation ("org.geotools:gt-solr:21.2") {
+        exclude group: "commons-beanutils", module: "commons-beanutils"
+        because "This artifact pulled in by Geotools has a classifier \"noclassprop\". It is a " +
+                "special version of the JAR file that disabled the ability for an attacker to " +
+                "access the classloader via the class property. The actual filename of the " +
+                "modified JAR is \"commons-beanutils-1.9.2-noclassprop.jar\". Version 1.9.4 and " +
+                "higher of commons-beanutils are not vulnerable. " +
+                "\"commons-beanutils:commons-beanutils:1.9.4\" is explicitly imported below. If " +
+                "Geotools updates its dependencies to version 1.9.4 of the artifact, this " +
+                "work-around may be removed."
+    }
+    implementation "commons-beanutils:commons-beanutils:1.9.4"
     implementation "org.springframework.boot:spring-boot-starter-actuator:2.1.8.RELEASE"
     implementation "org.springframework.boot:spring-boot-starter-web:2.1.8.RELEASE"
     implementation("org.springframework.data:spring-data-solr:4.0.10.RELEASE") {
