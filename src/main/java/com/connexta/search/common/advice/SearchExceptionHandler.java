@@ -17,6 +17,7 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,27 +33,30 @@ public class SearchExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(ConstraintViolationException.class)
   protected ResponseEntity<Object> handleConstraintViolation(
       @NotNull final ConstraintViolationException e, @NotNull final WebRequest request) {
-    log.warn("Request is invalid: {}. Returning {}.", e.getMessage(), BAD_REQUEST, e);
-    Map<String, Object> serializableError =
+    final HttpStatus status = BAD_REQUEST;
+    log.warn("Request is invalid: {}. Returning {}.", e.getMessage(), status, e);
+    final Map<String, Object> serializableError =
         detailedErrorAttributes.getErrorAttributes(request, false);
-    return new ResponseEntity<>(serializableError, BAD_REQUEST);
+    return new ResponseEntity<>(serializableError, status);
   }
 
   @ExceptionHandler(QueryException.class)
   protected ResponseEntity<Object> handleQueryException(
       @NotNull final QueryException e, final WebRequest request) {
-    log.warn("Exception while processing query: {}. Returning {}.", e.getReason(), BAD_REQUEST, e);
-    Map<String, Object> serializableError =
+    final HttpStatus status = e.getStatus();
+    log.warn("Exception while processing query: {}. Returning {}.", e.getReason(), status, e);
+    final Map<String, Object> serializableError =
         detailedErrorAttributes.getErrorAttributes(request, false);
-    return handleExceptionInternal(e, serializableError, new HttpHeaders(), e.getStatus(), request);
+    return handleExceptionInternal(e, serializableError, new HttpHeaders(), status, request);
   }
 
   @ExceptionHandler(IndexException.class)
   protected ResponseEntity<Object> handleIndexException(
       @NotNull final IndexException e, final WebRequest request) {
-    log.warn("Exception while indexing: {}. Returning {}.", e.getReason(), e.getStatus(), e);
-    Map<String, Object> serializableError =
+    final HttpStatus status = e.getStatus();
+    log.warn("Exception while indexing: {}. Returning {}.", e.getReason(), status, e);
+    final Map<String, Object> serializableError =
         detailedErrorAttributes.getErrorAttributes(request, false);
-    return handleExceptionInternal(e, serializableError, new HttpHeaders(), e.getStatus(), request);
+    return handleExceptionInternal(e, serializableError, new HttpHeaders(), status, request);
   }
 }

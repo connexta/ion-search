@@ -6,6 +6,8 @@
  */
 package com.connexta.search.query.configs;
 
+import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
+
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.query.QueryManager;
 import com.connexta.search.query.QueryManagerImpl;
@@ -40,23 +42,22 @@ public class QueryManagerConfiguration {
     final SolrDataStore dataStore =
         (SolrDataStore)
             new SolrDataStoreFactory()
-                .createDataStore(Map.of(SolrDataStoreFactory.URL.key, solrUrl + "/searchTerms"));
+                .createDataStore(
+                    Map.of(
+                        SolrDataStoreFactory.URL.key,
+                        new URL(solrUrl, solrUrl.getPath() + "/" + SOLR_COLLECTION)));
 
     final SolrLayerConfiguration solrLayerConfiguration =
         new SolrLayerConfiguration(new ArrayList<>());
     solrLayerConfiguration.setLayerName(SolrConfiguration.LAYER_NAME);
     final List<SolrAttribute> layerAttributes = new ArrayList<>();
 
-    // SolrAttribute [name=contents, type=class java.lang.String, pk=false, use=false,
-    // multivalued=false, empty=false, srid=null, defaultGeometry=false]"
     final SolrAttribute contentsSolrAttribute =
         new SolrAttribute(SolrConfiguration.CONTENTS_ATTRIBUTE_NAME, String.class);
     contentsSolrAttribute.setEmpty(false);
     contentsSolrAttribute.setUse(true);
     layerAttributes.add(contentsSolrAttribute);
 
-    // SolrAttribute [name=id, type=class java.lang.String, pk=true, use=true, multivalued=false,
-    // empty=false, srid=null, defaultGeometry=false]"
     final SolrAttribute idSolrAttribute =
         new SolrAttribute(SolrConfiguration.ID_ATTRIBUTE_NAME, String.class);
     idSolrAttribute.setEmpty(false);

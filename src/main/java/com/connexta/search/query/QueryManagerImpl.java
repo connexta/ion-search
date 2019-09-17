@@ -6,14 +6,16 @@
  */
 package com.connexta.search.query;
 
+import static com.connexta.search.common.configs.SolrConfiguration.QUERY_TERMS;
+
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.query.exceptions.IllegalQueryException;
 import com.connexta.search.query.exceptions.MalformedQueryException;
 import com.connexta.search.query.exceptions.QueryException;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -41,36 +43,6 @@ public class QueryManagerImpl implements QueryManager {
       @NotNull final DataStore dataStore, @NotBlank final String retrieveEndpoint) {
     this.endpointUrlRetrieve = retrieveEndpoint;
     this.dataStore = dataStore;
-  }
-
-  /**
-   * Create the OGC Filter object represented by the query string. Throw an exception if the query
-   * string cannot be parsed or contains unsupported attributes
-   *
-   * @return OCG Filter * @throws IllegalQueryException * @throws MalformedQueryException * @throws
-   * @throws IllegalQueryException
-   * @throws MalformedQueryException
-   */
-  public static Filter getFilter(final String queryString)
-      throws MalformedQueryException, IllegalQueryException {
-    final Filter filter;
-    try {
-      filter = CQL.toFilter(queryString);
-    } catch (final CQLException e) {
-      throw new MalformedQueryException(e);
-    }
-
-    final Set<String> unsupportedAttributes =
-        Filters.propertyNames(filter).stream()
-            .map(PropertyName::getPropertyName)
-            .collect(Collectors.toSet());
-    unsupportedAttributes.removeAll(
-        com.connexta.search.common.configs.SolrConfiguration.QUERY_TERMS);
-    if (!unsupportedAttributes.isEmpty()) {
-      throw new IllegalQueryException(unsupportedAttributes);
-    }
-
-    return filter;
   }
 
   @Override
@@ -102,27 +74,55 @@ public class QueryManagerImpl implements QueryManager {
   }
 
   /**
-   * This method takes in a list of IDs and creates a list of URIs using the provided {@code
-   * endpointUrlRetrieve}
+   * Creates a {@link List} of Product retrieve {@link URI}s from the {@code matchingIds} using the
+   * provided {@code endpointUrlRetrieve}
    *
-   * @param matchingIds
-   * @return A list product retrieve URIs
+   * @param matchingIds may be empty
+   * @return A {@link List} of product retrieve {@link URI}s
+   * @throws QueryException if unable to construct a retrieve URI
    */
-  private List<URI> getProductUris(List<String> matchingIds) {
-    final List<URI> uris = new ArrayList<>();
-    for (final String id : matchingIds) {
-      final URI uri;
-      try {
-        uri = new URI(endpointUrlRetrieve + id);
-      } catch (URISyntaxException e) {
-        throw new QueryException(
-            String.format(
-                "Unable to construct retrieve URI from endpointUrlRetrieve=%s and id=%s",
-                endpointUrlRetrieve, id),
-            e);
-      }
-      uris.add(uri);
+  private List<URI> getProductUris(final List<String> matchingIds) {
+    return matchingIds.stream()
+        .map(
+            id -> {
+              try {
+                return new URI(endpointUrlRetrieve + id);
+              } catch (URISyntaxException e) {
+                throw new QueryException(
+                    String.format(
+                        "Unable to construct retrieve URI from endpointUrlRetrieve=%s and id=%s",
+                        endpointUrlRetrieve, id),
+                    e);
+              }
+            })
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Creates the {@link Filter} represented by the {@code queryString}
+   *
+   * @throws MalformedQueryException if the {@code queryString} cannot be parsed
+   * @throws IllegalQueryException if the {@code queryString} contains unsupported attributes
+   */
+  @VisibleForTesting
+  static Filter getFilter(final String queryString)
+      throws MalformedQueryException, IllegalQueryException {
+    final Filter filter;
+    try {
+      filter = CQL.toFilter(queryString);
+    } catch (final CQLException e) {
+      throw new MalformedQueryException(e);
     }
-    return uris;
+
+    final Set<String> unsupportedAttributes =
+        Filters.propertyNames(filter).stream()
+            .map(PropertyName::getPropertyName)
+            .filter(attribute -> !QUERY_TERMS.contains(attribute))
+            .collect(Collectors.toSet());
+    if (!unsupportedAttributes.isEmpty()) {
+      throw new IllegalQueryException(unsupportedAttributes);
+    }
+
+    return filter;
   }
 }

@@ -90,7 +90,7 @@ public class SearchITests {
 
   @BeforeEach
   public void beforeEach() throws IOException, SolrServerException {
-    // TODO shouldn't
+    // TODO shouldn't need to clear solr every time
     solrClient.deleteByQuery(SOLR_COLLECTION, "*");
     solrClient.commit(SOLR_COLLECTION);
   }
@@ -193,7 +193,7 @@ public class SearchITests {
   public void testStoreMetadataProductIdNotFound() {}
 
   @Test
-  public void testProductHasAlreadyBeenIndexed() throws Exception {
+  public void testStoreWhenProductHasAlreadyBeenIndexed() throws Exception {
     // given index a product
     final String queryKeyword = "Winterfell";
     final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
@@ -258,8 +258,41 @@ public class SearchITests {
         allOf(hasItem(firstLocation), not(hasItem(secondLocation)), not(hasItem(thirdLocation))));
   }
 
+  // TODO test multiple results
   @Test
-  public void testQueryEmptySearchResults() throws Exception {
+  public void testQueryWhenSolrIsNotEmpty() throws Exception {
+    // given a product is indexed
+    final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
+    final String firstProductKeyword = "first";
+    restTemplate.put(
+        firstLocation + "/cst",
+        createIndexRequest(
+            "{\"ext.extracted.text\":\"" + firstProductKeyword + " product metadata\"}"));
+
+    // and another product is indexed
+    final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
+    restTemplate.put(
+        secondLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
+
+    // and another product is indexed
+    final String thirdLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    restTemplate.put(
+        thirdLocation + "/cst",
+        createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
+
+    // verify
+    final URIBuilder queryUriBuilder = new URIBuilder();
+    queryUriBuilder.setPath("/search");
+    queryUriBuilder.setParameter(
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + firstProductKeyword + "'");
+    assertThat(
+        (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
+        hasItem(firstLocation));
+  }
+
+  @Test
+  public void testQuery0SearchResults() throws Exception {
     // given a product is indexed
     final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
     restTemplate.put(
@@ -291,37 +324,10 @@ public class SearchITests {
             not(hasItem(thirdLocation))));
   }
 
-  // TODO test multiple results
   @Test
-  public void testQueryMultipleResults() throws Exception {
-    // given a product is indexed
-    final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
-    final String firstProductKeyword = "first";
-    restTemplate.put(
-        firstLocation + "/cst",
-        createIndexRequest(
-            "{\"ext.extracted.text\":\"" + firstProductKeyword + " product metadata\"}"));
-
-    // and another product is indexed
-    final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
-    restTemplate.put(
-        secondLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
-
-    // and another product is indexed
-    final String thirdLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
-    restTemplate.put(
-        thirdLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
-
-    // verify
-    final URIBuilder queryUriBuilder = new URIBuilder();
-    queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter(
-        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + firstProductKeyword + "'");
-    assertThat(
-        (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
-        hasItem(firstLocation));
+  @Disabled("TODO")
+  public void testMultipleSearchResults() throws Exception {
+    // TODO
   }
 
   @Test

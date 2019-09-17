@@ -118,22 +118,20 @@ After configuring the build system:
 ./gradlew deploy
 ```
 
+## Using
 ### Querying
-The Search service can be queried for products. See the [Query Service API](https://github.com/connexta/ion-query-api)
-for information about paths and parameters
-The query service supports a subset of the OGC Catalogue Common Query Language (OGC CommonQL).
-See [Annex B - BNF Definition of OGC CommonQL](http://docs.opengeospatial.org/is/12-168r6/12-168r6.html#62)
-for the definition of the grammar.
+The Search service can be queried for Products. See [Query Service API](https://github.com/connexta/ion-query-api) for information about paths and parameters
+The Search service supports the OGC Catalogue Common Query Language (OGC CommonQL).
+See [Annex B - BNF Definition of OGC CommonQL](http://docs.opengeospatial.org/is/12-168r6/12-168r6.html#62) for the definition of the grammar.
 
 The following are valid query attributes:
--   #### ID
-    The `id` query attribute refers to the unique ID that is associated with each product. A client
-    can perform keyword queries with this attribute.
 
--   #### Contents
-    A client can perform keyword queries with this attribute.
+| Attribute | Description  |
+|---|---|
+| `id` | The unique ID that is associated with each Product |
+| `contents` | A client can perform keyword queries with this attribute. |
 
-## Inspecting
+### Inspecting
 The service is deployed with (Springfox) **Swagger UI**.
 This library uses Spring Boot annotations to create documentation for the service endpoints.
 The `/swagger-ui.html` endpoint can be used to view Swagger UI.

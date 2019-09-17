@@ -8,10 +8,12 @@ package com.connexta.search.query.exceptions;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
+import javax.validation.constraints.NotNull;
+
 /** This exception means the query service was unable to parse the query. */
 public class MalformedQueryException extends QueryException {
 
-  public MalformedQueryException(Throwable cause) {
+  public MalformedQueryException(@NotNull final Throwable cause) {
     super(BAD_REQUEST, "Invalid CommonQL query string", cause);
   }
 }

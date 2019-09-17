@@ -45,11 +45,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @MockBean(SolrClient.class)
 public class QueryTests {
 
-  public static final String URI_QUERY_PARAMETER = "q";
-  public static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents%20LIKE%20'queryKeyword'";
-  public static final String INVALID_CQL_QUERY = "contents%20SORTALIKE%20'metadata'";
-  public static final String UNSUPPORTED_TERM_QUERY = "city%20LIKE%20'Paradise City'";
-  public static final String SEARCH_ENDPOINT = "/search";
+  private static final String URI_QUERY_PARAMETER = "q";
+  private static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents%20LIKE%20'queryKeyword'";
+  private static final String INVALID_CQL_QUERY = "contents%20SORTALIKE%20'metadata'";
+  private static final String UNSUPPORTED_TERM_QUERY = "city%20LIKE%20'Paradise City'";
+  private static final String SEARCH_ENDPOINT = "/search";
 
   @MockBean private DataStore mockDataStore;
 

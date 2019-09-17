@@ -7,14 +7,16 @@
 package com.connexta.search.query;
 
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.connexta.search.query.controllers.QueryController;
 import com.connexta.search.query.exceptions.IllegalQueryException;
 import com.connexta.search.query.exceptions.MalformedQueryException;
 import com.connexta.search.query.exceptions.QueryException;
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.apache.http.client.utils.URIBuilder;
@@ -31,9 +33,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @WebMvcTest(QueryController.class)
 public class QueryEndpointTests {
 
-  public static final String QUERY_STRING = "id=12efab35fab21afdd8932afa38951aef";
-  public static final String URI_QUERY_PARAMETER = "q";
-  public static final String SEARCH_ENDPOINT = "/search";
+  private static final String QUERY_STRING = "id=12efab35fab21afdd8932afa38951aef";
+  private static final String URI_QUERY_PARAMETER = "q";
+  private static final String SEARCH_ENDPOINT = "/search";
 
   @MockBean private QueryManager queryManager;
 
@@ -41,26 +43,25 @@ public class QueryEndpointTests {
 
   @Inject private MockMvc mockMvc;
 
-  private static Stream<Arguments> requestsThatThrowErrors() {
-    return Stream.of(
-        Arguments.of(500, new QueryException(HttpStatus.INTERNAL_SERVER_ERROR, "Test")),
-        Arguments.of(400, new IllegalQueryException(Arrays.asList("Test"))),
-        Arguments.of(400, new MalformedQueryException(new RuntimeException())));
-  }
-
   @Test
-  public void testQueryManagerReturnsList() throws Exception {
-    given(queryManager.find(QUERY_STRING)).willReturn(new ArrayList<>());
+  // TODO add a test for non-empty results
+  public void testQueryControllerReturnsListFromQueryManager() throws Exception {
+    final ArrayList<URI> queryResults = new ArrayList<>();
+    given(queryManager.find(QUERY_STRING)).willReturn(queryResults);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath(SEARCH_ENDPOINT);
     uriBuilder.setParameter(URI_QUERY_PARAMETER, QUERY_STRING);
-    mockMvc.perform(MockMvcRequestBuilders.get(uriBuilder.build())).andExpect(status().isOk());
+    mockMvc
+        .perform(MockMvcRequestBuilders.get(uriBuilder.build()))
+        .andExpect(status().isOk())
+        .andExpect(content().string(queryResults.toString()));
   }
 
   @ParameterizedTest(name = "{0} is returned when QueryManager#find throws {1}")
   @MethodSource("requestsThatThrowErrors")
-  public void testExceptionHandling(int responseStatus, Throwable throwableType) throws Exception {
+  public void testExceptionHandling(HttpStatus responseStatus, Throwable throwableType)
+      throws Exception {
     given(queryManager.find(QUERY_STRING)).willThrow(throwableType);
 
     final URIBuilder uriBuilder = new URIBuilder();
@@ -68,6 +69,15 @@ public class QueryEndpointTests {
     uriBuilder.setParameter(URI_QUERY_PARAMETER, QUERY_STRING);
     mockMvc
         .perform(MockMvcRequestBuilders.get(uriBuilder.build()))
-        .andExpect(status().is(responseStatus));
+        .andExpect(status().is(responseStatus.value()));
+  }
+
+  private static Stream<Arguments> requestsThatThrowErrors() {
+    return Stream.of(
+        Arguments.of(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            new QueryException(HttpStatus.INTERNAL_SERVER_ERROR, "Test")),
+        Arguments.of(HttpStatus.BAD_REQUEST, new IllegalQueryException(Set.of("Test"))),
+        Arguments.of(HttpStatus.BAD_REQUEST, new MalformedQueryException(new RuntimeException())));
   }
 }
