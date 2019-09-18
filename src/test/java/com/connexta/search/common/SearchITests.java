@@ -61,6 +61,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class SearchITests {
 
   private static final int SOLR_PORT = 8983;
+  private static final String INDEX_ENDPOINT_BASE_URL = "/mis/index/";
 
   @Container
   public static final GenericContainer solrContainer =
@@ -102,12 +103,12 @@ public class SearchITests {
   @ValueSource(strings = {"", " ", "text"})
   public void testStoringValidCst(String contents) throws Exception {
     // given
-    final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
 
     // when indexing a product
     ResponseEntity<String> response =
         restTemplate.exchange(
-            productLocation + "/cst",
+            indexEndpointUrl,
             HttpMethod.PUT,
             createIndexRequest("{ \"ext.extracted.text\" : \"" + contents + "\" }"),
             String.class);
@@ -120,12 +121,11 @@ public class SearchITests {
   @ValueSource(strings = {"", "{}", "{ \"\": \"text\"}"})
   public void testStoringInvalidCst(String contents) throws IOException {
     // given
-    final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
-
+    final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
     // when indexing a product
     ResponseEntity<String> response =
         restTemplate.exchange(
-            productLocation + "/cst", HttpMethod.PUT, createIndexRequest(contents), String.class);
+            indexEndpointUrl, HttpMethod.PUT, createIndexRequest(contents), String.class);
 
     // then
     assertThat(response.getStatusCode(), is(HttpStatus.INTERNAL_SERVER_ERROR));
@@ -135,11 +135,12 @@ public class SearchITests {
   public void testStoreMetadataCstWhenSolrIsEmpty() throws Exception {
     // given
     final String queryKeyword = "Winterfell";
+    final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
     final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
 
     // when indexing a product
     restTemplate.put(
-        productLocation + "/cst",
+        indexEndpointUrl,
         createIndexRequest(
             "{ \"ext.extracted.text\" : \""
                 + ("All the color had been leached from "
@@ -161,16 +162,17 @@ public class SearchITests {
   public void testStoreMetadataCstWhenSolrIsNotEmpty() throws Exception {
     // given index an initial product
     restTemplate.put(
-        (retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff") + "/cst",
+        (INDEX_ENDPOINT_BASE_URL + "000b27ffc35d46d9ba041f663d9ccaff"),
         createIndexRequest("{ \"ext.extracted.text\" : \"" + ("First product metadata") + " \" }"));
 
     // and create the index request for another product
     final String queryKeyword = "Winterfell";
+    final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
     final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
 
     // when indexing another product
     restTemplate.put(
-        productLocation + "/cst",
+        indexEndpointUrl,
         createIndexRequest(
             "{ \"ext.extracted.text\" : \""
                 + ("All the color had been leached from "
@@ -196,10 +198,11 @@ public class SearchITests {
   public void testStoreWhenProductHasAlreadyBeenIndexed() throws Exception {
     // given index a product
     final String queryKeyword = "Winterfell";
+    final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
     final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
 
     restTemplate.put(
-        productLocation + "/cst",
+        indexEndpointUrl,
         createIndexRequest(
             "{ \"ext.extracted.text\" : \""
                 + ("All the color had been leached from "
@@ -210,7 +213,7 @@ public class SearchITests {
     // when indexing it again (override or same file doesn't matter)
     // TODO fix status code returned here
     restTemplate.put(
-        productLocation + "/cst",
+        indexEndpointUrl,
         createIndexRequest("{\"ext.extracted.text\":\"new \"ext.extracted.text\"\"}"));
 
     // then query should still work
@@ -230,24 +233,27 @@ public class SearchITests {
         SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE 'first'",
         "id='000b27ffc35d46d9ba041f663d9ccaff'"
       })
-  public void testQuery(final String cqlString) throws Exception {
+  public void testQueryMultipleResults(final String cqlString) throws Exception {
     // given a product is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
+    final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
     final String firstLocation = retrieveEndpoint + firstId;
-    final String firstProductContents = "{\"ext.extracted.text\":\"first product metadata\"}";
-    restTemplate.put(firstLocation + "/cst", createIndexRequest(firstProductContents));
+    final String firstIndexContents = "{\"ext.extracted.text\":\"first product metadata\"}";
+    restTemplate.put(firstIndexUrl, createIndexRequest(firstIndexContents));
 
     // and another product is indexed
-    final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
+    final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
+    final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
+    final String secondLocation = retrieveEndpoint + secondId;
     restTemplate.put(
-        secondLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
+        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
-    final String thirdLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
+    final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
+    final String thirdLocation = retrieveEndpoint + thirdId;
     restTemplate.put(
-        thirdLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
+        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
@@ -262,24 +268,28 @@ public class SearchITests {
   @Test
   public void testQueryWhenSolrIsNotEmpty() throws Exception {
     // given a product is indexed
-    final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
+    final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
+    final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
+    final String firstLocation = retrieveEndpoint + firstId;
     final String firstProductKeyword = "first";
     restTemplate.put(
-        firstLocation + "/cst",
+        firstIndexUrl,
         createIndexRequest(
             "{\"ext.extracted.text\":\"" + firstProductKeyword + " product metadata\"}"));
 
     // and another product is indexed
-    final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
+    final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
+    final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
+    final String secondLocation = retrieveEndpoint + secondId;
     restTemplate.put(
-        secondLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
+        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
-    final String thirdLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
+    final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
+    final String thirdLocation = retrieveEndpoint + thirdId;
     restTemplate.put(
-        thirdLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
+        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
@@ -292,24 +302,30 @@ public class SearchITests {
   }
 
   @Test
-  public void testQuery0SearchResults() throws Exception {
+  public void testQueryZeroSearchResults() throws Exception {
     // given a product is indexed
-    final String firstLocation = retrieveEndpoint + "000b27ffc35d46d9ba041f663d9ccaff";
+    final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
+    final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
+    final String firstLocation = retrieveEndpoint + firstId;
+    final String firstProductKeyword = "first";
     restTemplate.put(
-        firstLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"first product metadata\"}"));
+        firstIndexUrl,
+        createIndexRequest(
+            "{\"ext.extracted.text\":\"" + firstProductKeyword + " product metadata\"}"));
 
     // and another product is indexed
-    final String secondLocation = retrieveEndpoint + "001ccb7241284f21a3d15cc340c6aa9c";
+    final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
+    final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
+    final String secondLocation = retrieveEndpoint + secondId;
     restTemplate.put(
-        secondLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
+        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
-    final String thirdLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
+    final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
+    final String thirdLocation = retrieveEndpoint + thirdId;
     restTemplate.put(
-        thirdLocation + "/cst",
-        createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
+        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();

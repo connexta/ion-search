@@ -114,7 +114,7 @@ public class IndexTests {
 
     mockMvc
         .perform(
-            multipart("/mis/product/" + id + "/cst")
+            multipart("/mis/index/" + id)
                 .file(
                     new MockMultipartFile(
                         "file",
@@ -160,7 +160,7 @@ public class IndexTests {
 
     mockMvc
         .perform(
-            multipart("/mis/product/" + id + "/cst")
+            multipart("/mis/index/" + id)
                 .file(
                     new MockMultipartFile(
                         "file",
@@ -192,12 +192,12 @@ public class IndexTests {
     return Stream.of(
         Arguments.of(
             "missing file",
-            multipart("/mis/product/00067360b70e4acfab561fe593ad3f7a/cst")
+            multipart("/mis/index/00067360b70e4acfab561fe593ad3f7a")
                 .header("Accept-Version", "0.1.0-SNAPSHOT"),
             HttpStatus.BAD_REQUEST),
         Arguments.of(
             "invalid productId",
-            multipart("/mis/product/1234/cst")
+            multipart("/mis/index/1234")
                 .file(
                     new MockMultipartFile(
                         "file",
@@ -210,7 +210,7 @@ public class IndexTests {
             HttpStatus.BAD_REQUEST),
         Arguments.of(
             "missing Accept-Version",
-            multipart("/mis/product/00067360b70e4acfab561fe593ad3f7a/cst")
+            multipart("/mis/index/00067360b70e4acfab561fe593ad3f7a")
                 .file(
                     new MockMultipartFile(
                         "file",
@@ -222,7 +222,7 @@ public class IndexTests {
             HttpStatus.BAD_REQUEST),
         Arguments.of(
             "not cst",
-            multipart("/mis/product/00067360b70e4acfab561fe593ad3f7a/anotherMetadataType")
+            multipart("/mis/index/00067360b70e4acfab561fe593ad3f7a/anotherMetadataType")
                 .file(
                     new MockMultipartFile(
                         "file",
@@ -238,11 +238,11 @@ public class IndexTests {
   @Test
   public void testExistingProduct() {
     CrudRepository crudRepository = mock(CrudRepository.class);
-    String productId = "00067360b70e4acfab561fe593afaded";
-    doReturn(true).when(crudRepository).existsById(productId);
+    String id = "00067360b70e4acfab561fe593afaded";
+    doReturn(true).when(crudRepository).existsById(id);
     IndexManagerImpl indexManager = new IndexManagerImpl(crudRepository);
     assertThrows(
         IndexException.class,
-        () -> indexManager.index(productId, "application/json", mock(InputStream.class)));
+        () -> indexManager.index(id, "application/json", mock(InputStream.class)));
   }
 }
