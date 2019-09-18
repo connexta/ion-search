@@ -15,7 +15,7 @@ import com.connexta.search.query.exceptions.IllegalQueryException;
 import com.connexta.search.query.exceptions.MalformedQueryException;
 import com.connexta.search.query.exceptions.QueryException;
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -46,7 +46,7 @@ public class QueryEndpointTests {
   @Test
   // TODO add a test for non-empty results
   public void testQueryControllerReturnsListFromQueryManager() throws Exception {
-    final ArrayList<URI> queryResults = new ArrayList<>();
+    final List<URI> queryResults = List.of();
     given(queryManager.find(QUERY_STRING)).willReturn(queryResults);
 
     final URIBuilder uriBuilder = new URIBuilder();
