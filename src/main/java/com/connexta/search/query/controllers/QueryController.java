@@ -11,6 +11,7 @@ import com.connexta.search.rest.spring.QueryApi;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class QueryController implements QueryApi {
 
-  private final QueryManager queryManager;
+  @NotNull private final QueryManager queryManager;
 
   @Override
   public ResponseEntity<List<URI>> query(final String q) {

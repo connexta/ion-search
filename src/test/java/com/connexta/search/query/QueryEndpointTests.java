@@ -60,9 +60,9 @@ public class QueryEndpointTests {
 
   @ParameterizedTest(name = "{0} is returned when QueryManager#find throws {1}")
   @MethodSource("requestsThatThrowErrors")
-  public void testExceptionHandling(HttpStatus responseStatus, Throwable throwableType)
+  public void testExceptionHandling(HttpStatus responseStatus, Throwable throwable)
       throws Exception {
-    when(queryManager.find(QUERY_STRING)).thenThrow(throwableType);
+    when(queryManager.find(QUERY_STRING)).thenThrow(throwable);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath(SEARCH_ENDPOINT);

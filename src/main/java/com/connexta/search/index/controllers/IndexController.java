@@ -12,28 +12,20 @@ import com.connexta.search.rest.spring.IndexApi;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
-@RequestMapping("/mis")
+@AllArgsConstructor
 public class IndexController implements IndexApi {
 
   @NotNull private final IndexManager indexManager;
 
-  public IndexController(@NotNull final IndexManager indexManager) {
-    this.indexManager = indexManager;
-  }
-
-  /**
-   * TODO Use {@link org.springframework.web.server.ResponseStatusException} instead of catching
-   * {@link Exception}s
-   */
   @Override
   public ResponseEntity<Void> index(
       final String acceptVersion, final String productId, final MultipartFile file) {

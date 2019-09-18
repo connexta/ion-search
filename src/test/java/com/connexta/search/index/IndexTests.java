@@ -114,11 +114,11 @@ public class IndexTests {
 
     mockMvc
         .perform(
-            multipart("/mis/index/" + id)
+            multipart("/index/" + id)
                 .file(
                     new MockMultipartFile(
                         "file",
-                        "test_file_name.json",
+                        "this originalFilename is ignored",
                         "application/json",
                         IOUtils.toInputStream(
                             "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
@@ -160,11 +160,11 @@ public class IndexTests {
 
     mockMvc
         .perform(
-            multipart("/mis/index/" + id)
+            multipart("/index/" + id)
                 .file(
                     new MockMultipartFile(
                         "file",
-                        "test_file_name.json",
+                        "this originalFilename is ignored",
                         "application/json",
                         IOUtils.toInputStream(contents, StandardCharsets.UTF_8)))
                 .header("Accept-Version", "0.1.0-SNAPSHOT")
@@ -192,16 +192,16 @@ public class IndexTests {
     return Stream.of(
         Arguments.of(
             "missing file",
-            multipart("/mis/index/00067360b70e4acfab561fe593ad3f7a")
+            multipart("/index/00067360b70e4acfab561fe593ad3f7a")
                 .header("Accept-Version", "0.1.0-SNAPSHOT"),
             HttpStatus.BAD_REQUEST),
         Arguments.of(
             "invalid productId",
-            multipart("/mis/index/1234")
+            multipart("/index/1234")
                 .file(
                     new MockMultipartFile(
                         "file",
-                        "test_file_name.json",
+                        "this originalFilename is ignored",
                         "application/json",
                         IOUtils.toInputStream(
                             "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
@@ -210,11 +210,11 @@ public class IndexTests {
             HttpStatus.BAD_REQUEST),
         Arguments.of(
             "missing Accept-Version",
-            multipart("/mis/index/00067360b70e4acfab561fe593ad3f7a")
+            multipart("/index/00067360b70e4acfab561fe593ad3f7a")
                 .file(
                     new MockMultipartFile(
                         "file",
-                        "test_file_name.json",
+                        "this originalFilename is ignored",
                         "application/json",
                         IOUtils.toInputStream(
                             "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
@@ -222,11 +222,11 @@ public class IndexTests {
             HttpStatus.BAD_REQUEST),
         Arguments.of(
             "not cst",
-            multipart("/mis/index/00067360b70e4acfab561fe593ad3f7a/anotherMetadataType")
+            multipart("/index/00067360b70e4acfab561fe593ad3f7a/badpath")
                 .file(
                     new MockMultipartFile(
                         "file",
-                        "test_file_name.json",
+                        "this originalFilename is ignored",
                         "application/json",
                         IOUtils.toInputStream(
                             "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
@@ -240,7 +240,7 @@ public class IndexTests {
     CrudRepository crudRepository = mock(CrudRepository.class);
     String id = "00067360b70e4acfab561fe593afaded";
     doReturn(true).when(crudRepository).existsById(id);
-    IndexManagerImpl indexManager = new IndexManagerImpl(crudRepository);
+    IndexManager indexManager = new IndexManagerImpl(crudRepository);
     assertThrows(
         IndexException.class,
         () -> indexManager.index(id, "application/json", mock(InputStream.class)));

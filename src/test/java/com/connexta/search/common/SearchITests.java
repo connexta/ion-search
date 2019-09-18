@@ -61,7 +61,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class SearchITests {
 
   private static final int SOLR_PORT = 8983;
-  private static final String INDEX_ENDPOINT_BASE_URL = "/mis/index/";
+  private static final String INDEX_ENDPOINT_BASE_URL = "/index/";
 
   @Container
   public static final GenericContainer solrContainer =
@@ -373,11 +373,12 @@ public class SearchITests {
 
           @Override
           public String getFilename() {
-            return "test_file.json";
+            // The extension of this filename is used to get the ContentType of the file.
+            return "ignored.json";
           }
         });
     final HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.set("Accept-Version", "0.1.0");
+    httpHeaders.set("Accept-Version", "0.2.0");
     return new HttpEntity<>(requestBody, httpHeaders);
   }
 }
