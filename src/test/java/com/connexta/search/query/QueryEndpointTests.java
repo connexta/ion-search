@@ -6,7 +6,7 @@
  */
 package com.connexta.search.query;
 
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -47,7 +47,7 @@ public class QueryEndpointTests {
   // TODO add a test for non-empty results
   public void testQueryControllerReturnsListFromQueryManager() throws Exception {
     final List<URI> queryResults = List.of();
-    given(queryManager.find(QUERY_STRING)).willReturn(queryResults);
+    when(queryManager.find(QUERY_STRING)).thenReturn(queryResults);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath(SEARCH_ENDPOINT);
@@ -62,7 +62,7 @@ public class QueryEndpointTests {
   @MethodSource("requestsThatThrowErrors")
   public void testExceptionHandling(HttpStatus responseStatus, Throwable throwableType)
       throws Exception {
-    given(queryManager.find(QUERY_STRING)).willThrow(throwableType);
+    when(queryManager.find(QUERY_STRING)).thenThrow(throwableType);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath(SEARCH_ENDPOINT);
