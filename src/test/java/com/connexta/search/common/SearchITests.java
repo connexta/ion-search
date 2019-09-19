@@ -86,8 +86,8 @@ public class SearchITests {
   @Inject private TestRestTemplate restTemplate;
   @Inject private SolrClient solrClient;
 
-  @Value("${endpointUrl.retrieve}")
-  private String retrieveEndpoint;
+  @Value("${endpointUrl.productRetrieve}")
+  private String productRetrieveEndpoint;
 
   @BeforeEach
   public void beforeEach() throws IOException, SolrServerException {
@@ -136,7 +136,7 @@ public class SearchITests {
     // given
     final String queryKeyword = "Winterfell";
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
-    final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String productLocation = productRetrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
 
     // when indexing a product
     restTemplate.put(
@@ -168,7 +168,7 @@ public class SearchITests {
     // and create the index request for another product
     final String queryKeyword = "Winterfell";
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
-    final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String productLocation = productRetrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
 
     // when indexing another product
     restTemplate.put(
@@ -199,7 +199,7 @@ public class SearchITests {
     // given index a product
     final String queryKeyword = "Winterfell";
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
-    final String productLocation = retrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String productLocation = productRetrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
 
     restTemplate.put(
         indexEndpointUrl,
@@ -237,21 +237,21 @@ public class SearchITests {
     // given a product is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
-    final String firstLocation = retrieveEndpoint + firstId;
+    final String firstLocation = productRetrieveEndpoint + firstId;
     final String firstIndexContents = "{\"ext.extracted.text\":\"first product metadata\"}";
     restTemplate.put(firstIndexUrl, createIndexRequest(firstIndexContents));
 
     // and another product is indexed
     final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
     final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
-    final String secondLocation = retrieveEndpoint + secondId;
+    final String secondLocation = productRetrieveEndpoint + secondId;
     restTemplate.put(
         secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
     final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
     final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
-    final String thirdLocation = retrieveEndpoint + thirdId;
+    final String thirdLocation = productRetrieveEndpoint + thirdId;
     restTemplate.put(
         thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 
@@ -270,7 +270,7 @@ public class SearchITests {
     // given a product is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
-    final String firstLocation = retrieveEndpoint + firstId;
+    final String firstLocation = productRetrieveEndpoint + firstId;
     final String firstProductKeyword = "first";
     restTemplate.put(
         firstIndexUrl,
@@ -280,14 +280,14 @@ public class SearchITests {
     // and another product is indexed
     final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
     final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
-    final String secondLocation = retrieveEndpoint + secondId;
+    final String secondLocation = productRetrieveEndpoint + secondId;
     restTemplate.put(
         secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
     final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
     final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
-    final String thirdLocation = retrieveEndpoint + thirdId;
+    final String thirdLocation = productRetrieveEndpoint + thirdId;
     restTemplate.put(
         thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 
@@ -306,7 +306,7 @@ public class SearchITests {
     // given a product is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
-    final String firstLocation = retrieveEndpoint + firstId;
+    final String firstLocation = productRetrieveEndpoint + firstId;
     final String firstProductKeyword = "first";
     restTemplate.put(
         firstIndexUrl,
@@ -316,14 +316,14 @@ public class SearchITests {
     // and another product is indexed
     final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
     final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
-    final String secondLocation = retrieveEndpoint + secondId;
+    final String secondLocation = productRetrieveEndpoint + secondId;
     restTemplate.put(
         secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
 
     // and another product is indexed
     final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
     final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
-    final String thirdLocation = retrieveEndpoint + thirdId;
+    final String thirdLocation = productRetrieveEndpoint + thirdId;
     restTemplate.put(
         thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
 

@@ -1,4 +1,4 @@
 server:
   port: 8080
 endpointUrl:
-  retrieve: http://localhost:9042/mis/product/
+  productRetrieve: http://localhost:9041/mis/product/

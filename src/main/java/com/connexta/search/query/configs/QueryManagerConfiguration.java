@@ -33,8 +33,8 @@ public class QueryManagerConfiguration {
   @Bean
   public QueryManager queryManager(
       @NotNull final DataStore datastore,
-      @NotBlank @Value("${endpointUrl.retrieve}") final String retrieveEndpoint) {
-    return new QueryManagerImpl(datastore, retrieveEndpoint);
+      @NotBlank @Value("${endpointUrl.productRetrieve}") final String productRetrieveEndpoint) {
+    return new QueryManagerImpl(datastore, productRetrieveEndpoint);
   }
 
   @Bean

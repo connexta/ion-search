@@ -36,12 +36,12 @@ import org.opengis.filter.expression.PropertyName;
 @Slf4j
 public class QueryManagerImpl implements QueryManager {
 
-  @NotBlank private final String endpointUrlRetrieve;
+  @NotBlank private final String productRetrieveEndpoint;
   @NotNull private final DataStore dataStore;
 
   public QueryManagerImpl(
-      @NotNull final DataStore dataStore, @NotBlank final String retrieveEndpoint) {
-    this.endpointUrlRetrieve = retrieveEndpoint;
+      @NotNull final DataStore dataStore, @NotBlank final String productRetrieveEndpoint) {
+    this.productRetrieveEndpoint = productRetrieveEndpoint;
     this.dataStore = dataStore;
   }
 
@@ -107,7 +107,7 @@ public class QueryManagerImpl implements QueryManager {
 
   /**
    * Creates a {@link List} of Product retrieve {@link URI}s from the {@code matchingIds} using the
-   * provided {@code endpointUrlRetrieve}
+   * provided {@link #productRetrieveEndpoint}
    *
    * @param matchingIds may be empty
    * @return A {@link List} of product retrieve {@link URI}s
@@ -118,12 +118,12 @@ public class QueryManagerImpl implements QueryManager {
         .map(
             id -> {
               try {
-                return new URI(endpointUrlRetrieve + id);
+                return new URI(productRetrieveEndpoint + id);
               } catch (URISyntaxException e) {
                 throw new QueryException(
                     String.format(
-                        "Unable to construct retrieve URI from endpointUrlRetrieve=%s and id=%s",
-                        endpointUrlRetrieve, id),
+                        "Unable to construct retrieve URI from endpointUrlProductRetrieve=%s and id=%s",
+                        productRetrieveEndpoint, id),
                     e);
               }
             })

@@ -61,7 +61,7 @@ For more information about spotless checks see
     Example configs/search_config.yml:
     ```yaml
     endpointUrl:
-      retrieve: http://localhost:9042/mis/product/
+      productRetrieve: http://localhost:9041/mis/product/
     ```
 
 2. A Docker network named `cdr` is needed to run via docker-compose.
