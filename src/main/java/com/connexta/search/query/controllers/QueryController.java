@@ -9,7 +9,6 @@ package com.connexta.search.query.controllers;
 import com.connexta.search.query.QueryManager;
 import com.connexta.search.rest.spring.QueryApi;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -28,7 +27,6 @@ public class QueryController implements QueryApi {
 
   @Override
   public ResponseEntity<List<URI>> query(final String q) {
-    final String urlDecodedCommonQL = java.net.URLDecoder.decode(q, StandardCharsets.UTF_8);
-    return ResponseEntity.ok(queryManager.find(urlDecodedCommonQL));
+    return ResponseEntity.ok(queryManager.find(q));
   }
 }
