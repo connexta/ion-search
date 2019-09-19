@@ -45,6 +45,34 @@ public class QueryManagerImpl implements QueryManager {
     this.dataStore = dataStore;
   }
 
+  /**
+   * Creates the {@link Filter} represented by the {@code queryString}
+   *
+   * @throws MalformedQueryException if the {@code queryString} cannot be parsed
+   * @throws IllegalQueryException if the {@code queryString} contains unsupported attributes
+   */
+  @VisibleForTesting
+  static Filter getFilter(final String queryString)
+      throws MalformedQueryException, IllegalQueryException {
+    final Filter filter;
+    try {
+      filter = CQL.toFilter(queryString);
+    } catch (final CQLException e) {
+      throw new MalformedQueryException(e);
+    }
+
+    final Set<String> unsupportedAttributes =
+        Filters.propertyNames(filter).stream()
+            .map(PropertyName::getPropertyName)
+            .filter(attribute -> !QUERY_TERMS.contains(attribute))
+            .collect(Collectors.toSet());
+    if (!unsupportedAttributes.isEmpty()) {
+      throw new IllegalQueryException(unsupportedAttributes);
+    }
+
+    return filter;
+  }
+
   @Override
   public List<URI> find(final String cqlString) {
     final List<String> matchingIds;
@@ -54,7 +82,11 @@ public class QueryManagerImpl implements QueryManager {
       // rethrow for the exception handler to take care of
       throw e;
     } catch (RuntimeException | IOException e) {
-      throw new QueryException("Unable to search for " + cqlString, e);
+      if (isKnownError(e)) {
+        return Collections.emptyList();
+      } else {
+        throw new QueryException("Unable to search for " + cqlString, e);
+      }
     }
 
     return Collections.unmodifiableList(getProductUris(matchingIds));
@@ -98,31 +130,19 @@ public class QueryManagerImpl implements QueryManager {
         .collect(Collectors.toList());
   }
 
-  /**
-   * Creates the {@link Filter} represented by the {@code queryString}
-   *
-   * @throws MalformedQueryException if the {@code queryString} cannot be parsed
-   * @throws IllegalQueryException if the {@code queryString} contains unsupported attributes
-   */
-  @VisibleForTesting
-  static Filter getFilter(final String queryString)
-      throws MalformedQueryException, IllegalQueryException {
-    final Filter filter;
-    try {
-      filter = CQL.toFilter(queryString);
-    } catch (final CQLException e) {
-      throw new MalformedQueryException(e);
+  private boolean isKnownError(Exception e) {
+    // The DataStore throws an exception of the the Solr core has no documents (schema?)
+    // In such a case, return zero results.
+    Throwable cause = e.getCause();
+    while (cause != null) {
+      if (cause
+          .getMessage()
+          .contains(
+              "Cursor functionality requires a sort containing a uniqueKey field tie breaker")) {
+        return true;
+      }
+      cause = cause.getCause();
     }
-
-    final Set<String> unsupportedAttributes =
-        Filters.propertyNames(filter).stream()
-            .map(PropertyName::getPropertyName)
-            .filter(attribute -> !QUERY_TERMS.contains(attribute))
-            .collect(Collectors.toSet());
-    if (!unsupportedAttributes.isEmpty()) {
-      throw new IllegalQueryException(unsupportedAttributes);
-    }
-
-    return filter;
+    return false;
   }
 }
