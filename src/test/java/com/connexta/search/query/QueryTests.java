@@ -81,7 +81,7 @@ public class QueryTests {
   }
 
   /** @see DataStore#getFeatureSource(String) */
-  @ParameterizedTest(re
+  @ParameterizedTest(
       name = "500 Internal Server Error is returned when DataStore#getFeatureSource throws {0}")
   @ValueSource(classes = {IOException.class, RuntimeException.class})
   public void testGetFeatureSourceErrors(final Class<? extends Throwable> throwableType)
