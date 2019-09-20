@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -24,6 +25,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.geotools.data.DataStore;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,8 +38,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -46,14 +48,23 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 public class QueryTests {
 
   private static final String URI_QUERY_PARAMETER = "q";
-  private static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents%20LIKE%20'queryKeyword'";
-  private static final String INVALID_CQL_QUERY = "contents%20SORTALIKE%20'metadata'";
-  private static final String UNSUPPORTED_TERM_QUERY = "city%20LIKE%20'Paradise City'";
+  private static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents LIKE 'queryKeyword'";
+  private static final String INVALID_CQL_QUERY = "contents SORTALIKE 'metadata'";
+  private static final String UNSUPPORTED_TERM_QUERY = "city LIKE 'Paradise City'";
   private static final String SEARCH_ENDPOINT = "/search";
+  private static UriComponentsBuilder uriComponentsBuilder;
 
   @MockBean private DataStore mockDataStore;
 
   @Inject private MockMvc mockMvc;
+
+  @BeforeAll
+  public static void beforeAll() throws URISyntaxException {
+    final URIBuilder uriBuilder = new URIBuilder();
+    uriBuilder.setPath(SEARCH_ENDPOINT);
+    uriComponentsBuilder =
+        UriComponentsBuilder.fromUri(uriBuilder.build()).query(URI_QUERY_PARAMETER + "={query}");
+  }
 
   @AfterEach
   public void after() {
@@ -65,27 +76,20 @@ public class QueryTests {
 
   @ParameterizedTest(name = "400 Bad Request is returned when {0}")
   @MethodSource("badRequests")
-  public void testBadRequests(
-      final String requestDescription, final MockHttpServletRequestBuilder requestBuilder)
-      throws Exception {
-    mockMvc.perform(requestBuilder).andExpect(status().isBadRequest());
+  public void testBadRequests(final String requestDescription, final URI uri) throws Exception {
+    mockMvc.perform(MockMvcRequestBuilders.get(uri)).andExpect(status().isBadRequest());
   }
 
   /** @see DataStore#getFeatureSource(String) */
-  @ParameterizedTest(
+  @ParameterizedTest(re
       name = "500 Internal Server Error is returned when DataStore#getFeatureSource throws {0}")
   @ValueSource(classes = {IOException.class, RuntimeException.class})
   public void testGetFeatureSourceErrors(final Class<? extends Throwable> throwableType)
       throws Exception {
     when(mockDataStore.getFeatureSource(eq(SolrConfiguration.LAYER_NAME))).thenThrow(throwableType);
     when(mockDataStore.getTypeNames()).thenReturn(new String[] {"id", "contents"});
-
-    final URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setPath(SEARCH_ENDPOINT);
-    uriBuilder.setParameter(URI_QUERY_PARAMETER, CONTENTS_LIKE_QUERY_KEYWORD);
-    mockMvc
-        .perform(MockMvcRequestBuilders.get(uriBuilder.build()))
-        .andExpect(status().isInternalServerError());
+    URI uri = uriComponentsBuilder.buildAndExpand(CONTENTS_LIKE_QUERY_KEYWORD).toUri();
+    mockMvc.perform(MockMvcRequestBuilders.get(uri)).andExpect(status().isInternalServerError());
   }
 
   /** @see SimpleFeatureSource#getFeatures(Filter) */
@@ -99,38 +103,19 @@ public class QueryTests {
     when(mockSimpleFeatureSource.getFeatures(any(Filter.class))).thenThrow(throwableType);
     when(mockDataStore.getFeatureSource(eq(SolrConfiguration.LAYER_NAME)))
         .thenReturn(mockSimpleFeatureSource);
-
-    final URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setPath(SEARCH_ENDPOINT);
-    uriBuilder.setParameter(URI_QUERY_PARAMETER, CONTENTS_LIKE_QUERY_KEYWORD);
-    mockMvc
-        .perform(MockMvcRequestBuilders.get(uriBuilder.build()))
-        .andExpect(status().isInternalServerError());
+    URI uri = uriComponentsBuilder.buildAndExpand(CONTENTS_LIKE_QUERY_KEYWORD).toUri();
+    mockMvc.perform(MockMvcRequestBuilders.get(uri)).andExpect(status().isInternalServerError());
   }
 
   private static Stream<Arguments> badRequests() throws URISyntaxException {
     return Stream.of(
-        Arguments.of("missing search parameter", MockMvcRequestBuilders.get("/search")),
-        Arguments.of(
-            "blank keyword",
-            MockMvcRequestBuilders.get(
-                new URIBuilder()
-                    .setPath(SEARCH_ENDPOINT)
-                    .setParameter(URI_QUERY_PARAMETER, "")
-                    .build())),
+        Arguments.of("missing query parameter", new URI("/search")),
+        Arguments.of("blank query string", uriComponentsBuilder.buildAndExpand("").toUri()),
         Arguments.of(
             "unsupported query attribute",
-            MockMvcRequestBuilders.get(
-                new URIBuilder()
-                    .setPath(SEARCH_ENDPOINT)
-                    .setParameter(URI_QUERY_PARAMETER, UNSUPPORTED_TERM_QUERY)
-                    .build())),
+            uriComponentsBuilder.buildAndExpand(UNSUPPORTED_TERM_QUERY).toUri()),
         Arguments.of(
-            "invalid CQL query",
-            MockMvcRequestBuilders.get(
-                new URIBuilder()
-                    .setPath(SEARCH_ENDPOINT)
-                    .setParameter(URI_QUERY_PARAMETER, INVALID_CQL_QUERY)
-                    .build())));
+            "invalid CommonQL query",
+            uriComponentsBuilder.buildAndExpand(INVALID_CQL_QUERY).toUri()));
   }
 }

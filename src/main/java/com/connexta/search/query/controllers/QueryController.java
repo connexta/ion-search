@@ -9,6 +9,7 @@ package com.connexta.search.query.controllers;
 import com.connexta.search.query.QueryManager;
 import com.connexta.search.rest.spring.QueryApi;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
