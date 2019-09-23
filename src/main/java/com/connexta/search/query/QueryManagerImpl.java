@@ -7,6 +7,7 @@
 package com.connexta.search.query;
 
 import static com.connexta.search.common.configs.SolrConfiguration.QUERY_TERMS;
+import static org.apache.commons.lang3.StringUtils.contains;
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.query.exceptions.IllegalQueryException;
@@ -135,10 +136,9 @@ public class QueryManagerImpl implements QueryManager {
     // In such a case, return zero results.
     Throwable cause = e.getCause();
     while (cause != null) {
-      String msg = cause.getMessage();
-      if (msg != null
-          && msg.contains(
-              "Cursor functionality requires a sort containing a uniqueKey field tie breaker")) {
+      if (contains(
+          cause.getMessage(),
+          "Cursor functionality requires a sort containing a uniqueKey field tie breaker")) {
         return true;
       }
       cause = cause.getCause();
