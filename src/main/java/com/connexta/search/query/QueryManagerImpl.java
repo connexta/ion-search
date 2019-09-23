@@ -135,9 +135,9 @@ public class QueryManagerImpl implements QueryManager {
     // In such a case, return zero results.
     Throwable cause = e.getCause();
     while (cause != null) {
-      if (cause
-          .getMessage()
-          .contains(
+      String msg = cause.getMessage();
+      if (msg != null
+          && msg.contains(
               "Cursor functionality requires a sort containing a uniqueKey field tie breaker")) {
         return true;
       }
