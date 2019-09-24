@@ -38,7 +38,7 @@ dependencies {
     implementation "io.springfox:springfox-swagger2:2.9.2"
     implementation "io.springfox:springfox-swagger-ui:2.9.2"
     implementation "javax.inject:javax.inject:1"
-    implementation ("org.geotools:gt-solr:21.2") {
+    implementation ("org.geotools:gt-solr:22.0") {
         exclude group: "commons-beanutils", module: "commons-beanutils"
         because "This artifact pulled in by Geotools has a classifier \"noclassprop\". It is a " +
                 "special version of the JAR file that disabled the ability for an attacker to " +
