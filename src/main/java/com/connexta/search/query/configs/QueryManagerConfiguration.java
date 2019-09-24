@@ -14,7 +14,6 @@ import com.connexta.search.query.QueryManagerImpl;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -50,27 +49,16 @@ public class QueryManagerConfiguration {
     final SolrLayerConfiguration solrLayerConfiguration =
         new SolrLayerConfiguration(new ArrayList<>());
     solrLayerConfiguration.setLayerName(SolrConfiguration.LAYER_NAME);
-    final List<SolrAttribute> layerAttributes = new ArrayList<>();
 
-    final SolrAttribute contentsSolrAttribute =
-        new SolrAttribute(SolrConfiguration.CONTENTS_ATTRIBUTE_NAME, String.class);
-    contentsSolrAttribute.setEmpty(false);
-    contentsSolrAttribute.setUse(true);
-    layerAttributes.add(contentsSolrAttribute);
+    SolrConfiguration.QUERY_TERMS.stream()
+        .forEach(
+            s -> {
+              SolrAttribute a = new SolrAttribute(s, String.class);
+              a.setEmpty(false);
+              a.setUse(true);
+              solrLayerConfiguration.getAttributes().add(a);
+            });
 
-    final SolrAttribute idSolrAttribute =
-        new SolrAttribute(SolrConfiguration.ID_ATTRIBUTE_NAME, String.class);
-    idSolrAttribute.setEmpty(false);
-    idSolrAttribute.setUse(true);
-    layerAttributes.add(idSolrAttribute);
-
-    final SolrAttribute mediaTypeSolrAttribute =
-        new SolrAttribute(SolrConfiguration.ID_ATTRIBUTE_NAME, String.class);
-    idSolrAttribute.setEmpty(false);
-    idSolrAttribute.setUse(true);
-    layerAttributes.add(idSolrAttribute);
-
-    solrLayerConfiguration.getAttributes().addAll(layerAttributes);
     dataStore.setSolrConfigurations(solrLayerConfiguration);
     return dataStore;
   }
