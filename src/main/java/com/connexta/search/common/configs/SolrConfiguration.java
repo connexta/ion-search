@@ -22,8 +22,10 @@ public class SolrConfiguration {
   public static final String SOLR_COLLECTION = "searchTerms";
   public static final String CONTENTS_ATTRIBUTE_NAME = "contents";
   public static final String ID_ATTRIBUTE_NAME = "id";
+  public static final String MEDIA_TYPE_ATTRIBUTE_NAME = "media.type";
   public static final String LAYER_NAME = "solrLayer";
-  public static final Set QUERY_TERMS = ImmutableSet.of(ID_ATTRIBUTE_NAME, CONTENTS_ATTRIBUTE_NAME);
+  public static final Set QUERY_TERMS =
+      ImmutableSet.of(ID_ATTRIBUTE_NAME, CONTENTS_ATTRIBUTE_NAME, MEDIA_TYPE_ATTRIBUTE_NAME);
 
   @Bean
   @Profile("production")

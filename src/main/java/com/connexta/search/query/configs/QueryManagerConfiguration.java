@@ -64,6 +64,12 @@ public class QueryManagerConfiguration {
     idSolrAttribute.setUse(true);
     layerAttributes.add(idSolrAttribute);
 
+    final SolrAttribute mediaTypeSolrAttribute =
+        new SolrAttribute(SolrConfiguration.ID_ATTRIBUTE_NAME, String.class);
+    idSolrAttribute.setEmpty(false);
+    idSolrAttribute.setUse(true);
+    layerAttributes.add(idSolrAttribute);
+
     solrLayerConfiguration.getAttributes().addAll(layerAttributes);
     dataStore.setSolrConfigurations(solrLayerConfiguration);
     return dataStore;

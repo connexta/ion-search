@@ -67,7 +67,7 @@ public class IndexManagerImpl implements IndexManager {
 
     log.info("Attempting to index product id {}", productId);
     try {
-      crudRepository.save(new Index(productId, contents));
+      crudRepository.save(new Index(productId, contents, mediaType));
     } catch (final Exception e) {
       throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
     }

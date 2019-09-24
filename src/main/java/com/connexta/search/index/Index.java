@@ -26,4 +26,7 @@ public class Index {
 
   @Indexed(name = SolrConfiguration.CONTENTS_ATTRIBUTE_NAME, type = "string")
   private String contents;
+
+  @Indexed(name = SolrConfiguration.MEDIA_TYPE_ATTRIBUTE_NAME, type = "string")
+  private String mediaType;
 }
