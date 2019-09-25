@@ -89,6 +89,7 @@ configurations.all {
         force "com.fasterxml.jackson.core:jackson-databind:[2.9.9.3,)"
         force "com.google.guava:guava:[24.1.1,)"
         force "jgridshift:jgridshift:1.0"
+        force "org.apache.zookeeper:zookeeper:[3.4.14,)"
     }
 }
 
