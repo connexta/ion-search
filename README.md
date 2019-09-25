@@ -130,6 +130,7 @@ The following are valid query attributes:
 |---|---|
 | `id` | The unique ID that is associated with each Product |
 | `contents` | A client can perform keyword queries with this attribute. |
+| `media_type` | The media (MIMIE) type of the Product |
 
 ### Inspecting
 The service is deployed with (Springfox) **Swagger UI**.
