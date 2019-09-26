@@ -25,7 +25,6 @@ import org.springframework.data.solr.core.mapping.SolrDocument;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class Index {
 
   @Indexed(name = ID_ATTRIBUTE_NAME, type = "string")
@@ -34,7 +33,6 @@ public class Index {
   @Indexed(name = CONTENTS_ATTRIBUTE_NAME, type = "string")
   private String contents;
 
-  @JsonProperty(MEDIA_TYPE_ATTRIBUTE_NAME)
   @Indexed(name = MEDIA_TYPE_ATTRIBUTE_NAME, type = "string")
   private String mediaType;
 }
