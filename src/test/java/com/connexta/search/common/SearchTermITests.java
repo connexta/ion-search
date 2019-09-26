@@ -9,14 +9,13 @@ package com.connexta.search.common;
 import static com.connexta.search.common.configs.SolrConfiguration.*;
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
 import com.connexta.search.index.Index;
 import com.connexta.search.index.IndexManager;
 import com.connexta.search.query.QueryManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -26,32 +25,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrClient;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
- * The purpose of this test class is to verify that all search terms can be added to index without
+ * The purposes of this test class are to verify that all search terms can be added to index without
  * causing an exception and that all search terms can be a part of a valid query sent to the index.
  */
 @ExtendWith(SpringExtension.class)
@@ -60,11 +51,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @DirtiesContext
 public class SearchTermITests {
 
-  //  private static FakeValuesService faker = new FakeValuesService(
-  //      Locale.US, new RandomService());
-
   private static final int SOLR_PORT = 8983;
-  private static final String INDEX_ENDPOINT_BASE_URL = "/index/";
 
   @Container
   public static final GenericContainer solrContainer =
@@ -74,27 +61,11 @@ public class SearchTermITests {
           // TODO: would (new URL("solr", SOLR_COLLECTION, "admin", "ping").toString() work?
           .waitingFor(Wait.forHttp("/solr/" + SOLR_COLLECTION + "/admin/ping"));
 
-  public SearchTermITests() throws IOException {}
-
-  @TestConfiguration
-  static class Config {
-
-    @Bean
-    public URL solrUrl() throws MalformedURLException {
-      return new URL(
-          "http",
-          solrContainer.getContainerIpAddress(),
-          solrContainer.getMappedPort(SOLR_PORT),
-          "/solr");
-    }
-  }
-
-  @Inject private TestRestTemplate restTemplate;
-  @Inject private SolrClient solrClient;
   @Inject private QueryManager queryManager;
   @Inject private IndexManager indexManager;
-
   private Map<String, String> sampleDocument = createSampleIndexData();
+
+  public SearchTermITests() throws IOException {}
 
   @NotNull
   private Map<String, String> createSampleIndexData() throws IOException {
@@ -131,29 +102,19 @@ public class SearchTermITests {
     indexManager.index(document.getId(), document.getMediaType(), getMetadata());
     String q = getQuery();
     List<URI> results = queryManager.find(q);
+    assertThat("Expected exactly one result", results, hasSize(1));
   }
 
-  private static HttpEntity createIndexRequest(final String fileString) throws IOException {
-    // TODO replace with request class from api dependency
-    final InputStream metadataInputStream = IOUtils.toInputStream(fileString, "UTF-8");
-    final MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
-    requestBody.add(
-        "file",
-        new InputStreamResource(metadataInputStream) {
+  @TestConfiguration
+  static class Config {
 
-          @Override
-          public long contentLength() throws IOException {
-            return metadataInputStream.available();
-          }
-
-          @Override
-          public String getFilename() {
-            // The extension of this filename is used to get the ContentType of the file.
-            return "ignored.json";
-          }
-        });
-    final HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.set("Accept-Version", "0.2.0");
-    return new HttpEntity<>(requestBody, httpHeaders);
+    @Bean
+    public URL solrUrl() throws MalformedURLException {
+      return new URL(
+          "http",
+          solrContainer.getContainerIpAddress(),
+          solrContainer.getMappedPort(SOLR_PORT),
+          "/solr");
+    }
   }
 }

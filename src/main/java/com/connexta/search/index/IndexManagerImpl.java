@@ -60,7 +60,7 @@ public class IndexManagerImpl implements IndexManager {
 
     final String contents;
     try {
-       contents = getElement(parseJson(inputStream), EXT_EXTRACTED_TEXT);
+      contents = getElement(parseJson(inputStream), EXT_EXTRACTED_TEXT);
     } catch (IOException e) {
       throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to convert InputStream to JSON", e);
     }

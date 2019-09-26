@@ -42,7 +42,9 @@ public class QueryManagerConfiguration {
         (SolrDataStore)
             new SolrDataStoreFactory()
                 .createDataStore(
-                    Map.of(SolrDataStoreFactory.URL.key, new URL(solrUrl, SOLR_COLLECTION)));
+                    Map.of(
+                        SolrDataStoreFactory.URL.key,
+                        new URL(solrUrl, solrUrl.getPath() + "/" + SOLR_COLLECTION)));
 
     final SolrLayerConfiguration solrLayerConfiguration =
         new SolrLayerConfiguration(new ArrayList<>());
