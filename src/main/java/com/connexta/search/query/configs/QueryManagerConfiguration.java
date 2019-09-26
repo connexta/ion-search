@@ -50,11 +50,11 @@ public class QueryManagerConfiguration {
 
     SolrConfiguration.QUERY_TERMS.stream()
         .forEach(
-            s -> {
-              SolrAttribute a = new SolrAttribute(s, String.class);
-              a.setEmpty(false);
-              a.setUse(true);
-              solrLayerConfiguration.getAttributes().add(a);
+            term -> {
+              SolrAttribute attribute = new SolrAttribute(term, String.class);
+              attribute.setEmpty(false);
+              attribute.setUse(true);
+              solrLayerConfiguration.getAttributes().add(attribute);
             });
 
     dataStore.setSolrConfigurations(solrLayerConfiguration);
