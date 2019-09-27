@@ -22,10 +22,8 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import com.connexta.search.common.configs.SolrConfiguration;
-import com.connexta.search.index.Index;
 import com.connexta.search.index.IndexManager;
 import com.connexta.search.query.QueryManager;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -396,11 +394,9 @@ public class SearchITests {
         equalTo(QUERY_TERMS));
 
     // Index the document
-    Index document =
-        new ObjectMapper().convertValue(getSampleDatatHavingAllAttributes(), Index.class);
     indexManager.index(
-        document.getId(),
-        document.getMediaType(),
+        doc.get(ID_ATTRIBUTE_NAME),
+        doc.get(MEDIA_TYPE_ATTRIBUTE_NAME),
         IOUtils.toInputStream("{ \"ext.extracted.text\" : \"Winterfell\" }", "UTF-8"));
 
     // Query for the document

@@ -11,7 +11,6 @@ import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE_
 import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_ATTRIBUTE_NAME;
 
 import com.connexta.search.common.configs.SolrConfiguration;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,7 +31,6 @@ public class Index {
   @Indexed(name = CONTENTS_ATTRIBUTE_NAME, type = "string")
   private String contents;
 
-  @JsonProperty(MEDIA_TYPE_ATTRIBUTE_NAME)
   @Indexed(name = MEDIA_TYPE_ATTRIBUTE_NAME, type = "string")
   private String mediaType;
 }
