@@ -401,18 +401,17 @@ public class SearchITests {
 
   @Test
   public void testIndexingAndQueryingAllAttributes() throws IOException {
-    Map<String, String> doc = getSampleDatatHavingAllAttributes;
 
     // Assert valid preconditions
     assertThat(
         "Sample data must include all query attributes",
-        unmodifiableSet(doc.keySet()),
+        unmodifiableSet(getSampleDatatHavingAllAttributes.keySet()),
         equalTo(QUERY_TERMS));
 
     // Index the document
     indexManager.index(
-        doc.get(ID_ATTRIBUTE_NAME),
-        doc.get(MEDIA_TYPE_ATTRIBUTE_NAME),
+        getSampleDatatHavingAllAttributes.get(ID_ATTRIBUTE_NAME),
+        getSampleDatatHavingAllAttributes.get(MEDIA_TYPE_ATTRIBUTE_NAME),
         IOUtils.toInputStream("{ \"ext.extracted.text\" : \"Winterfell\" }", "UTF-8"));
 
     // Query for the document
