@@ -82,6 +82,22 @@ public class SearchITests {
           .waitingFor(Wait.forHttp("/solr/" + SOLR_COLLECTION + "/admin/ping"));
 
   private static final String INDEX_ENDPOINT_BASE_URL = "/index/";
+
+  @NotNull
+  private static final Map<String, String> getSampleDatatHavingAllAttributes =
+      Map.of(
+          ID_ATTRIBUTE_NAME,
+          "00067360b70e4acfab561fe593ad3f7b",
+          CONTENTS_ATTRIBUTE_NAME,
+          "Winterfell",
+          MEDIA_TYPE_ATTRIBUTE_NAME,
+          "application/json");
+
+  private static final String allAttributesQuery =
+      QUERY_TERMS.stream()
+          .map(
+              term -> String.format("%s = '%s'", term, getSampleDatatHavingAllAttributes.get(term)))
+          .collect(Collectors.joining(" AND "));
   @Inject private QueryManager queryManager;
   @Inject private IndexManager indexManager;
   @Inject private TestRestTemplate restTemplate;
@@ -385,7 +401,7 @@ public class SearchITests {
 
   @Test
   public void testIndexingAndQueryingAllAttributes() throws IOException {
-    Map<String, String> doc = getSampleDatatHavingAllAttributes();
+    Map<String, String> doc = getSampleDatatHavingAllAttributes;
 
     // Assert valid preconditions
     assertThat(
@@ -400,28 +416,8 @@ public class SearchITests {
         IOUtils.toInputStream("{ \"ext.extracted.text\" : \"Winterfell\" }", "UTF-8"));
 
     // Query for the document
-    String q = getQueryForAllAttributes();
-    List<URI> results = queryManager.find(q);
+    List<URI> results = queryManager.find(allAttributesQuery);
     MatcherAssert.assertThat("Expected exactly one result", results, hasSize(1));
-  }
-
-  @NotNull
-  private Map<String, String> getSampleDatatHavingAllAttributes() {
-    return Map.of(
-        ID_ATTRIBUTE_NAME,
-        "00067360b70e4acfab561fe593ad3f7b",
-        CONTENTS_ATTRIBUTE_NAME,
-        "Winterfell",
-        MEDIA_TYPE_ATTRIBUTE_NAME,
-        "application/json");
-  }
-
-  @NotNull
-  private String getQueryForAllAttributes() {
-    Map<String, String> doc = getSampleDatatHavingAllAttributes();
-    return QUERY_TERMS.stream()
-        .map(term -> String.format("%s = '%s'", term, doc.get(term)))
-        .collect(Collectors.joining(" AND "));
   }
 
   @TestConfiguration
