@@ -6,27 +6,39 @@
  */
 package com.connexta.search.common;
 
+import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE_NAME;
+import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE_NAME;
+import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_ATTRIBUTE_NAME;
+import static com.connexta.search.common.configs.SolrConfiguration.QUERY_TERMS;
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
+import static java.util.Collections.*;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import com.connexta.search.common.configs.SolrConfiguration;
+import com.connexta.search.index.IndexManager;
+import com.connexta.search.query.QueryManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.hamcrest.MatcherAssert;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -61,7 +73,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class SearchITests {
 
   private static final int SOLR_PORT = 8983;
-  private static final String INDEX_ENDPOINT_BASE_URL = "/index/";
 
   @Container
   public static final GenericContainer solrContainer =
@@ -70,24 +81,54 @@ public class SearchITests {
           .withExposedPorts(SOLR_PORT)
           .waitingFor(Wait.forHttp("/solr/" + SOLR_COLLECTION + "/admin/ping"));
 
-  @TestConfiguration
-  static class Config {
+  private static final String INDEX_ENDPOINT_BASE_URL = "/index/";
 
-    @Bean
-    public URL solrUrl() throws MalformedURLException {
-      return new URL(
-          "http",
-          solrContainer.getContainerIpAddress(),
-          solrContainer.getMappedPort(SOLR_PORT),
-          "/solr");
-    }
-  }
+  @NotNull
+  private static final Map<String, String> getSampleDatatHavingAllAttributes =
+      Map.of(
+          ID_ATTRIBUTE_NAME,
+          "00067360b70e4acfab561fe593ad3f7b",
+          CONTENTS_ATTRIBUTE_NAME,
+          "Winterfell",
+          MEDIA_TYPE_ATTRIBUTE_NAME,
+          "application/json");
 
+  private static final String allAttributesQuery =
+      QUERY_TERMS.stream()
+          .map(
+              term -> String.format("%s = '%s'", term, getSampleDatatHavingAllAttributes.get(term)))
+          .collect(Collectors.joining(" AND "));
+  @Inject private QueryManager queryManager;
+  @Inject private IndexManager indexManager;
   @Inject private TestRestTemplate restTemplate;
   @Inject private SolrClient solrClient;
 
   @Value("${endpointUrl.productRetrieve}")
   private String productRetrieveEndpoint;
+
+  private static HttpEntity createIndexRequest(final String fileString) throws IOException {
+    // TODO replace with request class from api dependency
+    final InputStream metadataInputStream = IOUtils.toInputStream(fileString, "UTF-8");
+    final MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
+    requestBody.add(
+        "file",
+        new InputStreamResource(metadataInputStream) {
+
+          @Override
+          public long contentLength() throws IOException {
+            return metadataInputStream.available();
+          }
+
+          @Override
+          public String getFilename() {
+            // The extension of this filename is used to get the ContentType of the file.
+            return "ignored.json";
+          }
+        });
+    final HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.set("Accept-Version", "0.2.0");
+    return new HttpEntity<>(requestBody, httpHeaders);
+  }
 
   @BeforeEach
   public void beforeEach() throws IOException, SolrServerException {
@@ -358,27 +399,36 @@ public class SearchITests {
         (List<URI>) restTemplate.getForObject(queryUriBuilder.build(), List.class), is(empty()));
   }
 
-  private static HttpEntity createIndexRequest(final String fileString) throws IOException {
-    // TODO replace with request class from api dependency
-    final InputStream metadataInputStream = IOUtils.toInputStream(fileString, "UTF-8");
-    final MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
-    requestBody.add(
-        "file",
-        new InputStreamResource(metadataInputStream) {
+  @Test
+  public void testIndexingAndQueryingAllAttributes() throws IOException {
 
-          @Override
-          public long contentLength() throws IOException {
-            return metadataInputStream.available();
-          }
+    // Assert valid preconditions
+    assertThat(
+        "Sample data must include all query attributes",
+        unmodifiableSet(getSampleDatatHavingAllAttributes.keySet()),
+        equalTo(QUERY_TERMS));
 
-          @Override
-          public String getFilename() {
-            // The extension of this filename is used to get the ContentType of the file.
-            return "ignored.json";
-          }
-        });
-    final HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.set("Accept-Version", "0.2.0");
-    return new HttpEntity<>(requestBody, httpHeaders);
+    // Index the document
+    indexManager.index(
+        getSampleDatatHavingAllAttributes.get(ID_ATTRIBUTE_NAME),
+        getSampleDatatHavingAllAttributes.get(MEDIA_TYPE_ATTRIBUTE_NAME),
+        IOUtils.toInputStream("{ \"ext.extracted.text\" : \"Winterfell\" }", "UTF-8"));
+
+    // Query for the document
+    List<URI> results = queryManager.find(allAttributesQuery);
+    MatcherAssert.assertThat("Expected exactly one result", results, hasSize(1));
+  }
+
+  @TestConfiguration
+  static class Config {
+
+    @Bean
+    public URL solrUrl() throws MalformedURLException {
+      return new URL(
+          "http",
+          solrContainer.getContainerIpAddress(),
+          solrContainer.getMappedPort(SOLR_PORT),
+          "/solr");
+    }
   }
 }

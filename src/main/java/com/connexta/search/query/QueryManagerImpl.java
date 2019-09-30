@@ -30,7 +30,6 @@ import org.geotools.data.util.FeatureStreams;
 import org.geotools.filter.Filters;
 import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
-import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.PropertyName;
 
@@ -97,9 +96,7 @@ public class QueryManagerImpl implements QueryManager {
     final Filter filter = getFilter(cqlString);
     final SimpleFeatureCollection simpleFeatureCollection =
         dataStore.getFeatureSource(SolrConfiguration.LAYER_NAME).getFeatures(filter);
-    final List<Feature> features =
-        FeatureStreams.toFeatureStream(simpleFeatureCollection).collect(Collectors.toList());
-    return features.stream()
+    return FeatureStreams.toFeatureStream(simpleFeatureCollection)
         .map(
             feature ->
                 feature.getProperty(SolrConfiguration.ID_ATTRIBUTE_NAME).getValue().toString())
