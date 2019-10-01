@@ -52,7 +52,7 @@ dependencies {
     implementation "commons-beanutils:commons-beanutils:1.9.4"
     implementation "org.springframework.boot:spring-boot-starter-actuator:2.1.8.RELEASE"
     implementation "org.springframework.boot:spring-boot-starter-web:2.1.8.RELEASE"
-    implementation ("org.springframework.data:spring-data-solr:4.0.10.RELEASE") {
+    implementation ("org.springframework.data:spring-data-solr:4.1.0.RELEASE") {
         exclude group: "junit", module: "junit" // excludes JUnit 4
     }
     testCompile "org.junit.jupiter:junit-jupiter-params:5.5.2"
