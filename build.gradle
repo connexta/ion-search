@@ -39,6 +39,9 @@ dependencies {
     implementation "io.springfox:springfox-swagger-ui:2.9.2"
     implementation "javax.inject:javax.inject:1"
     implementation("org.geotools:gt-solr:22.0") {
+        exclude group: "org.apache.axis", module: "axis"
+        because "CVE-2012-5784, CVE-2014-3596, CVE-2018-8032, CVE-2019-0227"
+
         exclude group: "commons-beanutils", module: "commons-beanutils"
         because "This artifact pulled in by Geotools has a classifier \"noclassprop\". It is a " +
                 "special version of the JAR file that disabled the ability for an attacker to " +
@@ -88,8 +91,6 @@ configurations.all {
     resolutionStrategy {
         force "com.fasterxml.jackson.core:jackson-databind:[2.9.9.3,)"
         force "com.google.guava:guava:[24.1.1,)"
-        force "jgridshift:jgridshift:1.0"
-        force "org.apache.zookeeper:zookeeper:[3.4.14,)"
     }
 }
 
