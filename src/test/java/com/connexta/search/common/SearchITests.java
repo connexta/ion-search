@@ -42,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +57,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.testcontainers.containers.GenericContainer;
@@ -66,7 +64,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @Testcontainers
 @DirtiesContext
@@ -98,6 +95,7 @@ public class SearchITests {
           .map(
               term -> String.format("%s = '%s'", term, getSampleDatatHavingAllAttributes.get(term)))
           .collect(Collectors.joining(" AND "));
+
   @Inject private QueryManager queryManager;
   @Inject private IndexManager indexManager;
   @Inject private TestRestTemplate restTemplate;

@@ -54,11 +54,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-@ExtendWith({SpringExtension.class, MockitoExtension.class})
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(DataStore.class)

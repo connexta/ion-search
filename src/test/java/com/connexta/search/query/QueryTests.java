@@ -37,12 +37,11 @@ import org.opengis.filter.Filter;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@ExtendWith({SpringExtension.class, MockitoExtension.class})
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(SolrClient.class)
