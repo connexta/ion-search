@@ -44,6 +44,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -56,7 +58,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(DataStore.class)
@@ -178,6 +180,16 @@ public class IndexTests {
         .andExpect(status().isInternalServerError());
   }
 
+  @Test
+  public void testExistingProduct(@Mock final CrudRepository mockCrudRepository) {
+    final String id = "00067360b70e4acfab561fe593afaded";
+    doReturn(true).when(mockCrudRepository).existsById(id);
+    final IndexManager indexManager = new IndexManagerImpl(mockCrudRepository);
+    assertThrows(
+        IndexException.class,
+        () -> indexManager.index(id, "application/json", mock(InputStream.class)));
+  }
+
   private static SolrInputDocument hasIndexFieldValues(
       @NotEmpty final String id, @NotNull final String contents) {
     return argThat(
@@ -233,16 +245,5 @@ public class IndexTests {
                             StandardCharsets.UTF_8)))
                 .header("Accept-Version", "0.1.0-SNAPSHOT"),
             HttpStatus.NOT_FOUND));
-  }
-
-  @Test
-  public void testExistingProduct() {
-    CrudRepository crudRepository = mock(CrudRepository.class);
-    String id = "00067360b70e4acfab561fe593afaded";
-    doReturn(true).when(crudRepository).existsById(id);
-    IndexManager indexManager = new IndexManagerImpl(crudRepository);
-    assertThrows(
-        IndexException.class,
-        () -> indexManager.index(id, "application/json", mock(InputStream.class)));
   }
 }

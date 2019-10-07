@@ -9,7 +9,6 @@ package com.connexta.search.query;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.ignoreStubs;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,6 +31,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengis.filter.Filter;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,7 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(SolrClient.class)
@@ -97,13 +98,14 @@ public class QueryTests {
       name =
           "500 Internal Server Error is returned when SimpleFeatureSource#getFeatures throws {0}")
   @ValueSource(classes = {IOException.class, RuntimeException.class})
-  public void testGetFeaturesErrors(final Class<? extends Throwable> throwableType)
+  public void testGetFeaturesErrors(
+      final Class<? extends Throwable> throwableType,
+      @Mock final SimpleFeatureSource mockSimpleFeatureSource)
       throws Exception {
-    final SimpleFeatureSource mockSimpleFeatureSource = mock(SimpleFeatureSource.class);
     when(mockSimpleFeatureSource.getFeatures(any(Filter.class))).thenThrow(throwableType);
     when(mockDataStore.getFeatureSource(eq(SolrConfiguration.LAYER_NAME)))
         .thenReturn(mockSimpleFeatureSource);
-    URI uri = uriComponentsBuilder.buildAndExpand(CONTENTS_LIKE_QUERY_KEYWORD).toUri();
+    final URI uri = uriComponentsBuilder.buildAndExpand(CONTENTS_LIKE_QUERY_KEYWORD).toUri();
     mockMvc.perform(MockMvcRequestBuilders.get(uri)).andExpect(status().isInternalServerError());
   }
 
