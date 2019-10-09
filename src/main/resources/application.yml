@@ -20,3 +20,7 @@ spring:
 # The solr endpoint should be deployed in the same network, so we don't need a config.yml file for it.
 endpointUrl:
   solr: http://solr:8983/solr
+
+endpoints:
+  index:
+    version: ${indexApiVersion}

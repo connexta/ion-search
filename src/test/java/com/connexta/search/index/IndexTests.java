@@ -18,11 +18,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.connexta.search.index.controllers.IndexController;
 import com.connexta.search.index.exceptions.IndexException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -41,21 +41,18 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
@@ -67,6 +64,9 @@ public class IndexTests {
 
   @Inject private MockMvc mockMvc;
 
+  @Value("${endpoints.index.version}")
+  private String indexApiVersion;
+
   @AfterEach
   public void after() {
     verifyNoMoreInteractions(ignoreStubs(mockSolrClient));
@@ -75,16 +75,12 @@ public class IndexTests {
   @Test
   public void testContextLoads() {}
 
-  @ParameterizedTest(name = "{0} index request returns {2}")
-  @MethodSource("badRequests")
-  void testBadRequests(
-      final String requestDescription,
-      final MockHttpServletRequestBuilder requestBuilder,
-      final HttpStatus expectedStatus)
-      throws Exception {
+  @Test
+  void testMissingFile() throws Exception {
     mockMvc
         .perform(
-            requestBuilder
+            multipart("/index/00067360b70e4acfab561fe593ad3f7a")
+                .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
                 .with(
                     request -> {
                       request.setMethod(HttpMethod.PUT.toString());
@@ -92,7 +88,102 @@ public class IndexTests {
                     })
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
-        .andExpect(status().is(expectedStatus.value()));
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testInvalidProductId() throws Exception {
+    mockMvc
+        .perform(
+            multipart("/index/1234")
+                .file(
+                    new MockMultipartFile(
+                        "file",
+                        "this originalFilename is ignored",
+                        "application/json",
+                        IOUtils.toInputStream(
+                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
+                            StandardCharsets.UTF_8)))
+                .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
+                .with(
+                    request -> {
+                      request.setMethod(HttpMethod.PUT.toString());
+                      return request;
+                    })
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testMissingAcceptVersion() throws Exception {
+    mockMvc
+        .perform(
+            multipart("/index/00067360b70e4acfab561fe593ad3f7a")
+                .file(
+                    new MockMultipartFile(
+                        "file",
+                        "this originalFilename is ignored",
+                        "application/json",
+                        IOUtils.toInputStream(
+                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
+                            StandardCharsets.UTF_8)))
+                .with(
+                    request -> {
+                      request.setMethod(HttpMethod.PUT.toString());
+                      return request;
+                    })
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testBadPath() throws Exception {
+    mockMvc
+        .perform(
+            multipart("/index/00067360b70e4acfab561fe593ad3f7a/badpath")
+                .file(
+                    new MockMultipartFile(
+                        "file",
+                        "this originalFilename is ignored",
+                        "application/json",
+                        IOUtils.toInputStream(
+                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
+                            StandardCharsets.UTF_8)))
+                .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
+                .with(
+                    request -> {
+                      request.setMethod(HttpMethod.PUT.toString());
+                      return request;
+                    })
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testInvalidAcceptVersion() throws Exception {
+    mockMvc
+        .perform(
+            multipart("/index/00067360b70e4acfab561fe593ad3f7a")
+                .file(
+                    new MockMultipartFile(
+                        "file",
+                        "this originalFilename is ignored",
+                        "application/json",
+                        IOUtils.toInputStream(
+                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
+                            StandardCharsets.UTF_8)))
+                .header(IndexController.ACCEPT_VERSION_HEADER_NAME, "this version is invalid")
+                .with(
+                    request -> {
+                      request.setMethod(HttpMethod.PUT.toString());
+                      return request;
+                    })
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isNotImplemented());
   }
 
   @Test
@@ -124,7 +215,7 @@ public class IndexTests {
                         IOUtils.toInputStream(
                             "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
                             StandardCharsets.UTF_8)))
-                .header("Accept-Version", "0.1.0-SNAPSHOT")
+                .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
                 .with(
                     request -> {
                       request.setMethod(HttpMethod.PUT.toString());
@@ -168,7 +259,7 @@ public class IndexTests {
                         "this originalFilename is ignored",
                         "application/json",
                         IOUtils.toInputStream(contents, StandardCharsets.UTF_8)))
-                .header("Accept-Version", "0.1.0-SNAPSHOT")
+                .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
                 .with(
                     request -> {
                       request.setMethod(HttpMethod.PUT.toString());
@@ -196,53 +287,5 @@ public class IndexTests {
             StringUtils.equals((String) solrInputDocument.getField("id").getValue(), id)
                 && StringUtils.equals(
                     (String) solrInputDocument.getField("contents").getValue(), contents));
-  }
-
-  private static Stream<Arguments> badRequests() throws IOException {
-    // TODO test can't read attachment
-    return Stream.of(
-        Arguments.of(
-            "missing file",
-            multipart("/index/00067360b70e4acfab561fe593ad3f7a")
-                .header("Accept-Version", "0.1.0-SNAPSHOT"),
-            HttpStatus.BAD_REQUEST),
-        Arguments.of(
-            "invalid productId",
-            multipart("/index/1234")
-                .file(
-                    new MockMultipartFile(
-                        "file",
-                        "this originalFilename is ignored",
-                        "application/json",
-                        IOUtils.toInputStream(
-                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
-                            StandardCharsets.UTF_8)))
-                .header("Accept-Version", "0.1.0-SNAPSHOT"),
-            HttpStatus.BAD_REQUEST),
-        Arguments.of(
-            "missing Accept-Version",
-            multipart("/index/00067360b70e4acfab561fe593ad3f7a")
-                .file(
-                    new MockMultipartFile(
-                        "file",
-                        "this originalFilename is ignored",
-                        "application/json",
-                        IOUtils.toInputStream(
-                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
-                            StandardCharsets.UTF_8))),
-            HttpStatus.BAD_REQUEST),
-        Arguments.of(
-            "not cst",
-            multipart("/index/00067360b70e4acfab561fe593ad3f7a/badpath")
-                .file(
-                    new MockMultipartFile(
-                        "file",
-                        "this originalFilename is ignored",
-                        "application/json",
-                        IOUtils.toInputStream(
-                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
-                            StandardCharsets.UTF_8)))
-                .header("Accept-Version", "0.1.0-SNAPSHOT"),
-            HttpStatus.NOT_FOUND));
   }
 }

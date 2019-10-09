@@ -11,9 +11,11 @@ import com.connexta.search.index.exceptions.IndexException;
 import com.connexta.search.rest.spring.IndexApi;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,12 +26,26 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class IndexController implements IndexApi {
 
+  public static final String ACCEPT_VERSION_HEADER_NAME = "Accept-Version";
+
   @NotNull private final IndexManager indexManager;
+  @NotBlank private final String indexApiVersion;
 
   @Override
   public ResponseEntity<Void> index(
       final String acceptVersion, final String productId, final MultipartFile file) {
-    // TODO validate Accept-Version
+    final String expectedAcceptVersion = indexApiVersion;
+    if (!StringUtils.equals(acceptVersion, expectedAcceptVersion)) {
+      log.warn(
+          "Expected "
+              + ACCEPT_VERSION_HEADER_NAME
+              + " to be \"{}\" but was \"{}\". Only \"{}\" is currently supported.",
+          expectedAcceptVersion,
+          acceptVersion,
+          expectedAcceptVersion);
+      return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
     // TODO validate productId
 
     final String mediaType = file.getContentType();

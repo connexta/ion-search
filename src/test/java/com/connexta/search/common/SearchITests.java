@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThat;
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.index.IndexManager;
+import com.connexta.search.index.controllers.IndexController;
 import com.connexta.search.query.QueryManager;
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,29 +105,8 @@ public class SearchITests {
   @Value("${endpointUrl.productRetrieve}")
   private String productRetrieveEndpoint;
 
-  private static HttpEntity createIndexRequest(final String fileString) throws IOException {
-    // TODO replace with request class from api dependency
-    final InputStream metadataInputStream = IOUtils.toInputStream(fileString, "UTF-8");
-    final MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
-    requestBody.add(
-        "file",
-        new InputStreamResource(metadataInputStream) {
-
-          @Override
-          public long contentLength() throws IOException {
-            return metadataInputStream.available();
-          }
-
-          @Override
-          public String getFilename() {
-            // The extension of this filename is used to get the ContentType of the file.
-            return "ignored.json";
-          }
-        });
-    final HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.set("Accept-Version", "0.2.0");
-    return new HttpEntity<>(requestBody, httpHeaders);
-  }
+  @Value("${endpoints.index.version}")
+  private String indexApiVersion;
 
   @BeforeEach
   public void beforeEach() throws IOException, SolrServerException {
@@ -428,5 +408,29 @@ public class SearchITests {
           solrContainer.getMappedPort(SOLR_PORT),
           "/solr");
     }
+  }
+
+  private HttpEntity createIndexRequest(final String fileString) throws IOException {
+    // TODO replace with request class from api dependency
+    final InputStream metadataInputStream = IOUtils.toInputStream(fileString, "UTF-8");
+    final MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
+    requestBody.add(
+        "file",
+        new InputStreamResource(metadataInputStream) {
+
+          @Override
+          public long contentLength() throws IOException {
+            return metadataInputStream.available();
+          }
+
+          @Override
+          public String getFilename() {
+            // The extension of this filename is used to get the ContentType of the file.
+            return "ignored.json";
+          }
+        });
+    final HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.set(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion);
+    return new HttpEntity<>(requestBody, httpHeaders);
   }
 }
