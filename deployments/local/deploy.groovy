@@ -5,25 +5,25 @@ def STACK="search-stack"
 
 //Tests that variables are correct for the docker compose and docker wrapper
 def checkVars() {
-	def dir = System.properties['user.dir']
-	def composeFile = new File(dir,"docker-compose.yml")
-	if (!composeFile.exists()){
-		println "Please run in the same directory as a docker-compose.yml"
-		System.exit(1)
-	}
+    def dir = System.properties['user.dir']
+    def composeFile = new File(dir,"docker-compose.yml")
+    if (!composeFile.exists()){
+        println "Please run in the same directory as a docker-compose.yml"
+        System.exit(1)
+    }
 }
 
 def run(commands) {
-	println "Running: " + commands
-	def proc = commands.execute()
-	proc.waitForProcessOutput(System.out, System.err)
+    println "Running: " + commands
+    def proc = commands.execute()
+    proc.waitForProcessOutput(System.out, System.err)
 }
 
 def header(message) {
-	println ""
-	println "# # # # # # # # # # # # # #"
-	println " " + message
-	println ""
+    println ""
+    println "# # # # # # # # # # # # # #"
+    println " " + message
+    println ""
 }
 
 header("Deploying the application on " + STACK)
