@@ -1,0 +1,3 @@
+endpointUrl:
+  #  localhost for local deployment
+  productRetrieve: http://localhost:9041/mis/product/
