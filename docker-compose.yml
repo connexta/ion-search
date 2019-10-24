@@ -1,7 +1,8 @@
 version: '3.7'
 services:
   search:
-    image: ${DOCKER_REGISTRY:-docker.io}/cnxta/ion-search
+    image: ${IMAGE_PREFIX}cnxta/ion-search
+    hostname: search
     ports:
       - target: 8080
         published: 9042
@@ -9,6 +10,8 @@ services:
       - target: 10052
         published: 10052
         protocol: tcp
+    environment:
+      PRODUCT_RETRIEVE_HOST: ${PRODUCT_RETRIEVE_HOST}
     networks:
       - cdr
     depends_on:
@@ -16,13 +19,9 @@ services:
     deploy:
       restart_policy:
         condition: any
-    configs:
-      - source: search_config
-        target: /configs/search_config.yml
-    command:
-      - "--spring.config.additional-location=file:/configs/search_config.yml"
   solr:
     image: solr:8.1.1
+    hostname: solr
     ports:
       - "9983:8983"
     volumes:
@@ -38,6 +37,3 @@ networks:
     external: true
 volumes:
   data:
-configs:
-  search_config:
-    file: ./configs/search_config.yml
