@@ -26,7 +26,7 @@ services:
     ports:
       - "9983:8983"
     volumes:
-      - data:/var/solr
+      - "data:/var/solr"
     entrypoint:
       - docker-entrypoint.sh
       - solr-precreate
@@ -38,6 +38,7 @@ networks:
     external: true
 volumes:
   data:
+    driver: local
 configs:
   search_config:
     file: ./configs/search_config.yml
