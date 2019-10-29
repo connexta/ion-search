@@ -30,16 +30,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+/**
+ * This class uses WebMvc to test the controller class. The purpose is to test the controller. The
+ * query manager service that supports the controller is mocked.
+ */
 @WebMvcTest(QueryController.class)
-public class QueryEndpointTests {
+public class QueryControllerTest {
 
   private static final String QUERY_STRING = "id=12efab35fab21afdd8932afa38951aef";
   private static final String URI_QUERY_PARAMETER = "q";
   private static final String SEARCH_ENDPOINT = "/search";
 
   @MockBean private QueryManager queryManager;
-
-  @Inject private QueryController queryController;
 
   @Inject private MockMvc mockMvc;
 

@@ -6,11 +6,13 @@
  */
 package com.connexta.search.index.controllers;
 
+import com.connexta.search.common.IdValidator;
+import com.connexta.search.common.MultipartFileValidator;
 import com.connexta.search.index.IndexManager;
-import com.connexta.search.index.exceptions.IndexException;
 import com.connexta.search.rest.spring.IndexApi;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -46,7 +48,8 @@ public class IndexController implements IndexApi {
       return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
-    // TODO validate datasetId
+    new IdValidator(datasetId).validate();
+    new MultipartFileValidator(file);
 
     final String mediaType = file.getContentType();
 
@@ -56,8 +59,7 @@ public class IndexController implements IndexApi {
     try {
       inputStream = file.getInputStream();
     } catch (IOException e) {
-      throw new IndexException(
-          HttpStatus.BAD_REQUEST,
+      throw new ValidationException(
           String.format(
               "Unable to read file for index request with params acceptVersion=%s, datasetId=%s, mediaType=%s",
               acceptVersion, datasetId, mediaType),

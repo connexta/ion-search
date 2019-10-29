@@ -92,30 +92,6 @@ public class IndexTests {
   }
 
   @Test
-  void testInvalidDatasetId() throws Exception {
-    mockMvc
-        .perform(
-            multipart("/index/1234")
-                .file(
-                    new MockMultipartFile(
-                        "file",
-                        "this originalFilename is ignored",
-                        "application/json",
-                        IOUtils.toInputStream(
-                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
-                            StandardCharsets.UTF_8)))
-                .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-                .with(
-                    request -> {
-                      request.setMethod(HttpMethod.PUT.toString());
-                      return request;
-                    })
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.MULTIPART_FORM_DATA))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
   void testMissingAcceptVersion() throws Exception {
     mockMvc
         .perform(
@@ -162,6 +138,7 @@ public class IndexTests {
         .andExpect(status().isNotFound());
   }
 
+  // TODO: Pull out accept version validation in its own class.
   @Test
   void testInvalidAcceptVersion() throws Exception {
     mockMvc
@@ -184,12 +161,6 @@ public class IndexTests {
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isNotImplemented());
-  }
-
-  @Test
-  @Disabled("TODO")
-  public void testCantReadAttachment() {
-    // TODO verify 400
   }
 
   /** @see SolrClient#query(String, SolrParams, METHOD) */
@@ -271,7 +242,7 @@ public class IndexTests {
   }
 
   @Test
-  public void testExistingDataset(@Mock final CrudRepository mockCrudRepository) {
+  public void testExistingProduct(@Mock final CrudRepository mockCrudRepository) {
     final String id = "00067360b70e4acfab561fe593afaded";
     doReturn(true).when(mockCrudRepository).existsById(id);
     final IndexManager indexManager = new IndexManagerImpl(mockCrudRepository);

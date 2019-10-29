@@ -41,11 +41,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * This class uses Sprint Boot Test to fully start the container. The primary purpose is to test the
+ * Query Manager Service, but the test requests go through the controller to reach the query
+ * manager. The datastore that supports the query query is mocked.
+ */
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(SolrClient.class)
-public class QueryTests {
+public class QueryServiceTest {
 
   private static final String URI_QUERY_PARAMETER = "q";
   private static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents LIKE 'queryKeyword'";
@@ -108,7 +113,9 @@ public class QueryTests {
     mockMvc.perform(MockMvcRequestBuilders.get(uri)).andExpect(status().isInternalServerError());
   }
 
+  // TODO: Move query validation logic into its own class.
   private static Stream<Arguments> badRequests() throws URISyntaxException {
+    String longString = new String(new char[5001]).replace("\0", "x");
     return Stream.of(
         Arguments.of("missing query parameter", new URI("/search")),
         Arguments.of("blank query string", uriComponentsBuilder.buildAndExpand("").toUri()),
@@ -117,6 +124,8 @@ public class QueryTests {
             uriComponentsBuilder.buildAndExpand(UNSUPPORTED_TERM_QUERY).toUri()),
         Arguments.of(
             "invalid CommonQL query",
-            uriComponentsBuilder.buildAndExpand(INVALID_CQL_QUERY).toUri()));
+            uriComponentsBuilder.buildAndExpand(INVALID_CQL_QUERY).toUri()),
+        Arguments.of(
+            "query string too long", uriComponentsBuilder.buildAndExpand(longString).toUri()));
   }
 }
