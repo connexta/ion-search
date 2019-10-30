@@ -32,8 +32,8 @@ public class QueryManagerConfiguration {
   @Bean
   public QueryManager queryManager(
       @NotNull final DataStore datastore,
-      @NotBlank @Value("${endpointUrl.productRetrieve}") final String productRetrieveEndpoint) {
-    return new QueryManagerImpl(datastore, productRetrieveEndpoint);
+      @NotBlank @Value("${endpointUrl.datasetRetrieve}") final String dataRetrieveEndpoint) {
+    return new QueryManagerImpl(datastore, dataRetrieveEndpoint);
   }
 
   @Bean

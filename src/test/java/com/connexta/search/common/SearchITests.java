@@ -72,6 +72,8 @@ public class SearchITests {
 
   private static final int SOLR_PORT = 8983;
 
+  private static final String IRM_PATH_SEGMENT = "irm";
+
   @Container
   public static final GenericContainer solrContainer =
       new GenericContainer("solr:8.1.1")
@@ -102,8 +104,8 @@ public class SearchITests {
   @Inject private TestRestTemplate restTemplate;
   @Inject private SolrClient solrClient;
 
-  @Value("${endpointUrl.productRetrieve}")
-  private String productRetrieveEndpoint;
+  @Value("${endpointUrl.datasetRetrieve}")
+  private String datasetRetrieveEndpoint;
 
   @Value("${endpoints.index.version}")
   private String indexApiVersion;
@@ -124,7 +126,7 @@ public class SearchITests {
     // given
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
 
-    // when indexing a product
+    // when indexing IRM
     ResponseEntity<String> response =
         restTemplate.exchange(
             indexEndpointUrl,
@@ -141,7 +143,7 @@ public class SearchITests {
   public void testStoringInvalidCst(String contents) throws IOException {
     // given
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
-    // when indexing a product
+    // when indexing IRM
     ResponseEntity<String> response =
         restTemplate.exchange(
             indexEndpointUrl, HttpMethod.PUT, createIndexRequest(contents), String.class);
@@ -155,9 +157,12 @@ public class SearchITests {
     // given
     final String queryKeyword = "Winterfell";
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
-    final String productLocation = productRetrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String irmLocation =
+        String.format(
+            "%s/%s/%s",
+            datasetRetrieveEndpoint, "00067360b70e4acfab561fe593ad3f7a", IRM_PATH_SEGMENT);
 
-    // when indexing a product
+    // when indexing IRM
     restTemplate.put(
         indexEndpointUrl,
         createIndexRequest(
@@ -174,22 +179,25 @@ public class SearchITests {
         "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + queryKeyword + "'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
-        hasItem(productLocation));
+        hasItem(irmLocation));
   }
 
   @Test
   public void testStoreMetadataCstWhenSolrIsNotEmpty() throws Exception {
-    // given index an initial product
+    // given index an initial IRM
     restTemplate.put(
         (INDEX_ENDPOINT_BASE_URL + "000b27ffc35d46d9ba041f663d9ccaff"),
-        createIndexRequest("{ \"ext.extracted.text\" : \"" + ("First product metadata") + " \" }"));
+        createIndexRequest("{ \"ext.extracted.text\" : \"" + ("First IRM metadata") + " \" }"));
 
-    // and create the index request for another product
+    // and create the index request for another IRM
     final String queryKeyword = "Winterfell";
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
-    final String productLocation = productRetrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String irmLocation =
+        String.format(
+            "%s/%s/%s",
+            datasetRetrieveEndpoint, "00067360b70e4acfab561fe593ad3f7a", IRM_PATH_SEGMENT);
 
-    // when indexing another product
+    // when indexing another IRM
     restTemplate.put(
         indexEndpointUrl,
         createIndexRequest(
@@ -206,19 +214,22 @@ public class SearchITests {
         "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + queryKeyword + "'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
-        hasItem(equalTo(productLocation)));
+        hasItem(equalTo(irmLocation)));
   }
 
   @Test
-  @Disabled("TODO check that the product exists before storing cst")
-  public void testStoreMetadataProductIdNotFound() {}
+  @Disabled("TODO check that the IRM exists before storing cst")
+  public void testStoreMetadataIrmIdNotFound() {}
 
   @Test
-  public void testStoreWhenProductHasAlreadyBeenIndexed() throws Exception {
-    // given index a product
+  public void testStoreWhenIrmHasAlreadyBeenIndexed() throws Exception {
+    // given index IRM
     final String queryKeyword = "Winterfell";
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
-    final String productLocation = productRetrieveEndpoint + "00067360b70e4acfab561fe593ad3f7a";
+    final String irmLocation =
+        String.format(
+            "%s/%s/%s",
+            datasetRetrieveEndpoint, "00067360b70e4acfab561fe593ad3f7a", IRM_PATH_SEGMENT);
 
     restTemplate.put(
         indexEndpointUrl,
@@ -242,37 +253,40 @@ public class SearchITests {
         "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + queryKeyword + "'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
-        hasItem(productLocation));
+        hasItem(irmLocation));
   }
 
   @ParameterizedTest(name = "{0}")
   @ValueSource(
       strings = {
-        SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " = 'first product metadata'",
+        SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " = 'first IRM metadata'",
         SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE 'first'",
         "id='000b27ffc35d46d9ba041f663d9ccaff'"
       })
   public void testQueryMultipleResults(final String cqlString) throws Exception {
-    // given a product is indexed
+    // given IRM is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
-    final String firstLocation = productRetrieveEndpoint + firstId;
-    final String firstIndexContents = "{\"ext.extracted.text\":\"first product metadata\"}";
+    final String firstLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, firstId, IRM_PATH_SEGMENT);
+    final String firstIndexContents = "{\"ext.extracted.text\":\"first IRM metadata\"}";
     restTemplate.put(firstIndexUrl, createIndexRequest(firstIndexContents));
 
-    // and another product is indexed
+    // and another IRM is indexed
     final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
     final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
-    final String secondLocation = productRetrieveEndpoint + secondId;
+    final String secondLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, secondId, IRM_PATH_SEGMENT);
     restTemplate.put(
-        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
+        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second IRM metadata\"}"));
 
-    // and another product is indexed
+    // and another IRM is indexed
     final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
     final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
-    final String thirdLocation = productRetrieveEndpoint + thirdId;
+    final String thirdLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, thirdId, IRM_PATH_SEGMENT);
     restTemplate.put(
-        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
+        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third IRM metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
@@ -286,35 +300,37 @@ public class SearchITests {
   // TODO test multiple results
   @Test
   public void testQueryWhenSolrIsNotEmpty() throws Exception {
-    // given a product is indexed
+    // given IRM is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
-    final String firstLocation = productRetrieveEndpoint + firstId;
-    final String firstProductKeyword = "first";
+    final String firstLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, firstId, IRM_PATH_SEGMENT);
+    final String firstIrmKeyword = "first";
     restTemplate.put(
         firstIndexUrl,
-        createIndexRequest(
-            "{\"ext.extracted.text\":\"" + firstProductKeyword + " product metadata\"}"));
+        createIndexRequest("{\"ext.extracted.text\":\"" + firstIrmKeyword + " IRM metadata\"}"));
 
-    // and another product is indexed
+    // and another IRM is indexed
     final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
     final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
-    final String secondLocation = productRetrieveEndpoint + secondId;
+    final String secondLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, secondId, IRM_PATH_SEGMENT);
     restTemplate.put(
-        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
+        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second IRM metadata\"}"));
 
-    // and another product is indexed
+    // and another IRM is indexed
     final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
     final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
-    final String thirdLocation = productRetrieveEndpoint + thirdId;
+    final String thirdLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, thirdId, IRM_PATH_SEGMENT);
     restTemplate.put(
-        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
+        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third IRM metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
     queryUriBuilder.setParameter(
-        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + firstProductKeyword + "'");
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE '" + firstIrmKeyword + "'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(firstLocation));
@@ -322,35 +338,37 @@ public class SearchITests {
 
   @Test
   public void testQueryZeroSearchResults() throws Exception {
-    // given a product is indexed
+    // given IRM is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
-    final String firstLocation = productRetrieveEndpoint + firstId;
-    final String firstProductKeyword = "first";
+    final String firstLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, firstId, IRM_PATH_SEGMENT);
+    final String firstIrmKeyword = "first";
     restTemplate.put(
         firstIndexUrl,
-        createIndexRequest(
-            "{\"ext.extracted.text\":\"" + firstProductKeyword + " product metadata\"}"));
+        createIndexRequest("{\"ext.extracted.text\":\"" + firstIrmKeyword + " IRM metadata\"}"));
 
-    // and another product is indexed
+    // and another IRM is indexed
     final String secondId = "001ccb7241284f21a3d15cc340c6aa9c";
     final String secondIndexUrl = INDEX_ENDPOINT_BASE_URL + secondId;
-    final String secondLocation = productRetrieveEndpoint + secondId;
+    final String secondLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, secondId, IRM_PATH_SEGMENT);
     restTemplate.put(
-        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second product metadata\"}"));
+        secondIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"second IRM metadata\"}"));
 
-    // and another product is indexed
+    // and another IRM is indexed
     final String thirdId = "00067360b70e4acfab561fe593ad3f7a";
     final String thirdIndexUrl = INDEX_ENDPOINT_BASE_URL + thirdId;
-    final String thirdLocation = productRetrieveEndpoint + thirdId;
+    final String thirdLocation =
+        String.format("%s/%s/%s", datasetRetrieveEndpoint, thirdId, IRM_PATH_SEGMENT);
     restTemplate.put(
-        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third product metadata\"}"));
+        thirdIndexUrl, createIndexRequest("{\"ext.extracted.text\":\"third IRM metadata\"}"));
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
     queryUriBuilder.setPath("/search");
     queryUriBuilder.setParameter(
-        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE 'this doesn''t match any product'");
+        "q", SolrConfiguration.CONTENTS_ATTRIBUTE_NAME + " LIKE 'this doesn''t match any IRM'");
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         allOf(

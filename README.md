@@ -61,7 +61,7 @@ For more information about spotless checks see
     Example configs/search_config.yml:
     ```yaml
     endpointUrl:
-      productRetrieve: http://localhost:9041/mis/product/
+      datasetRetrieve: http://localhost:9041/dataset
     ```
 
 2. A Docker network named `cdr` is needed to run via docker-compose.
@@ -120,7 +120,7 @@ After configuring the build system:
 
 ## Using
 ### Querying
-The Search service can be queried for Products. See [Query Service API](https://github.com/connexta/ion-query-api) for information about paths and parameters
+The Search service can be queried for IRM. See [Query Service API](https://github.com/connexta/ion-query-api) for information about paths and parameters
 The Search service supports the OGC Catalogue Common Query Language (OGC CommonQL).
 See [Annex B - BNF Definition of OGC CommonQL](http://docs.opengeospatial.org/is/12-168r6/12-168r6.html#62) for the definition of the grammar.
 
@@ -128,9 +128,9 @@ The following are valid query attributes:
 
 | Attribute | Description  |
 |---|---|
-| `id` | The unique ID that is associated with each Product |
+| `id` | The unique ID that is associated with each IRM |
 | `contents` | A client can perform keyword queries with this attribute. |
-| `media_type` | The media (MIME) type of the Product |
+| `media_type` | The media (MIME) type of the IRM |
 
 ### Inspecting
 The service is deployed with (Springfox) **Swagger UI**.

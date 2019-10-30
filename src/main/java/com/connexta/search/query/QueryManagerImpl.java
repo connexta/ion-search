@@ -36,12 +36,13 @@ import org.opengis.filter.expression.PropertyName;
 @Slf4j
 public class QueryManagerImpl implements QueryManager {
 
-  @NotBlank private final String productRetrieveEndpoint;
+  private static final String IRM_PATH_SEGMENT = "irm";
+  @NotBlank private final String datasetRetrieveEndpoint;
   @NotNull private final DataStore dataStore;
 
   public QueryManagerImpl(
-      @NotNull final DataStore dataStore, @NotBlank final String productRetrieveEndpoint) {
-    this.productRetrieveEndpoint = productRetrieveEndpoint;
+      @NotNull final DataStore dataStore, @NotBlank final String datasetRetrieveEndpoint) {
+    this.datasetRetrieveEndpoint = datasetRetrieveEndpoint;
     this.dataStore = dataStore;
   }
 
@@ -89,7 +90,7 @@ public class QueryManagerImpl implements QueryManager {
       }
     }
 
-    return Collections.unmodifiableList(getProductUris(matchingIds));
+    return Collections.unmodifiableList(getIrmUris(matchingIds));
   }
 
   private List<String> doQuery(@NotBlank final String cqlString) throws IOException {
@@ -104,24 +105,26 @@ public class QueryManagerImpl implements QueryManager {
   }
 
   /**
-   * Creates a {@link List} of Product retrieve {@link URI}s from the {@code matchingIds} using the
-   * provided {@link #productRetrieveEndpoint}
+   * Creates a {@link List} of IRM retrieve {@link URI}s from the {@code matchingIds} using the
+   * provided {@link #datasetRetrieveEndpoint}
    *
    * @param matchingIds may be empty
-   * @return A {@link List} of product retrieve {@link URI}s
+   * @return A {@link List} of IRM retrieve {@link URI}s
    * @throws QueryException if unable to construct a retrieve URI
    */
-  private List<URI> getProductUris(final List<String> matchingIds) {
+  private List<URI> getIrmUris(final List<String> matchingIds) {
     return matchingIds.stream()
         .map(
             id -> {
               try {
-                return new URI(productRetrieveEndpoint + id);
+                final String irmRetrieveEndpoint =
+                    String.format("%s/%s/%s", datasetRetrieveEndpoint, id, IRM_PATH_SEGMENT);
+                return new URI(irmRetrieveEndpoint);
               } catch (URISyntaxException e) {
                 throw new QueryException(
                     String.format(
-                        "Unable to construct retrieve URI from endpointUrlProductRetrieve=%s and id=%s",
-                        productRetrieveEndpoint, id),
+                        "Unable to construct IRM retrieve URI from endpointUrl.datasetRetrieve=%s, id=%s, and irmPathSegment=%s",
+                        datasetRetrieveEndpoint, id, IRM_PATH_SEGMENT),
                     e);
               }
             })

@@ -1,7 +1,7 @@
 server:
   port: 8080
 endpointUrl:
-  productRetrieve: http://localhost:9041/mis/product/
+  datasetRetrieve: http://localhost:9041/dataset
 endpoints:
   index:
     version: testIndexApiVersion
