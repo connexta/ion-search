@@ -14,6 +14,6 @@ import javax.validation.constraints.NotNull;
 public interface IndexManager {
 
   void index(
-      @NotBlank String productId, @NotBlank String mediaType, @NotNull InputStream inputStream)
+      @NotBlank String datasetId, @NotBlank String mediaType, @NotNull InputStream inputStream)
       throws IndexException;
 }

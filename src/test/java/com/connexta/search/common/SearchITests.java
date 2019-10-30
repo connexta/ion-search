@@ -218,11 +218,11 @@ public class SearchITests {
   }
 
   @Test
-  @Disabled("TODO check that the IRM exists before storing cst")
-  public void testStoreMetadataIrmIdNotFound() {}
+  @Disabled("TODO check that the dataset exists before storing cst")
+  public void testStoreMetadataDatasetIdNotFound() {}
 
   @Test
-  public void testStoreWhenIrmHasAlreadyBeenIndexed() throws Exception {
+  public void testStoreWhenDatasetHasAlreadyBeenIndexed() throws Exception {
     // given index IRM
     final String queryKeyword = "Winterfell";
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";

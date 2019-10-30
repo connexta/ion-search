@@ -33,11 +33,11 @@ public class IndexManagerImpl implements IndexManager {
 
   @Override
   public void index(
-      @NotBlank final String productId,
+      @NotBlank final String datasetId,
       @NotBlank final String mediaType,
       @NotNull final InputStream inputStream)
       throws IndexException {
-    // TODO check that the product exists in S3
+    // TODO check that the dataset exists in S3
 
     if (!StringUtils.equals(mediaType, ContentType.APPLICATION_JSON.getMimeType())) {
       throw new IndexException(
@@ -50,12 +50,12 @@ public class IndexManagerImpl implements IndexManager {
 
     final boolean idAlreadyExists;
     try {
-      idAlreadyExists = crudRepository.existsById(productId);
+      idAlreadyExists = crudRepository.existsById(datasetId);
     } catch (final Exception e) {
       throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to query index", e);
     }
     if (idAlreadyExists) {
-      throw new IndexException(BAD_REQUEST, "Product already exists. Overwriting is not supported");
+      throw new IndexException(BAD_REQUEST, "Dataset already exists. Overwriting is not supported");
     }
 
     final String contents;
@@ -65,9 +65,9 @@ public class IndexManagerImpl implements IndexManager {
       throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to convert InputStream to JSON", e);
     }
 
-    log.info("Attempting to index product id {}", productId);
+    log.info("Attempting to index dataset id {}", datasetId);
     try {
-      crudRepository.save(new Index(productId, contents, mediaType));
+      crudRepository.save(new Index(datasetId, contents, mediaType));
     } catch (final Exception e) {
       throw new IndexException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
     }

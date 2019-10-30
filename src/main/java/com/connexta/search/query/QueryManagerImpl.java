@@ -16,13 +16,13 @@ import com.connexta.search.query.exceptions.QueryException;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.geotools.data.DataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -32,19 +32,15 @@ import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.PropertyName;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
+@AllArgsConstructor
 public class QueryManagerImpl implements QueryManager {
 
   private static final String IRM_PATH_SEGMENT = "irm";
-  @NotBlank private final String datasetRetrieveEndpoint;
   @NotNull private final DataStore dataStore;
-
-  public QueryManagerImpl(
-      @NotNull final DataStore dataStore, @NotBlank final String datasetRetrieveEndpoint) {
-    this.datasetRetrieveEndpoint = datasetRetrieveEndpoint;
-    this.dataStore = dataStore;
-  }
+  @NotBlank private final String datasetRetrieveEndpoint;
 
   /**
    * Creates the {@link Filter} represented by the {@code queryString}
@@ -76,9 +72,9 @@ public class QueryManagerImpl implements QueryManager {
 
   @Override
   public List<URI> find(final String cqlString) {
-    final List<String> matchingIds;
+    final List<String> matchingDatasetIds;
     try {
-      matchingIds = doQuery(cqlString);
+      matchingDatasetIds = doQuery(cqlString);
     } catch (QueryException e) {
       // rethrow for the exception handler to take care of
       throw e;
@@ -90,7 +86,7 @@ public class QueryManagerImpl implements QueryManager {
       }
     }
 
-    return Collections.unmodifiableList(getIrmUris(matchingIds));
+    return Collections.unmodifiableList(getIrmUris(matchingDatasetIds));
   }
 
   private List<String> doQuery(@NotBlank final String cqlString) throws IOException {
@@ -105,30 +101,31 @@ public class QueryManagerImpl implements QueryManager {
   }
 
   /**
-   * Creates a {@link List} of IRM retrieve {@link URI}s from the {@code matchingIds} using the
-   * provided {@link #datasetRetrieveEndpoint}
+   * Creates a {@link List} of IRM retrieve {@link URI}s from the {@code matchingDatasetIds} using
+   * the provided {@link #datasetRetrieveEndpoint}
    *
-   * @param matchingIds may be empty
+   * @param matchingDatasetIds may be empty
    * @return A {@link List} of IRM retrieve {@link URI}s
    * @throws QueryException if unable to construct a retrieve URI
    */
-  private List<URI> getIrmUris(final List<String> matchingIds) {
-    return matchingIds.stream()
-        .map(
-            id -> {
-              try {
-                final String irmRetrieveEndpoint =
-                    String.format("%s/%s/%s", datasetRetrieveEndpoint, id, IRM_PATH_SEGMENT);
-                return new URI(irmRetrieveEndpoint);
-              } catch (URISyntaxException e) {
-                throw new QueryException(
-                    String.format(
-                        "Unable to construct IRM retrieve URI from endpointUrl.datasetRetrieve=%s, id=%s, and irmPathSegment=%s",
-                        datasetRetrieveEndpoint, id, IRM_PATH_SEGMENT),
-                    e);
-              }
-            })
-        .collect(Collectors.toList());
+  private List<URI> getIrmUris(final List<String> matchingDatasetIds) {
+    return matchingDatasetIds.stream().map(this::constructIrmUri).collect(Collectors.toList());
+  }
+
+  private URI constructIrmUri(String datasetId) {
+    try {
+      return UriComponentsBuilder.fromUriString(datasetRetrieveEndpoint)
+          .pathSegment(datasetId)
+          .pathSegment(IRM_PATH_SEGMENT)
+          .build()
+          .toUri();
+    } catch (IllegalArgumentException e) {
+      throw new QueryException(
+          String.format(
+              "Unable to construct IRM retrieve URI from endpointUrl.datasetRetrieve=%s, datasetId=%s, and irmPathSegment=%s",
+              datasetRetrieveEndpoint, datasetId, IRM_PATH_SEGMENT),
+          e);
+    }
   }
 
   private boolean isKnownError(Exception e) {

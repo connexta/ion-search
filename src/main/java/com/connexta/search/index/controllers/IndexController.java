@@ -33,7 +33,7 @@ public class IndexController implements IndexApi {
 
   @Override
   public ResponseEntity<Void> index(
-      final String acceptVersion, final String productId, final MultipartFile file) {
+      final String acceptVersion, final String datasetId, final MultipartFile file) {
     final String expectedAcceptVersion = indexApiVersion;
     if (!StringUtils.equals(acceptVersion, expectedAcceptVersion)) {
       log.warn(
@@ -46,7 +46,7 @@ public class IndexController implements IndexApi {
       return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
-    // TODO validate productId
+    // TODO validate datasetId
 
     final String mediaType = file.getContentType();
 
@@ -59,11 +59,11 @@ public class IndexController implements IndexApi {
       throw new IndexException(
           HttpStatus.BAD_REQUEST,
           String.format(
-              "Unable to read file for index request with params acceptVersion=%s, productId=%s, mediaType=%s",
-              acceptVersion, productId, mediaType),
+              "Unable to read file for index request with params acceptVersion=%s, datasetId=%s, mediaType=%s",
+              acceptVersion, datasetId, mediaType),
           e);
     }
-    indexManager.index(productId, mediaType, inputStream);
+    indexManager.index(datasetId, mediaType, inputStream);
     return ResponseEntity.ok().build();
   }
 }

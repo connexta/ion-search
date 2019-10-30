@@ -92,7 +92,7 @@ public class IndexTests {
   }
 
   @Test
-  void testInvalidProductId() throws Exception {
+  void testInvalidDatasetId() throws Exception {
     mockMvc
         .perform(
             multipart("/index/1234")
@@ -271,7 +271,7 @@ public class IndexTests {
   }
 
   @Test
-  public void testExistingProduct(@Mock final CrudRepository mockCrudRepository) {
+  public void testExistingDataset(@Mock final CrudRepository mockCrudRepository) {
     final String id = "00067360b70e4acfab561fe593afaded";
     doReturn(true).when(mockCrudRepository).existsById(id);
     final IndexManager indexManager = new IndexManagerImpl(mockCrudRepository);
