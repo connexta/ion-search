@@ -130,7 +130,7 @@ The following are valid query attributes:
 |---|---|
 | `id` | The unique ID that is associated with each dataset. |
 | `contents` | A client can perform keyword queries with this attribute. |
-| `media_type` | The media (MIME) type of the file. |
+| `media_type` | The media (MIME) type of the IRM. |
 
 ### Inspecting
 The service is deployed with (Springfox) **Swagger UI**.
