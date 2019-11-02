@@ -16,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
  * Encapsulate common validations of an incoming MultipartFile. Throw a ValidationException if there
  * is a violation.
  */
+
+// TODO Use a proper assertion library like Truth or Hamcrest instead of if statements
 public class MultipartFileValidator {
   private final MultipartFile file;
   private static final long GIGABYTE = 1 << 30;
@@ -40,20 +42,18 @@ public class MultipartFileValidator {
     }
   }
 
-  private String validateContentType() {
+  private void validateContentType() {
     final String mediaType = file.getContentType();
     if (isBlank(mediaType)) {
       throw new ValidationException("Media type is missing");
     }
-    return mediaType;
   }
 
-  private String validateFilename() {
-    final String mediaType = file.getOriginalFilename();
-    if (isBlank(mediaType)) {
+  private void validateFilename() {
+    final String filename = file.getOriginalFilename();
+    if (isBlank(filename)) {
       throw new ValidationException("Media type is missing");
     }
-    return mediaType;
   }
 
   private void validateSize() {

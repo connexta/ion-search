@@ -13,6 +13,7 @@ import javax.validation.ValidationException;
 /**
  * Encapsulate common validations of an IonID. Throw a ValidationException if there is a violation.
  */
+// TODO Use a proper assertion library like Truth or Hamcrest instead of if statements
 public class IdValidator {
 
   private final String id;
