@@ -6,9 +6,9 @@
  */
 package com.connexta.search.index;
 
-import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE_NAME;
-import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE_NAME;
-import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_ATTRIBUTE_NAME;
+import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_ATTRIBUTE;
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import lombok.AllArgsConstructor;
@@ -29,12 +29,12 @@ import org.springframework.data.solr.core.mapping.SolrDocument;
 public class Index {
 
   @Id
-  @Indexed(name = ID_ATTRIBUTE_NAME, type = "string")
+  @Indexed(name = ID_ATTRIBUTE, type = "string")
   private String id;
 
-  @Indexed(name = CONTENTS_ATTRIBUTE_NAME, type = "string")
+  @Indexed(name = CONTENTS_ATTRIBUTE, type = "string")
   private String contents;
 
-  @Indexed(name = MEDIA_TYPE_ATTRIBUTE_NAME, type = "string")
+  @Indexed(name = MEDIA_TYPE_ATTRIBUTE, type = "string")
   private String mediaType;
 }

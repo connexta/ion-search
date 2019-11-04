@@ -161,7 +161,7 @@ class IndexServiceImplTest {
     List<SolrDocument> solrDocuments = new ArrayList<>();
     for (String queryId : queryIds) {
       SolrDocument document = mock(SolrDocument.class);
-      when(document.get(SolrConfiguration.ID_ATTRIBUTE_NAME)).thenReturn(queryId);
+      when(document.get(SolrConfiguration.ID_ATTRIBUTE)).thenReturn(queryId);
       solrDocuments.add(document);
     }
 

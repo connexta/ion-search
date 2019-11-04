@@ -28,7 +28,7 @@ public class QueryController implements QueryApi {
 
   @Override
   public ResponseEntity<List<URI>> query(final String q) {
-    // TODO Make a String validator: new StringValidator.notBlank.maxchars(5000).validate();
+    // TODO use an assertion library like Hamcrest or Truth
     if (q.length() > 5000) {
       throw new ValidationException("Query string cannot be more than 5,000 characters");
     }

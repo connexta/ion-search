@@ -143,9 +143,9 @@ public class IndexServiceImpl implements IndexService {
 
     Set<String> ids = new HashSet<>();
     for (SolrDocument doc : response.getResults()) {
-      Object obj = doc.get(SolrConfiguration.ID_ATTRIBUTE_NAME);
+      Object obj = doc.get(SolrConfiguration.ID_ATTRIBUTE);
       if (obj instanceof String) {
-        ids.add((String) doc.get(SolrConfiguration.ID_ATTRIBUTE_NAME));
+        ids.add((String) doc.get(SolrConfiguration.ID_ATTRIBUTE));
       } else {
         // shouldn't hit this since the schema enforces the ID is a string
         log.debug("Skipping invalid solr result {}", doc);

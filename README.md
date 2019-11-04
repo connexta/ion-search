@@ -128,9 +128,16 @@ The following are valid query attributes:
 
 | Attribute | Description  |
 |---|---|
-| `id` | The unique ID that is associated with each dataset. |
-| `contents` | A client can perform keyword queries with this attribute. |
-| `media_type` | The media (MIME) type of the IRM. |
+| `contents` | A client can perform keyword queries with this attribute |
+| `country_code` | GENC:3:3-7 trigraph indicating a country |
+| `created` | The date the File was created |
+| `expiration` | The date past which the information in the Dataset should not be consumed |
+| `icid` | The Information Community Identification of the File |
+| `keyword` | The topic of the Dataset |
+| `media_type` | The media (MIME) type of the File |
+| `modified` | The date the File was last modified |
+| `resource_uri` | Location of the File |
+| `title` | Name given to the Dataset |
 
 ### Inspecting
 The service is deployed with (Springfox) **Swagger UI**.
