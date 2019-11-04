@@ -20,7 +20,7 @@ import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 
 @EnableSolrRepositories(basePackages = "com.connexta.search.index")
 @Configuration
-public class IndexManagerConfiguration {
+public class IndexServiceConfiguration {
 
   @Bean
   public SolrClient solrClient(@NotNull final URL solrUrl) {
@@ -33,7 +33,7 @@ public class IndexManagerConfiguration {
   }
 
   @Bean
-  public IndexService indexManager(@NotNull final CrudRepository crudRepository) {
+  public IndexService indexService(@NotNull final CrudRepository crudRepository) {
     return new IndexServiceImpl(crudRepository);
   }
 }
