@@ -46,19 +46,17 @@ public class IndexController implements IndexApi {
               ACCEPT_VERSION_HEADER_NAME, acceptVersion, expectedAcceptVersion));
     }
 
-    final String mediaType = validate(file).getContentType();
-
-    final InputStream inputStream;
-    try {
-      inputStream = file.getInputStream();
+    // TODO Add tests to verify that InputStream is closed
+    try (final InputStream inputStream = validate(file).getInputStream(); ) {
+      indexService.index(datasetId, file.getContentType(), inputStream);
     } catch (IOException e) {
       throw new ValidationException(
           String.format(
-              "Unable to read file for index request with params acceptVersion=%s, datasetId=%s, mediaType=%s",
-              acceptVersion, datasetId, mediaType),
+              "Unable to read file for index request with params acceptVersion=%s, datasetId=%s",
+              acceptVersion, datasetId),
           e);
     }
-    indexService.index(datasetId, mediaType, inputStream);
+
     return ResponseEntity.ok().build();
   }
 }
