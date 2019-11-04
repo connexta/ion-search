@@ -44,14 +44,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 /**
  * This class uses {@link SpringBootTest} to fully start the container. The primary purpose is to
  * test the {@link QueryService}, but the test requests go through the {@link
- * com.connexta.search.query.controllers.QueryController} to reach the query manager. The {@link
- * DataStore} that supports the {@link QueryService} is mocked.
+ * com.connexta.search.query.controllers.QueryController} to reach the {@link QueryService}. The
+ * {@link DataStore} that supports the {@link QueryService} is mocked.
  */
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(SolrClient.class)
-public class QueryServiceTest {
+public class QueryServiceTests {
 
   private static final String URI_QUERY_PARAMETER = "q";
   private static final String CONTENTS_LIKE_QUERY_KEYWORD = "contents LIKE 'queryKeyword'";

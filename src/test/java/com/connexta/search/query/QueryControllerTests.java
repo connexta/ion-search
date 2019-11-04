@@ -31,17 +31,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
- * This class uses {@code @WebMvcTest} to test {@link QueryController}. The query manager service
- * that supports the controller is mocked.
+ * This class uses {@code @WebMvcTest} to test {@link QueryController}. The {@link QueryService} is
+ * mocked.
  */
 @WebMvcTest(QueryController.class)
-public class QueryControllerTest {
+public class QueryControllerTests {
 
   private static final String QUERY_STRING = "id=12efab35fab21afdd8932afa38951aef";
   private static final String URI_QUERY_PARAMETER = "q";
   private static final String SEARCH_ENDPOINT = "/search";
 
-  @MockBean private QueryService queryService;
+  @MockBean private QueryService mockQueryService;
 
   @Inject private MockMvc mockMvc;
 
@@ -49,7 +49,7 @@ public class QueryControllerTest {
   // TODO add a test for non-empty results
   public void testQueryControllerReturnsListFromQueryManager() throws Exception {
     final List<URI> queryResults = List.of();
-    when(queryService.find(QUERY_STRING)).thenReturn(queryResults);
+    when(mockQueryService.find(QUERY_STRING)).thenReturn(queryResults);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath(SEARCH_ENDPOINT);
@@ -64,7 +64,7 @@ public class QueryControllerTest {
   @MethodSource("requestsThatThrowErrors")
   public void testExceptionHandling(HttpStatus responseStatus, Throwable throwable)
       throws Exception {
-    when(queryService.find(QUERY_STRING)).thenThrow(throwable);
+    when(mockQueryService.find(QUERY_STRING)).thenThrow(throwable);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath(SEARCH_ENDPOINT);
