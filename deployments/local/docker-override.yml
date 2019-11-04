@@ -2,3 +2,6 @@ version: '3.7'
 services:
   search:
     image: cnxta/ion-search
+configs:
+  search_config:
+    file: deployments/local/configs/search_config.yml

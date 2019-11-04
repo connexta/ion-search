@@ -22,9 +22,9 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import com.connexta.search.common.configs.SolrConfiguration;
-import com.connexta.search.index.IndexManager;
+import com.connexta.search.index.IndexService;
 import com.connexta.search.index.controllers.IndexController;
-import com.connexta.search.query.QueryManager;
+import com.connexta.search.query.QueryService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -99,8 +99,8 @@ public class SearchITests {
               term -> String.format("%s = '%s'", term, getSampleDatatHavingAllAttributes.get(term)))
           .collect(Collectors.joining(" AND "));
 
-  @Inject private QueryManager queryManager;
-  @Inject private IndexManager indexManager;
+  @Inject private QueryService queryService;
+  @Inject private IndexService indexService;
   @Inject private TestRestTemplate restTemplate;
   @Inject private SolrClient solrClient;
 
@@ -405,13 +405,13 @@ public class SearchITests {
         equalTo(QUERY_TERMS));
 
     // Index the document
-    indexManager.index(
+    indexService.index(
         getSampleDatatHavingAllAttributes.get(ID_ATTRIBUTE_NAME),
         getSampleDatatHavingAllAttributes.get(MEDIA_TYPE_ATTRIBUTE_NAME),
         IOUtils.toInputStream("{ \"ext.extracted.text\" : \"Winterfell\" }", "UTF-8"));
 
     // Query for the document
-    List<URI> results = queryManager.find(allAttributesQuery);
+    List<URI> results = queryService.find(allAttributesQuery);
     MatcherAssert.assertThat("Expected exactly one result", results, hasSize(1));
   }
 

@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -80,6 +81,33 @@ public class IndexTests {
     mockMvc
         .perform(
             multipart("/index/00067360b70e4acfab561fe593ad3f7a")
+                .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
+                .with(
+                    request -> {
+                      request.setMethod(HttpMethod.PUT.toString());
+                      return request;
+                    })
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isBadRequest());
+  }
+
+  @ParameterizedTest(name = "400 Bad Request if ID is {0}")
+  @NullSource
+  @ValueSource(
+      strings = {"   ", "1234567890123456789012345678901234", "+0067360b70e4acfab561fe593ad3f7a"})
+  void testInvalidDatasetId(final String id) throws Exception {
+    mockMvc
+        .perform(
+            multipart("/index/" + id)
+                .file(
+                    new MockMultipartFile(
+                        "file",
+                        "this originalFilename is ignored",
+                        "application/json",
+                        IOUtils.toInputStream(
+                            "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}",
+                            StandardCharsets.UTF_8)))
                 .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
                 .with(
                     request -> {
@@ -163,6 +191,12 @@ public class IndexTests {
         .andExpect(status().isNotImplemented());
   }
 
+  @Test
+  @Disabled("TODO")
+  public void testCantReadAttachment() {
+    // TODO verify 400
+  }
+
   /** @see SolrClient#query(String, SolrParams, METHOD) */
   @ParameterizedTest
   @ValueSource(classes = {IOException.class, SolrServerException.class, RuntimeException.class})
@@ -242,13 +276,13 @@ public class IndexTests {
   }
 
   @Test
-  public void testExistingProduct(@Mock final CrudRepository mockCrudRepository) {
+  public void testExistingDatasetId(@Mock final CrudRepository mockCrudRepository) {
     final String id = "00067360b70e4acfab561fe593afaded";
     doReturn(true).when(mockCrudRepository).existsById(id);
-    final IndexManager indexManager = new IndexManagerImpl(mockCrudRepository);
+    final IndexService indexService = new IndexServiceImpl(mockCrudRepository);
     assertThrows(
         IndexException.class,
-        () -> indexManager.index(id, "application/json", mock(InputStream.class)));
+        () -> indexService.index(id, "application/json", mock(InputStream.class)));
   }
 
   private static SolrInputDocument hasIndexFieldValues(

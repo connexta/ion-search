@@ -22,7 +22,7 @@ public class GetFilterTests {
 
   @Test
   public void testValidQueries() {
-    assertNotNull(QueryManagerImpl.getFilter("contents LIKE 'bloop'"));
+    assertNotNull(QueryServiceImpl.getFilter("contents LIKE 'bloop'"));
   }
 
   @ParameterizedTest
@@ -30,13 +30,13 @@ public class GetFilterTests {
       strings = {"XXX LIKE 'bloop'", "contents LIKE 'Winterfell' OR XXX LIKE 'Kings Landing'"})
   public void testUnsupportedAttributes(String queryString) {
     final IllegalQueryException illegalQueryException =
-        assertThrows(IllegalQueryException.class, () -> QueryManagerImpl.getFilter(queryString));
+        assertThrows(IllegalQueryException.class, () -> QueryServiceImpl.getFilter(queryString));
     assertThat(illegalQueryException.getUnsupportedAttributes(), is(Set.of("XXX")));
   }
 
   @Test
   public void testMalformedQuery() {
     assertThrows(
-        MalformedQueryException.class, () -> QueryManagerImpl.getFilter("contents LIKE don't"));
+        MalformedQueryException.class, () -> QueryServiceImpl.getFilter("contents LIKE don't"));
   }
 }

@@ -8,7 +8,7 @@ package com.connexta.search.common.advice;
 
 import com.connexta.search.common.exceptions.DetailedErrorAttributes;
 import java.util.Map;
-import javax.validation.ConstraintViolationException;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +26,9 @@ public class CustomExceptionHandler {
 
   @NotNull private final DetailedErrorAttributes detailedErrorAttributes;
 
-  @ExceptionHandler(ConstraintViolationException.class)
+  @ExceptionHandler(ValidationException.class)
   protected ResponseEntity<Object> handleConstraintViolation(
-      @NotNull final ConstraintViolationException e, @NotNull final WebRequest request) {
+      @NotNull final ValidationException e, @NotNull final WebRequest request) {
     final HttpStatus status = HttpStatus.BAD_REQUEST;
     log.warn("Request is invalid. Returning {}.", status, e);
     final Map<String, Object> errorAttributes =

@@ -36,7 +36,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @AllArgsConstructor
-public class QueryManagerImpl implements QueryManager {
+public class QueryServiceImpl implements QueryService {
 
   private static final String IRM_PATH_SEGMENT = "irm";
   @NotNull private final DataStore dataStore;

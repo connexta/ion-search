@@ -22,12 +22,12 @@ import org.apache.http.entity.ContentType;
 import org.springframework.data.repository.CrudRepository;
 
 @Slf4j
-public class IndexManagerImpl implements IndexManager {
+public class IndexServiceImpl implements IndexService {
 
   private static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
   private final CrudRepository crudRepository;
 
-  public IndexManagerImpl(@NotNull final CrudRepository crudRepository) {
+  public IndexServiceImpl(@NotNull final CrudRepository crudRepository) {
     this.crudRepository = crudRepository;
   }
 

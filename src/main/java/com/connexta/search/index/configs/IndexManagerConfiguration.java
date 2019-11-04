@@ -6,8 +6,8 @@
  */
 package com.connexta.search.index.configs;
 
-import com.connexta.search.index.IndexManager;
-import com.connexta.search.index.IndexManagerImpl;
+import com.connexta.search.index.IndexService;
+import com.connexta.search.index.IndexServiceImpl;
 import java.net.URL;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrClient;
@@ -33,7 +33,7 @@ public class IndexManagerConfiguration {
   }
 
   @Bean
-  public IndexManager indexManager(@NotNull final CrudRepository crudRepository) {
-    return new IndexManagerImpl(crudRepository);
+  public IndexService indexManager(@NotNull final CrudRepository crudRepository) {
+    return new IndexServiceImpl(crudRepository);
   }
 }

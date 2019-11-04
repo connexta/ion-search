@@ -42,9 +42,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * This class uses Sprint Boot Test to fully start the container. The primary purpose is to test the
- * Query Manager Service, but the test requests go through the controller to reach the query
- * manager. The datastore that supports the query query is mocked.
+ * This class uses {@link SpringBootTest} to fully start the container. The primary purpose is to
+ * test the {@link QueryService}, but the test requests go through the {@link
+ * com.connexta.search.query.controllers.QueryController} to reach the query manager. The {@link
+ * DataStore} that supports the {@link QueryService} is mocked.
  */
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest

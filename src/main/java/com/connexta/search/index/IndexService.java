@@ -11,7 +11,7 @@ import java.io.InputStream;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-public interface IndexManager {
+public interface IndexService {
 
   void index(
       @NotBlank String datasetId, @NotBlank String mediaType, @NotNull InputStream inputStream)

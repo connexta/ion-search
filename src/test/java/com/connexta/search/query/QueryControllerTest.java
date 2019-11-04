@@ -31,8 +31,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
- * This class uses WebMvc to test the controller class. The purpose is to test the controller. The
- * query manager service that supports the controller is mocked.
+ * This class uses {@code @WebMvcTest} to test {@link QueryController}. The query manager service
+ * that supports the controller is mocked.
  */
 @WebMvcTest(QueryController.class)
 public class QueryControllerTest {
@@ -41,7 +41,7 @@ public class QueryControllerTest {
   private static final String URI_QUERY_PARAMETER = "q";
   private static final String SEARCH_ENDPOINT = "/search";
 
-  @MockBean private QueryManager queryManager;
+  @MockBean private QueryService queryService;
 
   @Inject private MockMvc mockMvc;
 
@@ -49,7 +49,7 @@ public class QueryControllerTest {
   // TODO add a test for non-empty results
   public void testQueryControllerReturnsListFromQueryManager() throws Exception {
     final List<URI> queryResults = List.of();
-    when(queryManager.find(QUERY_STRING)).thenReturn(queryResults);
+    when(queryService.find(QUERY_STRING)).thenReturn(queryResults);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath(SEARCH_ENDPOINT);
@@ -60,11 +60,11 @@ public class QueryControllerTest {
         .andExpect(content().string(queryResults.toString()));
   }
 
-  @ParameterizedTest(name = "{0} is returned when QueryManager#find throws {1}")
+  @ParameterizedTest(name = "{0} is returned when QueryService#find throws {1}")
   @MethodSource("requestsThatThrowErrors")
   public void testExceptionHandling(HttpStatus responseStatus, Throwable throwable)
       throws Exception {
-    when(queryManager.find(QUERY_STRING)).thenThrow(throwable);
+    when(queryService.find(QUERY_STRING)).thenThrow(throwable);
 
     final URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setPath(SEARCH_ENDPOINT);
