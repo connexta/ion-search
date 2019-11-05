@@ -6,10 +6,18 @@
  */
 package com.connexta.search.index;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_ATTRIBUTE;
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.connexta.search.common.Index;
+import com.connexta.search.common.IndexRepository;
+import com.connexta.search.common.configs.SolrConfiguration;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
@@ -30,23 +38,27 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+/**
+ * TODO Update this to a component or unit test, and test {@link
+ * com.connexta.search.common.SearchManagerImpl} instead
+ */
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @Testcontainers
 @DirtiesContext
-class IndexRepositoryITests {
+class IndexRepositoryITest {
 
   private static final int SOLR_PORT = 8983;
-  private static final String SOLR_COLLECTION = "search_terms";
 
   private static final String INDEX_ID = UUID.randomUUID().toString().replace("-", "");
   private static final String INDEX_CONTENT = "Winterfell";
   private static final String INDEX_MEDIA_TYPE = MediaType.APPLICATION_JSON;
+  private static final String MISSING_REQUIRED_FIELD_MESSAGE_FORMAT = "missing required field: %s";
 
   @Container
   private static final GenericContainer solrContainer =
       new GenericContainer("cnxta/search-solr")
           .withExposedPorts(SOLR_PORT)
-          .waitingFor(Wait.forHttp("/solr/" + SOLR_COLLECTION + "/admin/ping"));
+          .waitingFor(Wait.forHttp("/solr/" + SolrConfiguration.SOLR_COLLECTION + "/admin/ping"));
 
   @Inject private IndexRepository indexRepository;
 
@@ -71,7 +83,7 @@ class IndexRepositoryITests {
   }
 
   @Test
-  void testIndexCrud() {
+  void testIndex() {
     // setup
     Index index = new Index(INDEX_ID, INDEX_CONTENT, INDEX_MEDIA_TYPE);
 
@@ -79,25 +91,37 @@ class IndexRepositoryITests {
     indexRepository.save(index);
 
     // then
-    assertEquals(1, indexRepository.count());
-    Index savedIndex = indexRepository.findById(INDEX_ID).get();
-    assertEquals(index, savedIndex);
+    assertThat(indexRepository.count(), is(1L));
+    assertThat(indexRepository.findById(INDEX_ID), isPresentAndIs(index));
+  }
 
-    // and
+  @Test
+  void testUpdate() {
+    // setup
+    Index index = new Index(INDEX_ID, INDEX_CONTENT, INDEX_MEDIA_TYPE);
+    indexRepository.save(index);
+
     Index updatedIndex = new Index(INDEX_ID, "updatedContext", "updated/contentType");
 
     // when
     indexRepository.save(updatedIndex);
 
     // then
-    assertEquals(1, indexRepository.count());
-    assertEquals(updatedIndex, indexRepository.findById(INDEX_ID).get());
+    assertThat(indexRepository.count(), is(1L));
+    assertThat(indexRepository.findById(INDEX_ID), isPresentAndIs(updatedIndex));
+  }
+
+  @Test
+  void testDelete() {
+    // setup
+    Index index = new Index(INDEX_ID, INDEX_CONTENT, INDEX_MEDIA_TYPE);
+    indexRepository.save(index);
 
     // when
     indexRepository.deleteById(INDEX_ID);
 
     // then
-    assertEquals(0, indexRepository.count());
+    assertThat(indexRepository.count(), is(0L));
   }
 
   @Test
@@ -110,7 +134,10 @@ class IndexRepositoryITests {
         assertThrows(DataAccessResourceFailureException.class, () -> indexRepository.save(index));
 
     // then
-    assertTrue(e.getMessage().contains("missing mandatory uniqueKey field: id"));
+    assertThat(
+        e.getMessage(),
+        containsString(String.format("missing mandatory uniqueKey field: %s", ID_ATTRIBUTE)));
+    assertThat(indexRepository.count(), is(0L));
   }
 
   @Test
@@ -123,8 +150,10 @@ class IndexRepositoryITests {
         assertThrows(DataAccessResourceFailureException.class, () -> indexRepository.save(index));
 
     // then
-    assertTrue(e.getMessage().contains("missing required field: contents"));
-    assertEquals(0, indexRepository.count());
+    assertThat(
+        e.getMessage(),
+        containsString(String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, CONTENTS_ATTRIBUTE)));
+    assertThat(indexRepository.count(), is(0L));
   }
 
   @Test
@@ -137,7 +166,9 @@ class IndexRepositoryITests {
         assertThrows(DataAccessResourceFailureException.class, () -> indexRepository.save(index));
 
     // then
-    assertTrue(e.getMessage().contains("missing required field: media_type"));
-    assertEquals(0, indexRepository.count());
+    assertThat(
+        e.getMessage(),
+        containsString(String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, MEDIA_TYPE_ATTRIBUTE)));
+    assertThat(indexRepository.count(), is(0L));
   }
 }

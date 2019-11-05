@@ -20,13 +20,9 @@ import org.springframework.context.annotation.Profile;
 public class SolrConfiguration {
 
   public static final String SOLR_COLLECTION = "search_terms";
-  public static final String LAYER_NAME = "solrLayer";
 
   // TODO Contents is not an attribute in the CST
   public static final String CONTENTS_ATTRIBUTE = "contents";
-
-  // The unique ID of a Dataset, internal to Ion
-  public static final String ID_ATTRIBUTE = "id";
 
   // GENC:3:3-7 trigraph
   public static final String COUNTRY_CODE_ATTRIBUTE = "country_code";
@@ -42,6 +38,9 @@ public class SolrConfiguration {
   // Intelligence Community Identifier. An ICID is an unambiguous reference to the resource within a
   // given context.
   public static final String ICID_ATTRIBUTE = "icid";
+
+  // The unique ID of a Dataset, internal to Ion
+  public static final String ID_ATTRIBUTE = "id";
 
   // The topic of the File.
   public static final String KEYWORD_ATTRIBUTE = "keyword";
@@ -62,12 +61,12 @@ public class SolrConfiguration {
 
   public static final Set<String> QUERY_TERMS =
       ImmutableSet.of(
-          ID_ATTRIBUTE,
           CONTENTS_ATTRIBUTE,
           COUNTRY_CODE_ATTRIBUTE,
           CREATED_DATE_ATTRIBUTE,
           EXPIRATION_DATE_ATTRIBUTE,
           ICID_ATTRIBUTE,
+          ID_ATTRIBUTE,
           KEYWORD_ATTRIBUTE,
           MEDIA_TYPE_ATTRIBUTE,
           MODIFIED_ATTRIBUTE,

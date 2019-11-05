@@ -18,8 +18,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.connexta.search.common.IndexRepository;
+import com.connexta.search.common.SearchManager;
+import com.connexta.search.common.SearchManagerImpl;
+import com.connexta.search.common.exceptions.SearchException;
 import com.connexta.search.index.controllers.IndexController;
-import com.connexta.search.index.exceptions.IndexException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -54,11 +57,12 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
+/** TODO Update this to component and unit tests */
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(DataStore.class)
-public class IndexTests {
+class IndexITest {
 
   @MockBean private SolrClient mockSolrClient;
 
@@ -68,7 +72,7 @@ public class IndexTests {
   private String indexApiVersion;
 
   @AfterEach
-  public void after() {
+  void after() {
     verifyNoMoreInteractions(ignoreStubs(mockSolrClient));
   }
 
@@ -189,15 +193,14 @@ public class IndexTests {
 
   @Test
   @Disabled("TODO")
-  public void testCantReadAttachment() {
+  void testCantReadAttachment() {
     // TODO verify 400
   }
 
   /** @see SolrClient#query(String, SolrParams, METHOD) */
   @ParameterizedTest
   @ValueSource(classes = {IOException.class, SolrServerException.class, RuntimeException.class})
-  public void testSolrClientErrorsWhenQuerying(Class<? extends Throwable> throwableType)
-      throws Exception {
+  void testSolrClientErrorsWhenQuerying(Class<? extends Throwable> throwableType) throws Exception {
     final String id = "00067360b70e4acfab561fe593ad3f7a";
     when(mockSolrClient.query(
             eq("search_terms"),
@@ -232,7 +235,7 @@ public class IndexTests {
   @Disabled
   @ParameterizedTest
   @ValueSource(classes = {IOException.class, SolrServerException.class, RuntimeException.class})
-  public void testSolrClientErrorsWhenSaving(final Class<? extends Throwable> throwableType)
+  void testSolrClientErrorsWhenSaving(final Class<? extends Throwable> throwableType)
       throws Exception {
     final String id = "00067360b70e4acfab561fe593ad3f7a";
 
@@ -272,13 +275,13 @@ public class IndexTests {
   }
 
   @Test
-  public void testExistingDatasetId(@Mock final IndexRepository indexRepository) {
+  void testExistingDatasetId(@Mock final IndexRepository indexRepository) {
     final String id = "00067360b70e4acfab561fe593afaded";
     doReturn(true).when(indexRepository).existsById(id);
-    final IndexService indexService = new IndexServiceImpl(indexRepository, null);
+    final SearchManager searchManager = new SearchManagerImpl(indexRepository, null);
     assertThrows(
-        IndexException.class,
-        () -> indexService.index(id, "application/json", mock(InputStream.class)));
+        SearchException.class,
+        () -> searchManager.index(id, "application/json", mock(InputStream.class)));
   }
 
   private static SolrInputDocument hasIndexFieldValues(

@@ -6,7 +6,7 @@
  */
 package com.connexta.search.query.configs;
 
-import com.connexta.search.index.IndexService;
+import com.connexta.search.common.SearchManager;
 import com.connexta.search.query.QueryService;
 import com.connexta.search.query.QueryServiceImpl;
 import javax.validation.constraints.NotBlank;
@@ -21,7 +21,7 @@ public class QueryServiceConfiguration {
   @Bean
   public QueryService queryService(
       @NotBlank @Value("${endpointUrl.datasetRetrieve}") final String productRetrieveEndpoint,
-      @NotNull IndexService indexService) {
-    return new QueryServiceImpl(productRetrieveEndpoint, indexService);
+      @NotNull SearchManager searchManager) {
+    return new QueryServiceImpl(productRetrieveEndpoint, searchManager);
   }
 }

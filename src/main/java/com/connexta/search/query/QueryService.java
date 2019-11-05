@@ -6,6 +6,7 @@
  */
 package com.connexta.search.query;
 
+import com.connexta.search.common.exceptions.SearchException;
 import com.connexta.search.query.exceptions.QueryException;
 import java.net.URI;
 import java.util.List;
@@ -15,8 +16,11 @@ import javax.validation.constraints.Size;
 
 public interface QueryService {
 
+  /**
+   * @throws SearchException if there was an error querying or the cql was invalid
+   * @throws QueryException if unable to construct IRM retrieve URI
+   */
   @NotNull
   List<URI> find(
-      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 100) final String cqlString)
-      throws QueryException;
+      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 100) final String cqlString);
 }

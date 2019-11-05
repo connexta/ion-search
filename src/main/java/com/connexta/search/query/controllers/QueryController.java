@@ -10,7 +10,6 @@ import com.connexta.search.query.QueryService;
 import com.connexta.search.rest.spring.QueryApi;
 import java.net.URI;
 import java.util.List;
-import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,14 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class QueryController implements QueryApi {
 
+  public static final String URL_TEMPLATE = "/search";
+  public static final String QUERY_URL_TEMPLATE = "q={q}";
+
   @NotNull private final QueryService queryService;
 
   @Override
   public ResponseEntity<List<URI>> query(final String q) {
-    // TODO use an assertion library like Hamcrest or Truth
-    if (q.length() > 5000) {
-      throw new ValidationException("Query string cannot be more than 5,000 characters");
-    }
     return ResponseEntity.ok(queryService.find(q));
   }
 }

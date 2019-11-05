@@ -7,38 +7,30 @@
 package com.connexta.search;
 
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
-import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
-import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_ATTRIBUTE;
-import static com.connexta.search.common.configs.SolrConfiguration.QUERY_TERMS;
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 
-import com.connexta.search.common.SearchTestData;
-import com.connexta.search.index.IndexService;
+import com.connexta.search.common.SearchManager;
 import com.connexta.search.index.controllers.IndexController;
 import com.connexta.search.query.QueryService;
+import com.connexta.search.query.controllers.QueryController;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.hamcrest.MatcherAssert;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -67,7 +59,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @Testcontainers
 @DirtiesContext
-class SearchITests {
+class SearchITest {
 
   private static final int SOLR_PORT = 8983;
 
@@ -81,23 +73,8 @@ class SearchITests {
 
   private static final String INDEX_ENDPOINT_BASE_URL = "/index/";
 
-  @NotNull
-  private static final Map<String, String> getSampleDataHavingAllAttributes =
-      Map.of(
-          ID_ATTRIBUTE,
-          "00067360b70e4acfab561fe593ad3f7b",
-          CONTENTS_ATTRIBUTE,
-          "Winterfell",
-          MEDIA_TYPE_ATTRIBUTE,
-          "application/json");
-
-  private static final String allAttributesQuery =
-      QUERY_TERMS.stream()
-          .map(term -> String.format("%s = '%s'", term, getSampleDataHavingAllAttributes.get(term)))
-          .collect(Collectors.joining(" AND "));
-
   @Inject private QueryService queryService;
-  @Inject private IndexService indexService;
+  @Inject private SearchManager searchManager;
   @Inject private TestRestTemplate restTemplate;
   @Inject private SolrClient solrClient;
 
@@ -156,7 +133,7 @@ class SearchITests {
             indexEndpointUrl, HttpMethod.PUT, createIndexRequest(contents), String.class);
 
     // then
-    assertThat(response.getStatusCode(), is(HttpStatus.INTERNAL_SERVER_ERROR));
+    assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -181,15 +158,16 @@ class SearchITests {
 
     // then
     final URIBuilder queryUriBuilder = new URIBuilder();
-    queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", CONTENTS_ATTRIBUTE + " LIKE '" + queryKeyword + "'");
+    queryUriBuilder.setPath(QueryController.URL_TEMPLATE);
+    queryUriBuilder.setParameter(
+        "q", String.format("%s LIKE '%s'", CONTENTS_ATTRIBUTE, queryKeyword));
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(irmLocation));
   }
 
   @Test
-  public void testStoreMetadataCstWhenSolrIsNotEmpty() throws Exception {
+  void testStoreMetadataCstWhenSolrIsNotEmpty() throws Exception {
     // given index an initial IRM
     restTemplate.put(
         (INDEX_ENDPOINT_BASE_URL + "000b27ffc35d46d9ba041f663d9ccaff"),
@@ -215,8 +193,9 @@ class SearchITests {
 
     // then
     final URIBuilder queryUriBuilder = new URIBuilder();
-    queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", CONTENTS_ATTRIBUTE + " LIKE '" + queryKeyword + "'");
+    queryUriBuilder.setPath(QueryController.URL_TEMPLATE);
+    queryUriBuilder.setParameter(
+        "q", String.format("%s LIKE '%s'", CONTENTS_ATTRIBUTE, queryKeyword));
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(equalTo(irmLocation)));
@@ -224,10 +203,10 @@ class SearchITests {
 
   @Test
   @Disabled("TODO check that the dataset exists before storing cst")
-  public void testStoreMetadataDatasetIdNotFound() {}
+  void testStoreMetadataDatasetIdNotFound() {}
 
   @Test
-  public void testStoreWhenDatasetHasAlreadyBeenIndexed() throws Exception {
+  void testStoreWhenDatasetHasAlreadyBeenIndexed() throws Exception {
     // given index IRM
     final String queryKeyword = "Winterfell";
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
@@ -253,8 +232,9 @@ class SearchITests {
 
     // then query should still work
     final URIBuilder queryUriBuilder = new URIBuilder();
-    queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", CONTENTS_ATTRIBUTE + " LIKE '" + queryKeyword + "'");
+    queryUriBuilder.setPath(QueryController.URL_TEMPLATE);
+    queryUriBuilder.setParameter(
+        "q", String.format("%s LIKE '%s'", CONTENTS_ATTRIBUTE, queryKeyword));
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(irmLocation));
@@ -267,7 +247,7 @@ class SearchITests {
         CONTENTS_ATTRIBUTE + " LIKE 'first'",
         "id='000b27ffc35d46d9ba041f663d9ccaff'"
       })
-  public void testQueryMultipleResults(final String cqlString) throws Exception {
+  void testQueryMultipleResults(final String cqlString) throws Exception {
     // given IRM is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
@@ -294,7 +274,7 @@ class SearchITests {
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
-    queryUriBuilder.setPath("/search");
+    queryUriBuilder.setPath(QueryController.URL_TEMPLATE);
     queryUriBuilder.setParameter("q", cqlString);
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
@@ -303,7 +283,7 @@ class SearchITests {
 
   // TODO test multiple results
   @Test
-  public void testQueryWhenSolrIsNotEmpty() throws Exception {
+  void testQueryWhenSolrIsNotEmpty() throws Exception {
     // given IRM is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
@@ -332,15 +312,16 @@ class SearchITests {
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
-    queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", CONTENTS_ATTRIBUTE + " LIKE '" + firstIrmKeyword + "'");
+    queryUriBuilder.setPath(QueryController.URL_TEMPLATE);
+    queryUriBuilder.setParameter(
+        "q", String.format("%s LIKE '%s'", CONTENTS_ATTRIBUTE, firstIrmKeyword));
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         hasItem(firstLocation));
   }
 
   @Test
-  public void testQueryZeroSearchResults() throws Exception {
+  void testQueryZeroSearchResults() throws Exception {
     // given IRM is indexed
     final String firstId = "000b27ffc35d46d9ba041f663d9ccaff";
     final String firstIndexUrl = INDEX_ENDPOINT_BASE_URL + firstId;
@@ -369,8 +350,9 @@ class SearchITests {
 
     // verify
     final URIBuilder queryUriBuilder = new URIBuilder();
-    queryUriBuilder.setPath("/search");
-    queryUriBuilder.setParameter("q", CONTENTS_ATTRIBUTE + " LIKE 'this doesn''t match any IRM'");
+    queryUriBuilder.setPath(QueryController.URL_TEMPLATE);
+    queryUriBuilder.setParameter(
+        "q", String.format("%s LIKE 'this doesn''t match any IRM'", CONTENTS_ATTRIBUTE));
     assertThat(
         (List<String>) restTemplate.getForObject(queryUriBuilder.build(), List.class),
         allOf(
@@ -381,33 +363,20 @@ class SearchITests {
 
   @Test
   @Disabled("TODO")
-  public void testMultipleSearchResults() throws Exception {
+  void testMultipleSearchResults() throws Exception {
     // TODO
   }
 
   @Test
-  public void testQueryWhenSolrIsEmpty() throws Exception {
+  void testQueryWhenSolrIsEmpty() throws Exception {
     final URIBuilder queryUriBuilder = new URIBuilder();
-    queryUriBuilder.setPath("/search");
+    queryUriBuilder.setPath(QueryController.URL_TEMPLATE);
     queryUriBuilder.setParameter(
-        "q", CONTENTS_ATTRIBUTE + " LIKE 'nothing is in solr so this wont match anything'");
+        "q",
+        String.format(
+            "%s LIKE 'nothing is in solr so this wont match anything'", CONTENTS_ATTRIBUTE));
     assertThat(
         (List<URI>) restTemplate.getForObject(queryUriBuilder.build(), List.class), is(empty()));
-  }
-
-  @Disabled("TODO Disabled until the new fields are indexed")
-  @Test
-  public void testIndexingAndQueryingAllAttributes() throws IOException {
-
-    // Index the document
-    indexService.index(
-        SearchTestData.get(ID_ATTRIBUTE),
-        SearchTestData.get(MEDIA_TYPE_ATTRIBUTE),
-        IOUtils.toInputStream("{ \"ext.extracted.text\" : \"Winterfell\" }", "UTF-8"));
-
-    // Query for the document
-    List<URI> results = queryService.find(SearchTestData.allAttributesQuery);
-    MatcherAssert.assertThat("Expected exactly one result", results, hasSize(1));
   }
 
   private HttpEntity createIndexRequest(final String requestContent) throws IOException {

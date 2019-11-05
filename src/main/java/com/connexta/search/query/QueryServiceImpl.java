@@ -6,7 +6,7 @@
  */
 package com.connexta.search.query;
 
-import com.connexta.search.index.IndexService;
+import com.connexta.search.common.SearchManager;
 import com.connexta.search.query.exceptions.QueryException;
 import java.net.URI;
 import java.util.List;
@@ -14,25 +14,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
+@AllArgsConstructor
 public class QueryServiceImpl implements QueryService {
 
   private static final String IRM_PATH_SEGMENT = "irm";
-  @NotBlank private final String datasetRetrieveEndpoint;
-  private final IndexService indexService;
 
-  public QueryServiceImpl(
-      @NotBlank final String datasetRetrieveEndpoint, @NotNull IndexService indexService) {
-    this.datasetRetrieveEndpoint = datasetRetrieveEndpoint;
-    this.indexService = indexService;
-  }
+  @NotBlank private final String datasetRetrieveEndpoint;
+  @NotNull private final SearchManager searchManager;
 
   @Override
   public List<URI> find(final String cqlString) {
-    return getIrmUris(indexService.query(cqlString));
+    return getIrmUris(searchManager.query(cqlString));
   }
 
   /**
@@ -49,6 +46,7 @@ public class QueryServiceImpl implements QueryService {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  /** @throws QueryException if unable to construct a retrieve URI */
   private URI constructIrmUri(String datasetId) {
     try {
       return UriComponentsBuilder.fromUriString(datasetRetrieveEndpoint)

@@ -8,6 +8,7 @@ package com.connexta.search.query;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.connexta.search.query.controllers.QueryController;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.stream.Stream;
@@ -31,17 +32,18 @@ import org.springframework.web.util.UriComponentsBuilder;
  * This class uses {@link SpringBootTest} to fully start the container. The primary purpose is to
  * test the {@link QueryService}, but the test requests go through the {@link
  * com.connexta.search.query.controllers.QueryController} to reach the {@link QueryService}.
+ *
+ * <p>TODO Update this to component and unit tests
  */
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(SolrClient.class)
-public class QueryServiceTests {
+class QueryServiceITest {
 
   private static final String URI_QUERY_PARAMETER = "q";
   private static final String INVALID_CQL_QUERY = "contents notACqlOperator 'metadata'";
   private static final String UNSUPPORTED_TERM_QUERY = "anSupportedQueryTerm LIKE 'Paradise City'";
-  private static final String SEARCH_ENDPOINT = "/search";
   private static UriComponentsBuilder uriComponentsBuilder;
 
   @Inject private MockMvc mockMvc;
@@ -49,7 +51,7 @@ public class QueryServiceTests {
   @BeforeAll
   static void beforeAll() throws URISyntaxException {
     final URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setPath(SEARCH_ENDPOINT);
+    uriBuilder.setPath(QueryController.URL_TEMPLATE);
     uriComponentsBuilder =
         UriComponentsBuilder.fromUri(uriBuilder.build()).query(URI_QUERY_PARAMETER + "={query}");
   }
@@ -64,7 +66,7 @@ public class QueryServiceTests {
   private static Stream<Arguments> badRequests() throws URISyntaxException {
     String longString = "x".repeat(5001);
     return Stream.of(
-        Arguments.of(new URI("/search")),
+        Arguments.of(new URI(QueryController.URL_TEMPLATE)),
         Arguments.of(uriComponentsBuilder.buildAndExpand("").toUri()),
         Arguments.of(uriComponentsBuilder.buildAndExpand(UNSUPPORTED_TERM_QUERY).toUri()),
         Arguments.of(uriComponentsBuilder.buildAndExpand(INVALID_CQL_QUERY).toUri()),
