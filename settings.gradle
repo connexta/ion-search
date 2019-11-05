@@ -6,3 +6,6 @@
  */
 /* Build Script */
 rootProject.name = "search"
+
+include ':solr'
+project(':solr').projectDir = new File(settingsDir, 'solr')

@@ -1,0 +1,13 @@
+plugins {
+    id "maven"
+    id "com.palantir.docker"
+}
+
+docker {
+    name "cnxta/search-solr"
+    dockerfile file("src/main/docker/Dockerfile")
+    copySpec.from('src/main/resources/solr/conf/').into("/")
+}
+
+assemble.finalizedBy("docker")
+build.finalizedBy("docker")

@@ -32,10 +32,13 @@ jobs:
       - run: mkdir -p workspace
       - run:
           command: 'docker save cnxta/ion-search > workspace/ion-search.tar'
+      - run:
+          command: 'docker save cnxta/search-solr > workspace/search-solr.tar'
       - persist_to_workspace:
           root: workspace
           paths:
             - ion-search.tar
+            - search-solr.tar
   OWASP:
     docker:
       - image: circleci/openjdk:11-jdk

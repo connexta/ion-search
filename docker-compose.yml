@@ -22,15 +22,11 @@ services:
     command:
       - "--spring.config.additional-location=file:/configs/search_config.yml"
   solr:
-    image: solr:8.1.1
+    image: ${DOCKER_REGISTRY:-docker.io}/cnxta/search-solr
     ports:
       - "9983:8983"
     volumes:
       - "data:/var/solr"
-    entrypoint:
-      - docker-entrypoint.sh
-      - solr-precreate
-      - searchTerms
     networks:
       - cdr
 networks:

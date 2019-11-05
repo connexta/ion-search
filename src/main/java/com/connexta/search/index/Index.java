@@ -12,9 +12,11 @@ import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_AT
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.solr.core.mapping.Indexed;
 import org.springframework.data.solr.core.mapping.SolrDocument;
 
@@ -23,8 +25,10 @@ import org.springframework.data.solr.core.mapping.SolrDocument;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class Index {
 
+  @Id
   @Indexed(name = ID_ATTRIBUTE_NAME, type = "string")
   private String id;
 

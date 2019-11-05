@@ -6,6 +6,7 @@
  */
 package com.connexta.search.index.configs;
 
+import com.connexta.search.index.IndexRepository;
 import com.connexta.search.index.IndexService;
 import com.connexta.search.index.IndexServiceImpl;
 import java.net.URL;
@@ -14,7 +15,6 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 
@@ -33,7 +33,8 @@ public class IndexServiceConfiguration {
   }
 
   @Bean
-  public IndexService indexService(@NotNull final CrudRepository crudRepository) {
-    return new IndexServiceImpl(crudRepository);
+  public IndexService indexService(
+      @NotNull final IndexRepository indexRepository, @NotNull final SolrClient solrClient) {
+    return new IndexServiceImpl(indexRepository, solrClient);
   }
 }

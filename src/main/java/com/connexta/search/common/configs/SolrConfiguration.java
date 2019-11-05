@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 public class SolrConfiguration {
 
-  public static final String SOLR_COLLECTION = "searchTerms";
+  public static final String SOLR_COLLECTION = "search_terms";
   public static final String CONTENTS_ATTRIBUTE_NAME = "contents";
   public static final String ID_ATTRIBUTE_NAME = "id";
   public static final String MEDIA_TYPE_ATTRIBUTE_NAME = "media_type";

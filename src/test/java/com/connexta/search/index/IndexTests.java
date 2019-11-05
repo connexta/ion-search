@@ -49,7 +49,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -72,9 +71,6 @@ public class IndexTests {
   public void after() {
     verifyNoMoreInteractions(ignoreStubs(mockSolrClient));
   }
-
-  @Test
-  public void testContextLoads() {}
 
   @Test
   void testMissingFile() throws Exception {
@@ -204,7 +200,7 @@ public class IndexTests {
       throws Exception {
     final String id = "00067360b70e4acfab561fe593ad3f7a";
     when(mockSolrClient.query(
-            eq("searchTerms"),
+            eq("search_terms"),
             argThat(solrQuery -> StringUtils.equals(solrQuery.get("q"), "id:" + id)),
             eq(METHOD.GET)))
         .thenThrow(throwableType);
@@ -245,14 +241,14 @@ public class IndexTests {
     final QueryResponse mockQueryResponse = mock(QueryResponse.class);
     when(mockQueryResponse.getResults()).thenReturn(mockSolrDocumentList);
     when(mockSolrClient.query(
-            eq("searchTerms"),
+            eq("search_terms"),
             argThat(solrQuery -> StringUtils.equals(solrQuery.get("q"), "id:" + id)),
             eq(METHOD.GET)))
         .thenReturn(mockQueryResponse);
 
     final String contents =
         "{\"ext.extracted.text\" : \"All the color had been leached from Winterfell until only grey and white remained\"}";
-    when(mockSolrClient.add(eq("searchTerms"), hasIndexFieldValues(id, contents), anyInt()))
+    when(mockSolrClient.add(eq("search_terms"), hasIndexFieldValues(id, contents), anyInt()))
         .thenThrow(throwableType);
 
     mockMvc
@@ -276,10 +272,10 @@ public class IndexTests {
   }
 
   @Test
-  public void testExistingDatasetId(@Mock final CrudRepository mockCrudRepository) {
+  public void testExistingDatasetId(@Mock final IndexRepository indexRepository) {
     final String id = "00067360b70e4acfab561fe593afaded";
-    doReturn(true).when(mockCrudRepository).existsById(id);
-    final IndexService indexService = new IndexServiceImpl(mockCrudRepository);
+    doReturn(true).when(indexRepository).existsById(id);
+    final IndexService indexService = new IndexServiceImpl(indexRepository, null);
     assertThrows(
         IndexException.class,
         () -> indexService.index(id, "application/json", mock(InputStream.class)));

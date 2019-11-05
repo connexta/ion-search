@@ -90,8 +90,8 @@ spotless {
 }
 
 ext.configArgs = [
-        "parallel"  : project.hasProperty("parallel"),
-        "skipITests": project.hasProperty("skipITests"),
+    "parallel"  : project.hasProperty("parallel"),
+    "skipITests": project.hasProperty("skipITests"),
 ]
 
 configurations.all {
@@ -137,6 +137,7 @@ docker {
 }
 
 tasks.withType(Test) {
+    dependsOn = [':solr:build']
     //  Forces Gradle to always run the tests, regardless if they are up to date or not.
     outputs.upToDateWhen { false }
 

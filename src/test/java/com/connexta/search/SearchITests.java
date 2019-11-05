@@ -4,7 +4,7 @@
  * Released under the GNU Lesser General Public License version 3; see
  * https://www.gnu.org/licenses/lgpl-3.0.html
  */
-package com.connexta.search.common;
+package com.connexta.search;
 
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE_NAME;
 import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE_NAME;
@@ -40,7 +40,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.hamcrest.MatcherAssert;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -68,23 +68,22 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @Testcontainers
 @DirtiesContext
-public class SearchITests {
+class SearchITests {
 
   private static final int SOLR_PORT = 8983;
 
   private static final String IRM_PATH_SEGMENT = "irm";
 
   @Container
-  public static final GenericContainer solrContainer =
-      new GenericContainer("solr:8.1.1")
-          .withCommand("solr-create -c " + SOLR_COLLECTION)
+  private static final GenericContainer solrContainer =
+      new GenericContainer("cnxta/search-solr")
           .withExposedPorts(SOLR_PORT)
           .waitingFor(Wait.forHttp("/solr/" + SOLR_COLLECTION + "/admin/ping"));
 
   private static final String INDEX_ENDPOINT_BASE_URL = "/index/";
 
   @NotNull
-  private static final Map<String, String> getSampleDatatHavingAllAttributes =
+  private static final Map<String, String> getSampleDataHavingAllAttributes =
       Map.of(
           ID_ATTRIBUTE_NAME,
           "00067360b70e4acfab561fe593ad3f7b",
@@ -95,8 +94,7 @@ public class SearchITests {
 
   private static final String allAttributesQuery =
       QUERY_TERMS.stream()
-          .map(
-              term -> String.format("%s = '%s'", term, getSampleDatatHavingAllAttributes.get(term)))
+          .map(term -> String.format("%s = '%s'", term, getSampleDataHavingAllAttributes.get(term)))
           .collect(Collectors.joining(" AND "));
 
   @Inject private QueryService queryService;
@@ -110,18 +108,28 @@ public class SearchITests {
   @Value("${endpoints.index.version}")
   private String indexApiVersion;
 
-  @BeforeEach
-  public void beforeEach() throws IOException, SolrServerException {
+  @TestConfiguration
+  static class Config {
+
+    @Bean
+    public URL solrUrl() throws MalformedURLException {
+      return new URL(
+          "http",
+          solrContainer.getContainerIpAddress(),
+          solrContainer.getMappedPort(SOLR_PORT),
+          "/solr");
+    }
+  }
+
+  @AfterEach
+  public void afterEach() throws IOException, SolrServerException {
     // TODO shouldn't need to clear solr every time
     solrClient.deleteByQuery(SOLR_COLLECTION, "*");
     solrClient.commit(SOLR_COLLECTION);
   }
 
-  @Test
-  public void testContextLoads() {}
-
   @ParameterizedTest
-  @ValueSource(strings = {"", " ", "text"})
+  @ValueSource(strings = {" ", "text"})
   public void testStoringValidCst(String contents) throws Exception {
     // given
     final String indexEndpointUrl = INDEX_ENDPOINT_BASE_URL + "00067360b70e4acfab561fe593ad3f7a";
@@ -397,17 +405,16 @@ public class SearchITests {
 
   @Test
   public void testIndexingAndQueryingAllAttributes() throws IOException {
-
     // Assert valid preconditions
     assertThat(
         "Sample data must include all query attributes",
-        unmodifiableSet(getSampleDatatHavingAllAttributes.keySet()),
+        unmodifiableSet(getSampleDataHavingAllAttributes.keySet()),
         equalTo(QUERY_TERMS));
 
     // Index the document
     indexService.index(
-        getSampleDatatHavingAllAttributes.get(ID_ATTRIBUTE_NAME),
-        getSampleDatatHavingAllAttributes.get(MEDIA_TYPE_ATTRIBUTE_NAME),
+        getSampleDataHavingAllAttributes.get(ID_ATTRIBUTE_NAME),
+        getSampleDataHavingAllAttributes.get(MEDIA_TYPE_ATTRIBUTE_NAME),
         IOUtils.toInputStream("{ \"ext.extracted.text\" : \"Winterfell\" }", "UTF-8"));
 
     // Query for the document
@@ -415,22 +422,9 @@ public class SearchITests {
     MatcherAssert.assertThat("Expected exactly one result", results, hasSize(1));
   }
 
-  @TestConfiguration
-  static class Config {
-
-    @Bean
-    public URL solrUrl() throws MalformedURLException {
-      return new URL(
-          "http",
-          solrContainer.getContainerIpAddress(),
-          solrContainer.getMappedPort(SOLR_PORT),
-          "/solr");
-    }
-  }
-
-  private HttpEntity createIndexRequest(final String fileString) throws IOException {
+  private HttpEntity createIndexRequest(final String requestContent) throws IOException {
     // TODO replace with request class from api dependency
-    final InputStream metadataInputStream = IOUtils.toInputStream(fileString, "UTF-8");
+    final InputStream metadataInputStream = IOUtils.toInputStream(requestContent, "UTF-8");
     final MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
     requestBody.add(
         "file",
