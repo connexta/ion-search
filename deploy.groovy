@@ -10,6 +10,7 @@ if (!DOCKER_REG) {
 
 //The name of the preface for the docker images
 def DOCKER_IMAGE_NAME = "cnxta/ion-search"
+def DOCKER_SOLR_IMAGE = "cnxta/search-solr"
 //The stack you want the docker compose file named
 def STACK="search-stack"
 
@@ -55,12 +56,17 @@ def header(message) {
 }
 
 checkVars(DOCKER_W)
-header("Tagging and pushing the docker image to " + DOCKER_REG)
+header("Tagging and pushing the docker images to " + DOCKER_REG)
+
 run("docker tag " + DOCKER_IMAGE_NAME + " " + DOCKER_REG + "/" + DOCKER_IMAGE_NAME)
 run("docker push " + DOCKER_REG + "/" + DOCKER_IMAGE_NAME)
 
+run("docker tag " + DOCKER_SOLR_IMAGE + " " + DOCKER_REG + "/" + DOCKER_SOLR_IMAGE)
+run("docker push" + DOCKER_REG + "/" + DOCKER_SOLR_IMAGE)
+
 header("Pulling the docker image on " + DOCKER_REG)
 run(DOCKER_W + " pull " + DOCKER_REG + "/" + DOCKER_IMAGE_NAME)
+run(DOCKER_W + " pull " + DOCKER_REG + "/" + DOCKER_SOLR_IMAGE)
 
 header("Deploying the application on " + STACK)
 run(DOCKER_W + " stack rm " + STACK)
