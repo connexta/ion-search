@@ -62,7 +62,7 @@ run("docker tag " + DOCKER_IMAGE_NAME + " " + DOCKER_REG + "/" + DOCKER_IMAGE_NA
 run("docker push " + DOCKER_REG + "/" + DOCKER_IMAGE_NAME)
 
 run("docker tag " + DOCKER_SOLR_IMAGE + " " + DOCKER_REG + "/" + DOCKER_SOLR_IMAGE)
-run("docker push" + DOCKER_REG + "/" + DOCKER_SOLR_IMAGE)
+run("docker push " + DOCKER_REG + "/" + DOCKER_SOLR_IMAGE)
 
 header("Pulling the docker image on " + DOCKER_REG)
 run(DOCKER_W + " pull " + DOCKER_REG + "/" + DOCKER_IMAGE_NAME)
