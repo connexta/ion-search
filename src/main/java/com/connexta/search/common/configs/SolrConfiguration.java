@@ -39,7 +39,7 @@ public class SolrConfiguration {
   // given context.
   public static final String ICID_ATTRIBUTE = "icid";
 
-  // The unique ID of a Dataset, internal to Ion
+  // The unique ID of a Dataset
   public static final String ID_ATTRIBUTE = "id";
 
   // The topic of the File.

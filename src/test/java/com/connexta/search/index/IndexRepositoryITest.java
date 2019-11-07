@@ -39,8 +39,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
- * TODO Update this to a component or unit test, and test {@link
- * com.connexta.search.common.SearchManagerImpl} instead
+ * TODO Update this to a unit test or use {@link
+ * org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest}/{@link
+ * org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest} instead.
  */
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @Testcontainers

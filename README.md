@@ -136,7 +136,7 @@ The following are valid query attributes:
 | `created` | The date the File was created |
 | `expiration` | The date past which the information in the Dataset should not be consumed |
 | `icid` | The Information Community Identification of the File |
-| `id` | The unique ID that is associated with each File |
+| `id` | The unique ID that is associated with each Dataset |
 | `keyword` | The topic of the Dataset |
 | `media_type` | The media (MIME) type of the File |
 | `modified` | The date the File was last modified |

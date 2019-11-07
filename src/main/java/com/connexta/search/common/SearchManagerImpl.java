@@ -155,7 +155,7 @@ public class SearchManagerImpl implements SearchManager {
     return ids;
   }
 
-  /** @throws SearchException if the {@link JsonNode} does not have a {@code fieldName} field */
+  /** @throws IOException if the {@link InputStream} contains invalid content */
   private static JsonNode parseJson(InputStream stream) throws IOException {
     final ObjectMapper objectMapper;
     objectMapper = new ObjectMapper();
