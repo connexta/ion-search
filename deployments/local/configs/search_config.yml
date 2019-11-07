@@ -1,3 +1,0 @@
-endpointUrl:
-  #  localhost for local deployment
-  datasetRetrieve: http://localhost:9041/dataset

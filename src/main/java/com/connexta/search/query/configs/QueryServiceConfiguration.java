@@ -9,9 +9,7 @@ package com.connexta.search.query.configs;
 import com.connexta.search.common.SearchManager;
 import com.connexta.search.query.QueryService;
 import com.connexta.search.query.QueryServiceImpl;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,9 +17,7 @@ import org.springframework.context.annotation.Configuration;
 public class QueryServiceConfiguration {
 
   @Bean
-  public QueryService queryService(
-      @NotBlank @Value("${endpointUrl.datasetRetrieve}") final String productRetrieveEndpoint,
-      @NotNull SearchManager searchManager) {
-    return new QueryServiceImpl(productRetrieveEndpoint, searchManager);
+  public QueryService queryService(@NotNull final SearchManager searchManager) {
+    return new QueryServiceImpl(searchManager);
   }
 }

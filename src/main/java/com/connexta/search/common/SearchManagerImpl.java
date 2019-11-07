@@ -6,7 +6,6 @@
  */
 package com.connexta.search.common;
 
-import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.QUERY_TERMS;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -18,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,8 +26,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.entity.ContentType;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -44,7 +43,7 @@ import org.opengis.filter.expression.PropertyName;
 @AllArgsConstructor
 public class SearchManagerImpl implements SearchManager {
 
-  private static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
+  public static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
 
   @NotNull private final IndexRepository indexRepository;
   @NotNull private final SolrClient solrClient;
@@ -52,18 +51,9 @@ public class SearchManagerImpl implements SearchManager {
   @Override
   public void index(
       @NotBlank final String datasetId,
-      @NotBlank final String mediaType,
+      @NotNull final URI irmUri,
       @NotNull final InputStream inputStream) {
     // TODO check that the dataset exists in S3
-
-    if (!StringUtils.equals(mediaType, ContentType.APPLICATION_JSON.getMimeType())) {
-      throw new SearchException(
-          INTERNAL_SERVER_ERROR,
-          "Expected the content type to be "
-              + ContentType.APPLICATION_JSON.getMimeType()
-              + " , but was "
-              + mediaType);
-    }
 
     // TODO 11/4/2019 PeterHuffer: this check should be done by the database so separate
     // index instances don't have timing issues
@@ -87,7 +77,7 @@ public class SearchManagerImpl implements SearchManager {
 
     log.info("Attempting to index datasetId={}", datasetId);
     try {
-      indexRepository.save(new Index(datasetId, contents, mediaType));
+      indexRepository.save(new Index(datasetId, contents, irmUri.toString()));
     } catch (final Exception e) {
       throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
     }
@@ -95,13 +85,13 @@ public class SearchManagerImpl implements SearchManager {
   }
 
   @Override
-  public Set<String> query(String cql) {
-    return this.query(cql, new FilterToSolr(null));
+  public Set<URI> query(String cql) {
+    return query(cql, new FilterToSolr(null));
   }
 
   /** @throws SearchException if there was an error querying */
   @VisibleForTesting
-  Set<String> query(String cql, FilterToSolr filterToSolr) {
+  Set<URI> query(String cql, FilterToSolr filterToSolr) {
     Filter filter;
     try {
       filter = ECQL.toFilter(cql);
@@ -141,18 +131,27 @@ public class SearchManagerImpl implements SearchManager {
       throw new SearchException(INTERNAL_SERVER_ERROR, "Error querying index");
     }
 
-    Set<String> ids = new HashSet<>();
+    final Set<URI> irmURIs = new HashSet<>();
     for (SolrDocument doc : response.getResults()) {
-      Object obj = doc.get(ID_ATTRIBUTE);
+      Object obj = doc.get(SolrConfiguration.IRM_URI_STRING_ATTRIBUTE);
       if (obj instanceof String) {
-        ids.add((String) obj);
+        final String irmUriString = (String) obj;
+        try {
+          irmURIs.add(new URI(irmUriString));
+        } catch (URISyntaxException e) {
+          // TODO write tests for this case
+          throw new SearchException(
+              INTERNAL_SERVER_ERROR,
+              "Unable to construct URI from irmUriString=" + irmUriString,
+              e);
+        }
       } else {
         // shouldn't hit this since the schema enforces the ID is a string
         log.debug("Skipping invalid solr result {}", doc);
       }
     }
 
-    return ids;
+    return irmURIs;
   }
 
   /** @throws IOException if the {@link InputStream} contains invalid content */

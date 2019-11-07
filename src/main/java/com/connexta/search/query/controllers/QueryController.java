@@ -8,6 +8,7 @@ package com.connexta.search.query.controllers;
 
 import com.connexta.search.query.QueryService;
 import com.connexta.search.rest.spring.QueryApi;
+import com.google.common.collect.ImmutableList;
 import java.net.URI;
 import java.util.List;
 import javax.validation.constraints.NotNull;
@@ -30,6 +31,6 @@ public class QueryController implements QueryApi {
 
   @Override
   public ResponseEntity<List<URI>> query(final String q) {
-    return ResponseEntity.ok(queryService.find(q));
+    return ResponseEntity.ok(ImmutableList.copyOf(queryService.find(q)));
   }
 }

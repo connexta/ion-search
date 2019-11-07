@@ -16,11 +16,6 @@ services:
     deploy:
       restart_policy:
         condition: any
-    configs:
-      - source: search_config
-        target: /configs/search_config.yml
-    command:
-      - "--spring.config.additional-location=file:/configs/search_config.yml"
   solr:
     image: ${DOCKER_REGISTRY:-docker.io}/cnxta/search-solr
     ports:
@@ -35,6 +30,3 @@ networks:
 volumes:
   data:
     driver: local
-configs:
-  search_config:
-    file: ./configs/search_config.yml

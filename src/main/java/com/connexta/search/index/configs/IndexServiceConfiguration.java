@@ -12,12 +12,13 @@ import com.connexta.search.index.IndexServiceImpl;
 import javax.validation.constraints.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class IndexServiceConfiguration {
 
   @Bean
   public IndexService indexService(@NotNull final SearchManager searchManager) {
-    return new IndexServiceImpl(searchManager);
+    return new IndexServiceImpl(searchManager, WebClient.create());
   }
 }

@@ -1,7 +1,5 @@
 server:
   port: 8080
-endpointUrl:
-  datasetRetrieve: http://localhost:9041/dataset
 endpoints:
   index:
     version: testIndexApiVersion

@@ -4,19 +4,17 @@
  * Released under the GNU Lesser General Public License version 3; see
  * https://www.gnu.org/licenses/lgpl-3.0.html
  */
-package com.connexta.search.index;
+package com.connexta.search.common;
 
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
-import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_STRING_ATTRIBUTE;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.connexta.search.common.Index;
-import com.connexta.search.common.IndexRepository;
 import com.connexta.search.common.configs.SolrConfiguration;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -169,7 +167,8 @@ class IndexRepositoryITest {
     // then
     assertThat(
         e.getMessage(),
-        containsString(String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, MEDIA_TYPE_ATTRIBUTE)));
+        containsString(
+            String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, IRM_URI_STRING_ATTRIBUTE)));
     assertThat(indexRepository.count(), is(0L));
   }
 }

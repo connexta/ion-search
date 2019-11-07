@@ -56,32 +56,21 @@ Jacoco provides code coverage under `build/reports/jacoco`. Jacoco tasks are run
 
 ## Running
 ### Configuring
-1. The service can be configured with an external configuration file that will be applied to the docker container during deployment.
-    The configuration YAML file can be found at `<PROJECT_ROOT>/configs/search_config.yml` and is not version-controlled.
-    The properties in this file will be merged with any properties that you have configured in the service.
-    The properties in the external config file take precedence over config files that are built with the service.
+A Docker network named `cdr` is needed to run via docker-compose.
 
-    Example configs/search_config.yml:
-    ```yaml
-    endpointUrl:
-      datasetRetrieve: http://localhost:9041/dataset
-    ```
-
-2. A Docker network named `cdr` is needed to run via docker-compose.
-
-    Determine if the network already exists:
-    ```bash
-    docker network ls
-    ```
-    If the network exists, the output includes a reference to it:
-    ```bash
-    NETWORK ID          NAME                DRIVER              SCOPE
-    zk0kg1knhd6g        cdr                 overlay             swarm
-    ```
-    If the network has not been created:
-    ```bash
-    docker network create --driver=overlay --attachable cdr
-    ```
+Determine if the network already exists:
+```bash
+docker network ls
+```
+If the network exists, the output includes a reference to it:
+```bash
+NETWORK ID          NAME                DRIVER              SCOPE
+zk0kg1knhd6g        cdr                 overlay             swarm
+```
+If the network has not been created:
+```bash
+docker network create --driver=overlay --attachable cdr
+```
 
 ### Running Locally via `docker stack`
 ```bash
@@ -138,7 +127,6 @@ The following are valid query attributes:
 | `icid` | The Information Community Identification of the File |
 | `id` | The unique ID that is associated with each Dataset |
 | `keyword` | The topic of the Dataset |
-| `media_type` | The media (MIME) type of the File |
 | `modified` | The date the File was last modified |
 | `resource_uri` | Location of the File |
 | `title` | Name given to the Dataset |

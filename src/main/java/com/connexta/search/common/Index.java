@@ -8,7 +8,7 @@ package com.connexta.search.common;
 
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
-import static com.connexta.search.common.configs.SolrConfiguration.MEDIA_TYPE_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_STRING_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
 
 import lombok.AllArgsConstructor;
@@ -35,6 +35,6 @@ public class Index {
   @Indexed(name = CONTENTS_ATTRIBUTE, type = "string")
   private String contents;
 
-  @Indexed(name = MEDIA_TYPE_ATTRIBUTE, type = "string")
-  private String mediaType;
+  @Indexed(name = IRM_URI_STRING_ATTRIBUTE, type = "string")
+  private String irmUriString;
 }

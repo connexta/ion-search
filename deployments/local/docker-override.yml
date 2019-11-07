@@ -4,6 +4,3 @@ services:
     image: cnxta/ion-search
   solr:
     image: cnxta/search-solr
-configs:
-  search_config:
-    file: deployments/local/configs/search_config.yml

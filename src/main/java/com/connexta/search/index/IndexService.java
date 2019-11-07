@@ -6,8 +6,7 @@
  */
 package com.connexta.search.index;
 
-import java.io.InputStream;
-import javax.validation.constraints.NotBlank;
+import java.net.URI;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -16,6 +15,5 @@ public interface IndexService {
 
   void index(
       @Pattern(regexp = "^[0-9a-zA-Z]+$") @Size(min = 32, max = 32) final String datasetId,
-      @NotBlank final String contentType,
-      @NotNull final InputStream inputStream);
+      @NotNull final URI irmUri);
 }

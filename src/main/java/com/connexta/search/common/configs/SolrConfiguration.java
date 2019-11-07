@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Profile;
 public class SolrConfiguration {
 
   public static final String SOLR_COLLECTION = "search_terms";
+  public static final String IRM_URI_STRING_ATTRIBUTE = "irm_uri_string";
 
   // TODO Contents is not an attribute in the CST
   public static final String CONTENTS_ATTRIBUTE = "contents";
@@ -45,10 +46,6 @@ public class SolrConfiguration {
   // The topic of the File.
   public static final String KEYWORD_ATTRIBUTE = "keyword";
 
-  // A media type (formerly known as MIME type) is a two-part identifier for file formats and format
-  // contents transmitted on the Internet.
-  public static final String MEDIA_TYPE_ATTRIBUTE = "media_type";
-
   // TODO Make this class Date
   // Date when the file was  last changed.  Format is YYYY-MM-DDThh:mm:ss.sZ
   public static final String MODIFIED_ATTRIBUTE = "modified";
@@ -68,7 +65,6 @@ public class SolrConfiguration {
           ICID_ATTRIBUTE,
           ID_ATTRIBUTE,
           KEYWORD_ATTRIBUTE,
-          MEDIA_TYPE_ATTRIBUTE,
           MODIFIED_ATTRIBUTE,
           RESOURCE_URI_ATTRIBUTE,
           TITLE_ATTRIBUTE);

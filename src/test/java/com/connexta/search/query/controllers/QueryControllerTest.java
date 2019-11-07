@@ -7,6 +7,7 @@
 package com.connexta.search.query.controllers;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -17,11 +18,12 @@ import com.connexta.search.query.QueryService;
 import com.connexta.search.query.exceptions.QueryException;
 import com.connexta.search.rest.spring.QueryApi;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -33,8 +35,6 @@ import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
 public class QueryControllerTest {
-
-  private static final String QUERY_STRING = "id=12efab35fab21afdd8932afa38951aef";
 
   @Mock private QueryService mockQueryService;
 
@@ -50,23 +50,35 @@ public class QueryControllerTest {
     verifyNoMoreInteractions(mockQueryService);
   }
 
-  @Test
-  void testReturnsListFromQueryManager(@Mock final List<URI> mockList) {
-    when(mockQueryService.find(QUERY_STRING)).thenReturn(mockList);
+  @ParameterizedTest
+  @MethodSource("results")
+  void testReturnsListFromQueryManager(final Set<URI> results) {
+    when(mockQueryService.find("queryString")).thenReturn(results);
 
-    final ResponseEntity<List<URI>> result = queryApi.query(QUERY_STRING);
+    final ResponseEntity<List<URI>> result = queryApi.query("queryString");
     assertThat(result.getStatusCode(), is(HttpStatus.OK));
-    assertThat(result.getBody(), is(mockList));
+    assertThat(result.getBody(), containsInAnyOrder(results.toArray()));
   }
 
   @ParameterizedTest
   @MethodSource("requestsThatThrowErrors")
   void testExceptionHandling(final Throwable throwable) {
-    when(mockQueryService.find(QUERY_STRING)).thenThrow(throwable);
+    when(mockQueryService.find("queryString")).thenThrow(throwable);
     final RuntimeException thrown =
-        assertThrows(RuntimeException.class, () -> queryApi.query(QUERY_STRING));
+        assertThrows(RuntimeException.class, () -> queryApi.query("queryString"));
 
     assertThat(thrown, is(throwable));
+  }
+
+  private static Stream<Arguments> results() throws URISyntaxException {
+    return Stream.of(
+        Arguments.of(Set.of()),
+        Arguments.of(
+            Set.of(new URI("http://store:9041/dataset/12efab35fab21afdd8932afa38951aef/irm"))),
+        Arguments.of(
+            Set.of(
+                new URI("http://store:9041/dataset/12efab35fab21afdd8932afa38951aef/irm"),
+                new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm"))));
   }
 
   private static Stream<Arguments> requestsThatThrowErrors() {
