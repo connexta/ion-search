@@ -1,0 +1,113 @@
+# Search Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: search-deployment
+    labels:
+        app: search
+spec:
+    selector:
+        matchLabels:
+            app: search
+    template:
+        metadata:
+            labels:
+                app: search
+        spec:
+            containers:
+              - name: search
+                image: ${DOCKER_REGISTRY:-docker.io}/cnxta/ion-search
+                imagePullPolicy: Never
+                volumeMounts:
+                  - name: search-configs
+                    mountPath: /etc/config
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+                args: 
+                    - "--spring.config.additional-location=file:/etc/config/search_config.yml"
+            volumes:
+              - name: solr-pvc
+                persistentVolumeClaim:
+                    claimName: pvc
+              - name: search-configs 
+                configMap:
+                    name: search-config-map
+                    defaultMode: 0755
+
+# # Solr deployment
+# ---
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#     name: solr-deployment
+#     labels:
+#         app: solr
+# spec:
+#     selector:
+#         matchLabels:
+#             app: solr
+#     template:
+#         metadata:
+#             labels:
+#                 app: solr
+#         spec:
+#             containers:
+#               - name: solr
+#                 image: ${DOCKER_REGISTRY:-docker.io}/cnxta/search-solr
+#                 imagePullPolicy: Never
+#                 volumeMounts:
+#                   - name: solr-pvc
+#                     mountPath: /var/solr/data
+#             volumes:
+#               - name: solr-pvc
+#                 persistentVolumeClaim:
+#                     claimName: pvc
+
+# Exposes the search container as a service that can be reached externally
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: ion-search
+    labels:
+        app: search 
+spec:
+    type: NodePort
+    selector:
+        app: search
+    ports:
+      - port: 8080
+        nodePort: 30940
+
+#Exposes Solr as a service that can be reached externally
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: solr
+    labels:
+        app: solr
+spec:
+    type: ClusterIP
+    selector:
+        app: solr
+    ports:
+      - port: 8983
+
+# Creates a Persistent Volume Claim to persist Solr core data across deployments
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: pvc
+spec:
+    accessModes: 
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 1Gi

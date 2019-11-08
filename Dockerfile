@@ -4,6 +4,7 @@ LABEL com.connexta.application.name=search
 ARG JAR_FILE
 COPY ${JAR_FILE} /search
 ENTRYPOINT ["/search"]
+RUN chmod 755 /search
 EXPOSE 8080 10042 10052
 # Enable JMX so the can JVM be monitored
 # NOTE: The exposed JMX port number must be the same as the port number published in the docker compose or stack file.

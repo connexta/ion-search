@@ -186,6 +186,11 @@ task deploy(type: Exec) {
     commandLine "groovy", "deploy.groovy"
 }
 
+task deployK8s(type: Exec) {
+    dependsOn build
+    commandLine "groovy", "./.k8s/deploy-k8s.groovy"
+}
+
 assemble.finalizedBy("docker")
 build.finalizedBy(['docker'])
 bootRun.dependsOn(build)
