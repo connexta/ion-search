@@ -9,9 +9,9 @@ package com.connexta.search;
 import static com.connexta.search.common.SearchManagerImpl.EXT_EXTRACTED_TEXT;
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 
 import com.connexta.search.index.IndexComponentTest;
 import com.connexta.search.index.controllers.IndexController;
