@@ -227,6 +227,7 @@ class IndexServiceImplTest {
           .index(datasetId, irmUri);
     }
 
+    // TODO Verify InputStream contains IRM
     //    verify(mockSearchManager)
     //        .index(
     //            eq(datasetId),

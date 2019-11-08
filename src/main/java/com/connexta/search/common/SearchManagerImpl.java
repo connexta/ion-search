@@ -48,11 +48,15 @@ public class SearchManagerImpl implements SearchManager {
   @NotNull private final IndexRepository indexRepository;
   @NotNull private final SolrClient solrClient;
 
+  /**
+   * TODO Right now this method parses the {@link InputStream} as CST. This should be updated to
+   * parse IRM instead.
+   */
   @Override
   public void index(
       @NotBlank final String datasetId,
       @NotNull final URI irmUri,
-      @NotNull final InputStream inputStream) {
+      @NotNull final InputStream irmInputStream) {
     // TODO check that the dataset exists in S3
 
     // TODO 11/4/2019 PeterHuffer: this check should be done by the database so separate
@@ -70,7 +74,7 @@ public class SearchManagerImpl implements SearchManager {
 
     final String contents;
     try {
-      contents = getElement(parseJson(inputStream), EXT_EXTRACTED_TEXT);
+      contents = getElement(parseJson(irmInputStream), EXT_EXTRACTED_TEXT);
     } catch (IOException e) {
       throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to convert InputStream to JSON", e);
     }

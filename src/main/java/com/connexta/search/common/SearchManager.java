@@ -21,14 +21,14 @@ public interface SearchManager {
    * Indexes the resource.
    *
    * @param datasetId the id of the dataset
-   * @param irmUri the type of the dataset
-   * @param inputStream the dataset
+   * @param irmUri {@link URI} to download the IRM of the dataset
+   * @param irmInputStream the irm
    * @throws SearchException if there was an error indexing the resource
    */
   void index(
       @Pattern(regexp = "^[0-9a-zA-Z]+$") @Size(min = 32, max = 32) final String datasetId,
       @NotNull final URI irmUri,
-      @NotNull final InputStream inputStream);
+      @NotNull final InputStream irmInputStream);
 
   /**
    * Query the index provider with the given CQL string.

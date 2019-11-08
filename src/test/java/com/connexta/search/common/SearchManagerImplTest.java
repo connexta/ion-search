@@ -207,7 +207,7 @@ class SearchManagerImplTest {
     final String idQuery = "id = 'value'";
 
     final URI irmUri = new URI("value");
-    QueryResponse queryResponse = mockQueryResponse(irmUri);
+    QueryResponse queryResponse = mockQueryResponse(irmUri.toString());
     when(mockSolrClient.query(anyString(), any())).thenReturn(queryResponse);
 
     // expect
@@ -259,6 +259,21 @@ class SearchManagerImplTest {
   }
 
   @Test
+  void testInvalidIrmUriString() throws Exception {
+    // setup
+    final String idQuery = "id = 'value1' AND id = 'value2'";
+
+    QueryResponse queryResponse =
+        mockQueryResponse(new URI("valid").toString(), "<this uri is invalid>");
+    when(mockSolrClient.query(anyString(), any())).thenReturn(queryResponse);
+
+    // expect
+    final SearchException thrown =
+        assertThrows(SearchException.class, () -> searchManagerImpl.query(idQuery));
+    assertThat(thrown.getStatus(), is(HttpStatus.INTERNAL_SERVER_ERROR));
+  }
+
+  @Test
   void testQueryNoResults() throws Exception {
     // setup
     final String idQuery = "id = 'value'";
@@ -277,18 +292,18 @@ class SearchManagerImplTest {
 
     final URI irmUri1 = new URI("value1");
     final URI irmUri2 = new URI("value2");
-    QueryResponse queryResponse = mockQueryResponse(irmUri1, irmUri2);
+    QueryResponse queryResponse = mockQueryResponse(irmUri1.toString(), irmUri2.toString());
     when(mockSolrClient.query(anyString(), any())).thenReturn(queryResponse);
 
     // expect
     assertThat(searchManagerImpl.query(idQuery), containsInAnyOrder(irmUri1, irmUri2));
   }
 
-  private static QueryResponse mockQueryResponse(final URI... irmUris) {
+  private static QueryResponse mockQueryResponse(final String... irmUriStrings) {
     List<SolrDocument> solrDocuments = new ArrayList<>();
-    for (final URI irmUri : irmUris) {
+    for (final String irmUriString : irmUriStrings) {
       SolrDocument document = mock(SolrDocument.class);
-      when(document.get(IRM_URI_STRING_ATTRIBUTE)).thenReturn(irmUri.toString());
+      when(document.get(IRM_URI_STRING_ATTRIBUTE)).thenReturn(irmUriString);
       solrDocuments.add(document);
     }
 

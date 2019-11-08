@@ -20,5 +20,5 @@ public interface QueryService {
    */
   @NotNull
   Set<URI> find(
-      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 100) final String cqlString);
+      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 5000) final String cqlString);
 }

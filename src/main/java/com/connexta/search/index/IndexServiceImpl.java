@@ -66,8 +66,8 @@ public class IndexServiceImpl implements IndexService {
               "Unable to complete GET request to irmUri=%s because the resource was null", irmUri));
     }
 
-    try (final InputStream inputStream = resource.getInputStream()) {
-      searchManager.index(datasetId, irmUri, inputStream);
+    try (final InputStream irmInputStream = resource.getInputStream()) {
+      searchManager.index(datasetId, irmUri, irmInputStream);
     } catch (IOException e) {
       throw new SearchException(
           BAD_REQUEST, String.format("Unable to get InputStream from irmUri=%s", irmUri), e);
