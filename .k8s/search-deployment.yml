@@ -1,4 +1,5 @@
-# Search Service
+# Search Service deployment that creates a container for the app. It also mounts a volume with the Spring Boot
+# configuration file via a manually added ConfigMap called "search-config-map"
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,15 +28,12 @@ spec:
                 args: 
                     - "--spring.config.additional-location=file:/etc/config/search_config.yml"
             volumes:
-              - name: solr-pvc
-                persistentVolumeClaim:
-                    claimName: pvc
               - name: search-configs 
                 configMap:
                     name: search-config-map
                     defaultMode: 0755
 
-# # Solr deployment
+# # Solr deployment that creates a pod with one container and mounts the Persistent Volume Claim to it.
 # ---
 
 # apiVersion: apps/v1
@@ -64,6 +62,7 @@ spec:
 #               - name: solr-pvc
 #                 persistentVolumeClaim:
 #                     claimName: pvc
+
 
 # Exposes the search container as a service that can be reached externally
 ---
