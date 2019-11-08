@@ -12,7 +12,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -23,11 +22,13 @@ import com.connexta.search.common.exceptions.SearchException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.Resource;
@@ -227,23 +229,10 @@ class IndexServiceImplTest {
           .index(datasetId, irmUri);
     }
 
-    // TODO Verify InputStream contains IRM
-    //    verify(mockSearchManager)
-    //        .index(
-    //            eq(datasetId),
-    //            eq(irmUri),
-    //            argThat(
-    //                argument -> {
-    //                  try {
-    //                    return StringUtils.equals(
-    //                        IOUtils.toString(argument, StandardCharsets.UTF_8), body);
-    //                  } catch (IOException e) {
-    //                    fail("Unable to compare InputStreams", e);
-    //                    return false;
-    //                  }
-    //                }));
-
-    verify(mockSearchManager).index(eq(datasetId), eq(irmUri), notNull());
+    final ArgumentCaptor<InputStream> inputStreamCaptor =
+        ArgumentCaptor.forClass(InputStream.class);
+    verify(mockSearchManager).index(eq(datasetId), eq(irmUri), inputStreamCaptor.capture());
+    assertThat(IOUtils.toString(inputStreamCaptor.getValue(), StandardCharsets.UTF_8), is(body));
   }
 
   private static Stream<Arguments> exceptionsThrownSearchManager() {
