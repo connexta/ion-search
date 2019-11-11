@@ -26,7 +26,7 @@ plugins {
     id "maven"
     // Remove OWASP suppressions for cpe:/a:netty:netty when org.owasp.dependencycheck is upgraded to 5.2.3.
     // See https://github.com/jeremylong/DependencyCheck/issues/2227.
-    id "org.owasp.dependencycheck" version "5.2.2"
+    id "org.owasp.dependencycheck" version "5.2.3"
     id "org.springframework.boot" version "${springBootVersion}"
     id "org.sonarqube" version "2.8"
 }
