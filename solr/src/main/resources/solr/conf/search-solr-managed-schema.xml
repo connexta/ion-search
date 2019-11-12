@@ -119,8 +119,17 @@
     <!-- CST fields -->
     <field name="contents" type="text_general" indexed="true" stored="true" required="true"
            multiValued="false" />
-    <field name="irm_uri_string" type="string" indexed="true" stored="true" required="true"
+  <field name="country_code" type="text_general" indexed="true" stored="true" required="true" multiValued="false"/>
+  <field name="created" type="tdate" indexed="true" stored="true" multiValued="false"/>
+  <field name="expiration" type="tdate" indexed="true" stored="true" multiValued="false"/>
+  <field name="icid" type="text_general" indexed="true" stored="true" required="true" multiValued="false"/>
+  <field name="irm_uri_string" type="string" indexed="true" stored="true" required="true"
            multiValued="false" />
+  <field name="keyword" type="text_general" indexed="true" stored="true" required="true" multiValued="false"/>
+  <field name="modified" type="tdate" indexed="true" stored="true" multiValued="false"/>
+  <field name="resource_uri" type="text_general" indexed="true" stored="true" required="true" multiValued="false"/>
+  <field name="title" type="text_general" indexed="true" stored="true" required="true" multiValued="false"/>
+
 
     <!-- If you don't use child/nested documents, then you should remove the next two fields:  -->
     <!-- for nested documents (minimal; points to root document) -->

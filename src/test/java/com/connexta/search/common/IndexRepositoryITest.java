@@ -84,7 +84,8 @@ class IndexRepositoryITest {
   @Test
   void testIndex() {
     // setup
-    Index index = new Index(INDEX_ID, INDEX_CONTENT, INDEX_MEDIA_TYPE);
+    Index index =
+        Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
 
     // when
     indexRepository.save(index);
@@ -97,10 +98,17 @@ class IndexRepositoryITest {
   @Test
   void testUpdate() {
     // setup
-    Index index = new Index(INDEX_ID, INDEX_CONTENT, INDEX_MEDIA_TYPE);
+    Index index =
+        Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
+
     indexRepository.save(index);
 
-    Index updatedIndex = new Index(INDEX_ID, "updatedContext", "updated/contentType");
+    Index updatedIndex =
+        Index.builder()
+            .id(INDEX_ID)
+            .contents("updatedContext")
+            .irmUriString("updated/contentType")
+            .build();
 
     // when
     indexRepository.save(updatedIndex);
@@ -113,7 +121,9 @@ class IndexRepositoryITest {
   @Test
   void testDelete() {
     // setup
-    Index index = new Index(INDEX_ID, INDEX_CONTENT, INDEX_MEDIA_TYPE);
+    Index index =
+        Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
+
     indexRepository.save(index);
 
     // when
@@ -126,7 +136,8 @@ class IndexRepositoryITest {
   @Test
   void testIdRequired() {
     // setup
-    Index index = new Index(null, INDEX_CONTENT, INDEX_MEDIA_TYPE);
+    Index index =
+        Index.builder().id(null).contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
 
     // when
     DataAccessResourceFailureException e =
@@ -142,7 +153,8 @@ class IndexRepositoryITest {
   @Test
   void testContentRequired() {
     // setup
-    Index index = new Index(INDEX_ID, null, INDEX_MEDIA_TYPE);
+    Index index =
+        Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
 
     // when
     DataAccessResourceFailureException e =
@@ -158,7 +170,7 @@ class IndexRepositoryITest {
   @Test
   void testMediaTypeRequired() {
     // setup
-    Index index = new Index(INDEX_ID, INDEX_CONTENT, null);
+    Index index = Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).build();
 
     // when
     DataAccessResourceFailureException e =

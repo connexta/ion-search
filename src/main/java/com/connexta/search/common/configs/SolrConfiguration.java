@@ -28,11 +28,9 @@ public class SolrConfiguration {
   // GENC:3:3-7 trigraph
   public static final String COUNTRY_CODE_ATTRIBUTE = "country_code";
 
-  // TODO Make this class Date
   //  Date of creation of the File. Format is YYYY-MM-DDThh:mm:ss.sZ
   public static final String CREATED_DATE_ATTRIBUTE = "created";
 
-  // TODO Make this class Date
   // Date (often a range) of validity of a File.
   public static final String EXPIRATION_DATE_ATTRIBUTE = "expiration";
 
@@ -46,7 +44,6 @@ public class SolrConfiguration {
   // The topic of the File.
   public static final String KEYWORD_ATTRIBUTE = "keyword";
 
-  // TODO Make this class Date
   // Date when the file was  last changed.  Format is YYYY-MM-DDThh:mm:ss.sZ
   public static final String MODIFIED_ATTRIBUTE = "modified";
 
