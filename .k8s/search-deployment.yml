@@ -18,11 +18,22 @@ spec:
         - name: search
           image: registry.default.gsp.test:80/cnxta/ion-search
           imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: search-configs
+              mountPath: /etc/search-config
+              readOnly: true
           ports:
             - containerPort: 8080
               protocol: TCP
             - containerPort: 10052
               protocol: TCP
+          args:
+            - "--spring.config.additional-location=file:/etc/search-config/k8s_search_config.yml"
+      volumes:
+        - name: search-configs
+          configMap:
+            name: search-config-map
+            defaultMode: 0755
 
   # Solr deployment that creates a pod with one container and mounts the Persistent Volume Claim to it.
 ---
@@ -54,7 +65,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: solr-pvc
-              mountPath: /var/solr/data
+              mountPath: /var/solr
       volumes:
         - name: solr-pvc
           persistentVolumeClaim:
