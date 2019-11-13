@@ -1,112 +1,136 @@
-# Search Service deployment that creates a container for the app. It also mounts a volume with the Spring Boot
-# configuration file via a manually added ConfigMap called "search-config-map"
+# Search Service deployment that creates a container for the app.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: search-deployment
-    labels:
-        app: search
+  name: search-deployment
+  labels:
+    app: search
 spec:
-    selector:
-        matchLabels:
-            app: search
-    template:
-        metadata:
-            labels:
-                app: search
-        spec:
-            containers:
-              - name: search
-                image: ${DOCKER_REGISTRY:-docker.io}/cnxta/ion-search
-                imagePullPolicy: Never
-                volumeMounts:
-                  - name: search-configs
-                    mountPath: /etc/config
-                ports:
-                  - containerPort: 8080
-                    protocol: TCP
-                args: 
-                    - "--spring.config.additional-location=file:/etc/config/search_config.yml"
-            volumes:
-              - name: search-configs 
-                configMap:
-                    name: search-config-map
-                    defaultMode: 0755
+  selector:
+    matchLabels:
+      app: search
+  template:
+    metadata:
+      labels:
+        app: search
+    spec:
+      containers:
+        - name: search
+          image: registry.default.gsp.test:80/cnxta/ion-search
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 10052
+              protocol: TCP
 
-# # Solr deployment that creates a pod with one container and mounts the Persistent Volume Claim to it.
-# ---
-
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#     name: solr-deployment
-#     labels:
-#         app: solr
-# spec:
-#     selector:
-#         matchLabels:
-#             app: solr
-#     template:
-#         metadata:
-#             labels:
-#                 app: solr
-#         spec:
-#             containers:
-#               - name: solr
-#                 image: ${DOCKER_REGISTRY:-docker.io}/cnxta/search-solr
-#                 imagePullPolicy: Never
-#                 volumeMounts:
-#                   - name: solr-pvc
-#                     mountPath: /var/solr/data
-#             volumes:
-#               - name: solr-pvc
-#                 persistentVolumeClaim:
-#                     claimName: pvc
-
+  # Solr deployment that creates a pod with one container and mounts the Persistent Volume Claim to it.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solr-deployment
+  labels:
+    app: solr
+spec:
+  selector:
+    matchLabels:
+      app: solr
+  template:
+    metadata:
+      labels:
+        app: solr
+    spec:
+      containers:
+        - name: solr
+          image: registry.default.gsp.test:80/cnxta/search-solr
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: "1"
+              memory: "4Gi"
+          ports:
+            - containerPort: 8983
+              protocol: TCP
+          volumeMounts:
+            - name: solr-pvc
+              mountPath: /var/solr/data
+      volumes:
+        - name: solr-pvc
+          persistentVolumeClaim:
+            claimName: pvc
 
 # Exposes the search container as a service that can be reached externally
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
-    name: ion-search
-    labels:
-        app: search 
+  name: ion-search
+  labels:
+    app: search
 spec:
-    type: NodePort
-    selector:
-        app: search
-    ports:
-      - port: 8080
-        nodePort: 30940
-
-#Exposes Solr as a service that can be reached externally
+  selector:
+    app: search
+  ports:
+    - port: 8080
+# Exposes Solr as a service that can be reached externally
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
-    name: solr
-    labels:
-        app: solr
+  name: ion-solr
+  labels:
+    app: solr
 spec:
-    type: ClusterIP
-    selector:
-        app: solr
-    ports:
-      - port: 8983
-
+  selector:
+    app: solr
+  ports:
+    - port: 8983
 # Creates a Persistent Volume Claim to persist Solr core data across deployments
 ---
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-    name: pvc
+  name: pvc
 spec:
-    accessModes: 
-        - ReadWriteOnce
-    resources:
-        requests:
-            storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+# Creates an Ingress will allow users and other services to access the search services without specifying a port.
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ion-search-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      proxy_ssl_verify off;
+spec:
+  tls:
+    - hosts:
+        - ion-search.default.gsp.test
+        - ion-solr.default.gsp.test
+  rules:
+    - host: ion-search.default.gsp.test
+      http:
+        paths:
+          - backend:
+              serviceName: ion-search
+              servicePort: 8080
+    - host: ion-solr.default.gsp.test
+      http:
+        paths:
+          - backend:
+              serviceName: ion-solr
+              servicePort: 8983
+    - host: ion-search-debug.default.gsp.test
+      http:
+        paths:
+          - backend:
+              serviceName: ion-search
+              servicePort: debug
