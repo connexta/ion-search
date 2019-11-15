@@ -3,7 +3,7 @@
 //https://issues.apache.org/jira/browse/GROOVY-8339
 
 def DOCKER_REG = System.getenv("K8S_DOCKER_REGISTRY") + "/"
-def DOCKER_IMAGE_NAME = "cnxta/ion-store"
+def DOCKER_IMAGE_NAME = "cnxta/ion-search"
 def DOCKER_SOLR_IMAGE = "cnxta/search-solr"
 def K8S_CONTEXT = getKubeContext()
 
@@ -34,6 +34,9 @@ if (K8S_CONTEXT != "minikube") {
     run("docker push " + DOCKER_REG + DOCKER_IMAGE_NAME)
     run("docker push " + DOCKER_REG + DOCKER_SOLR_IMAGE)
 }
+
+header("Creating configMaps for Search Service...")
+run("kubectl create configmap search-config-map --from-file=./.k8s/k8s_search_config.yml")
 
 header("Deploying...")
 run("kubectl apply -f ./.k8s/search-deployment.yml")

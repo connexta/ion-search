@@ -17,7 +17,7 @@ spec:
       containers:
         - name: search
           image: registry.default.gsp.test:80/cnxta/ion-search
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           volumeMounts:
             - name: search-configs
               mountPath: /etc/search-config
@@ -55,7 +55,7 @@ spec:
       containers:
         - name: solr
           image: registry.default.gsp.test:80/cnxta/search-solr
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
             limits:
               cpu: "1"
@@ -65,7 +65,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: solr-pvc
-              mountPath: /var/solr
+              mountPath: /var/solr/data
       volumes:
         - name: solr-pvc
           persistentVolumeClaim:
@@ -122,10 +122,6 @@ metadata:
     nginx.ingress.kubernetes.io/server-snippet: |
       proxy_ssl_verify off;
 spec:
-  tls:
-    - hosts:
-        - ion-search.default.gsp.test
-        - ion-solr.default.gsp.test
   rules:
     - host: ion-search.default.gsp.test
       http:
