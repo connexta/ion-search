@@ -119,7 +119,7 @@
     <!-- CST fields -->
     <field name="contents" type="text_general" indexed="true" stored="true" required="true"
            multiValued="false" />
-<!--  <field name="country_code" type="string" indexed="true" stored="true" required="false" multiValued="false"/>-->
+  <field name="country_code" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
 <!--  <field name="created" type="tdate" indexed="true" stored="true"  required="false" multiValued="false"/>-->
 <!--  <field name="expiration" type="tdate" indexed="true" stored="true"  required="false" multiValued="false"/>-->
 <!--  <field name="icid" type="string" indexed="true" stored="true"  required="false" multiValued="false"/>-->
