@@ -12,6 +12,7 @@ import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_STRIN
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,7 @@ import org.springframework.data.solr.core.mapping.SolrDocument;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@Builder
 public class Index {
 
   @Id
