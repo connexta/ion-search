@@ -6,9 +6,9 @@
  */
 package com.connexta.search;
 
-import static com.connexta.search.common.SearchManagerImpl.EXT_EXTRACTED_TEXT;
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
+import static com.connexta.search.common.configs.SolrConfiguration.TITLE_ATTRIBUTE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -19,15 +19,19 @@ import com.connexta.search.query.controllers.QueryController;
 import com.connexta.search.rest.models.IndexRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -37,7 +41,6 @@ import org.hamcrest.TypeSafeMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -76,6 +79,8 @@ class SearchITest {
       new GenericContainer("cnxta/search-solr")
           .withExposedPorts(SOLR_PORT)
           .waitingFor(Wait.forHttp("/solr/" + SOLR_COLLECTION + "/admin/ping"));
+
+  public static final UUID DATASET_ID = UUID.fromString("b69921fa-858f-4648-9d89-f05bd66231a7");
 
   @TestConfiguration
   static class Config {
@@ -118,139 +123,62 @@ class SearchITest {
   @Test
   void testContextLoads() {}
 
+  /* TODO Because Solr is empty at the beginning of every test, every test that indexes a dataset is also testing "index when solr is empty. There is an opportunity to reduce test code without reducing coverage. */
   @Test
   void testIndexWhenSolrIsEmpty() throws Exception {
     // given stub store server
     final String keyword = "Winterfell";
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(
-                String.format(
-                    "{ \"%s\" : \"All the color had been leached from %s until only grey and white remained.\" }",
-                    EXT_EXTRACTED_TEXT, keyword))
-            .setResponseCode(200));
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI irmUri = storeMockWebServer.url(String.format("/dataset/%s/irm", datasetId)).uri();
+    IndexRequest indexRequest = setupStoreRetrieveEndpoint(DATASET_ID, keyword, "contents");
 
-    // when index
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, datasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(irmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
-
-    // then verify GET request to irmUri
+    /* TODO: Move verification of Indexing service to location test class more focused on indexing? then verify GET request to irmUri */
     final RecordedRequest getIrmRequest = storeMockWebServer.takeRequest();
     assertThat(getIrmRequest.getMethod(), is(HttpMethod.GET.name()));
-    assertThat(getIrmRequest.getPath(), is(String.format("/dataset/%s/irm", datasetId)));
+    assertThat(getIrmRequest.getPath(), is(String.format("/dataset/%s/irm", DATASET_ID)));
 
     // and verify query returns irmUri
-    webTestClient
-        .get()
-        .uri(
-            URLDecoder.decode(
-                new URIBuilder()
-                    .setPath(QueryController.URL_TEMPLATE)
-                    .setParameter("q", String.format("%s LIKE '%s'", CONTENTS_ATTRIBUTE, keyword))
-                    .build()
-                    .toString()))
-        .exchange()
+    final String query = String.format("%s LIKE '%s'", TITLE_ATTRIBUTE, keyword);
+    sendQuery(query)
         .expectStatus()
         .isOk()
         .expectBody(List.class)
-        .value(hasItem(irmUri.toString()));
+        .value(hasItem(indexRequest.getIrmLocation()));
   }
 
+  /* TODO: This tests adding multiple datsets to the the index when Solr is empty. Because Solr is empty at the beginning of every test, any test that indexes more than one dataset is also testing "index when solr not empty. There is an opportunity to reduce test code without reducing coverage. */
+  // This also tests adding two datasets to the index and sending a query that should only match one
+  // of them.
   @Test
   void testIndexWhenSolrIsNotEmpty() throws Exception {
     // given index an initial IRM
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(String.format("{ \"%s\" : \"First IRM metadata \" }", EXT_EXTRACTED_TEXT))
-            .setResponseCode(200));
-    final String firstDatasetId = "000b27ffc35d46d9ba041f663d9ccaff";
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, firstDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue(
-            (new IndexRequest()
-                .irmLocation(
-                    storeMockWebServer
-                        .url(String.format("/dataset/%s/irm", firstDatasetId))
-                        .uri())))
-        .exchange()
-        .expectStatus()
-        .isOk();
-    final RecordedRequest firstGetIrmRequest = storeMockWebServer.takeRequest();
-    assertThat(firstGetIrmRequest.getMethod(), is(HttpMethod.GET.name()));
-    assertThat(firstGetIrmRequest.getPath(), is(String.format("/dataset/%s/irm", firstDatasetId)));
+    final String keyword = "ABC";
+    final String query = TITLE_ATTRIBUTE + " LIKE '" + keyword + "'";
+    IndexRequest indexRequestFind =
+        setupStoreRetrieveEndpoint(UUID.fromString("e1db1eb2-a20c-437e-804d-1d71aab6e81a"), keyword, "content");
+    IndexRequest indexRequestNoFind =
+        setupStoreRetrieveEndpoint(UUID.fromString("3ae92cfc-219c-4f50-89f9-cb224bb82bc0"), "123", "content");
 
-    // when index
-    final String keyword = "Winterfell";
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(
-                String.format(
-                    "{ \"%s\" : \"All the color had been leached from %s until only grey and white remained.\" }",
-                    EXT_EXTRACTED_TEXT, keyword))
-            .setResponseCode(200));
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI irmUri = storeMockWebServer.url(String.format("/dataset/%s/irm", datasetId)).uri();
-    final ResponseSpec response =
-        webTestClient
-            .put()
-            .uri(IndexController.URL_TEMPLATE, datasetId)
-            .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-            .bodyValue((new IndexRequest().irmLocation(irmUri)))
-            .exchange();
-
-    // then verify status code is 200
-    response.expectStatus().isOk();
-
-    // and verify GET request to irmUri
-    final RecordedRequest getIrmRequest = storeMockWebServer.takeRequest();
-    assertThat(getIrmRequest.getMethod(), is(HttpMethod.GET.name()));
-    assertThat(getIrmRequest.getPath(), is(String.format("/dataset/%s/irm", datasetId)));
-
-    // and verify query returns irmUri
-    webTestClient
-        .get()
-        .uri(
-            URLDecoder.decode(
-                new URIBuilder()
-                    .setPath(QueryController.URL_TEMPLATE)
-                    .setParameter("q", String.format("%s LIKE '%s'", CONTENTS_ATTRIBUTE, keyword))
-                    .build()
-                    .toString()))
-        .exchange()
+    // verify query returns correct result
+    sendQuery(query)
         .expectStatus()
         .isOk()
         .expectBody(List.class)
-        .value(hasItem(irmUri.toString()));
+        .value(hasItem(indexRequestFind.getIrmLocation()));
   }
 
   @Test
-  @Disabled("TODO check that the dataset exists")
   void testIndexWhenDatasetIdNotFound() {}
 
   /** TODO Move this to {@link IndexComponentTest}. Not sure why this fails in that class. */
+  /* TODO: Could invalid IDs be tested in a unit test? Or a test that didn't spin up the Spring env and Solr? */
   @ParameterizedTest(name = "400 is returned when the datasetId is \"{0}\"")
   @ValueSource(
       strings = {"   ", "1234567890123456789012345678901234", "+0067360b70e4acfab561fe593ad3f7a"})
   void testInvalidDatasetId(final String datasetId) throws Exception {
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, datasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue(
-            (new IndexRequest()
-                .irmLocation(
-                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm"))))
-        .exchange()
+    indexDataset(
+            datasetId,
+            new IndexRequest()
+                .fileLocation("http://mockdoesntcare")
+                .irmLocation("http://mockdoesntcare"))
         .expectStatus()
         .isBadRequest();
   }
@@ -258,256 +186,82 @@ class SearchITest {
   @ParameterizedTest(name = "{0}")
   @ValueSource(
       strings = {
-        CONTENTS_ATTRIBUTE + " = 'first IRM metadata'",
-        CONTENTS_ATTRIBUTE + " LIKE 'first'",
-        "id='000b27ffc35d46d9ba041f663d9ccaff'",
-        "id='000b27ffc35d46d9ba041f663d9ccaff' AND "
-            + CONTENTS_ATTRIBUTE
-            + " = 'first IRM metadata'"
+        TITLE_ATTRIBUTE + " = 'first IRM metadata'",
+        TITLE_ATTRIBUTE + " LIKE 'first'",
+        CONTENTS_ATTRIBUTE + " = 'contents'",
+          TITLE_ATTRIBUTE + " = 'first IRM metadata' AND " + CONTENTS_ATTRIBUTE + " = 'contents'"
       })
   void testQuery(final String cqlStringOnlyMatchingFirstDataset) throws Exception {
-    // given index a dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(String.format("{\"%s\":\"first IRM metadata\"}", EXT_EXTRACTED_TEXT))
-            .setResponseCode(200));
-    final String firstDatasetId = "000b27ffc35d46d9ba041f663d9ccaff";
-    final URI firstIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, firstDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(firstIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
-
-    // and index another dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(String.format("{\"%s\":\"second IRM metadata\"}", EXT_EXTRACTED_TEXT))
-            .setResponseCode(200));
-    final String secondDatasetId = "001ccb7241284f21a3d15cc340c6aa9c";
-    final URI secondIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, secondDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(secondIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
-
-    // and index another dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(String.format("{\"%s\":\"third IRM metadata\"}", EXT_EXTRACTED_TEXT))
-            .setResponseCode(200));
-    final String thirdDatasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI thirdIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, thirdDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(thirdIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
+    // given index datasets
+    final UUID firstDatasetId = DATASET_ID;
+    final UUID secondDatasetId = UUID.fromString("e1db1eb2-a20c-437e-804d-1d71aab6e81a");
+    final UUID thirdDatasetId = UUID.fromString("3ae92cfc-219c-4f50-89f9-cb224bb82bc0");
+    final IndexRequest indexRequest1 =
+        setupStoreRetrieveEndpoint(firstDatasetId, "first IRM metadata", "contents");
+    final IndexRequest indexRequest2 =
+        setupStoreRetrieveEndpoint(secondDatasetId, "second IRM metadata", "contents");
+    final IndexRequest indexRequest3 =
+        setupStoreRetrieveEndpoint(thirdDatasetId, "third IRM metadata", "contents");
 
     // verify query only returns firstUri
-    webTestClient
-        .get()
-        .uri(
-            URLDecoder.decode(
-                new URIBuilder()
-                    .setPath(QueryController.URL_TEMPLATE)
-                    .setParameter("q", cqlStringOnlyMatchingFirstDataset)
-                    .build()
-                    .toString()))
-        .exchange()
+    sendQuery(cqlStringOnlyMatchingFirstDataset)
         .expectStatus()
         .isOk()
         .expectBody(List.class)
         .value(
             Matchers.allOf(
-                hasItem(firstIrmUri.toString()),
-                not(hasItem(secondIrmUri.toString())),
-                not(hasItem(thirdIrmUri.toString()))));
+                hasItem(indexRequest1.getIrmLocation()),
+                not(hasItem(indexRequest2.getIrmLocation())),
+                not(hasItem(indexRequest3.getIrmLocation()))));
   }
 
   @Test
   void testMultipleQueryResults() throws Exception {
     // given
-    final String keyword = "matchHere";
+    // Stage two datasets (each has a File and an IRM resource) in the Store Retrieve endpoint.
+    // Then call the Index endpoint to index them.
 
-    // and index a dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(
-                String.format("{\"%s\":\"first IRM metadata %s\"}", EXT_EXTRACTED_TEXT, keyword))
-            .setResponseCode(200));
-    final String firstDatasetId = "000b27ffc35d46d9ba041f663d9ccaff";
-    final URI firstIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, firstDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(firstIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
+    // TODO: The tempIrmContents will become an IRM document in the future.
+    final String tempIrmContents = "irm";
+    final String query = TITLE_ATTRIBUTE + " LIKE '" + tempIrmContents + "'";
 
-    // and index another dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(
-                String.format("{\"%s\":\"second IRM metadata %s\"}", EXT_EXTRACTED_TEXT, keyword))
-            .setResponseCode(200));
-    final String secondDatasetId = "001ccb7241284f21a3d15cc340c6aa9c";
-    final URI secondIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, secondDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(secondIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
+    List<IndexRequest> indexRequests = new ArrayList<>();
+    List<String> expectedIrmUris = new ArrayList<>();
+    for (UUID id :
+        List.of(DATASET_ID, (UUID.fromString("e1db1eb2-a20c-437e-804d-1d71aab6e81a")))) {
+      final IndexRequest indexRequest = setupStoreRetrieveEndpoint(id, tempIrmContents, "contents");
+      indexRequests.add(indexRequest);
+      expectedIrmUris.add(indexRequest.getIrmLocation());
+    }
 
-    // and index another dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(String.format("{\"%s\":\"third IRM metadata\"}", EXT_EXTRACTED_TEXT))
-            .setResponseCode(200));
-    final String thirdDatasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI thirdIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, thirdDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(thirdIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
-
-    // verify query only returns firstUri
-    webTestClient
-        .get()
-        .uri(
-            URLDecoder.decode(
-                new URIBuilder()
-                    .setPath(QueryController.URL_TEMPLATE)
-                    .setParameter("q", CONTENTS_ATTRIBUTE + " LIKE '" + keyword + "'")
-                    .build()
-                    .toString()))
-        .exchange()
+    // Hit the Search Query endpoint and search for term common to both IRM documents. Expect the
+    // results to contain the URLs to the two IRM documents.
+    sendQuery(query)
         .expectStatus()
         .isOk()
         .expectBody(List.class)
-        .value(
-            Matchers.allOf(
-                hasItem(firstIrmUri.toString()),
-                hasItem(secondIrmUri.toString()),
-                not(hasItem(thirdIrmUri.toString()))));
+        .value(this.containsInAnyOrder(expectedIrmUris));
   }
 
   @Test
   void testQueryZeroSearchResults() throws Exception {
     // given index a dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(String.format("{\"%s\":\"first IRM metadata\"}", EXT_EXTRACTED_TEXT))
-            .setResponseCode(200));
-    final String firstDatasetId = "000b27ffc35d46d9ba041f663d9ccaff";
-    final URI firstIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, firstDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(firstIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
-
-    // and index another dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(String.format("{\"%s\":\"second IRM metadata\"}", EXT_EXTRACTED_TEXT))
-            .setResponseCode(200));
-    final String secondDatasetId = "001ccb7241284f21a3d15cc340c6aa9c";
-    final URI secondIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, secondDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(secondIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
-
-    // and index another dataset
-    storeMockWebServer.enqueue(
-        new MockResponse()
-            .setBody(String.format("{\"%s\":\"third IRM metadata\"}", EXT_EXTRACTED_TEXT))
-            .setResponseCode(200));
-    final String thirdDatasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI thirdIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).uri();
-    webTestClient
-        .put()
-        .uri(IndexController.URL_TEMPLATE, thirdDatasetId)
-        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(thirdIrmUri)))
-        .exchange()
-        .expectStatus()
-        .isOk();
+    IndexRequest indexRequest = setupStoreRetrieveEndpoint(DATASET_ID, "irm", "contents");
 
     // verify query that doesn't match any of the datasets does not return the irmUris for those
     // datasets
-    webTestClient
-        .get()
-        .uri(
-            URLDecoder.decode(
-                new URIBuilder()
-                    .setPath(QueryController.URL_TEMPLATE)
-                    .setParameter("q", CONTENTS_ATTRIBUTE + " LIKE 'this doesn''t match any IRM'")
-                    .build()
-                    .toString()))
-        .exchange()
+    sendQuery(CONTENTS_ATTRIBUTE + " LIKE 'this doesn''t match any IRM'")
         .expectStatus()
         .isOk()
         .expectBody(List.class)
-        .value(
-            Matchers.allOf(
-                not(hasItem(firstIrmUri.toString())),
-                not(hasItem(secondIrmUri.toString())),
-                not(hasItem(thirdIrmUri.toString()))));
+        .value(this.isEmpty());
   }
 
   @Test
   void testQueryWhenSolrIsEmpty() throws Exception {
-    webTestClient
-        .get()
-        .uri(
-            URLDecoder.decode(
-                new URIBuilder()
-                    .setPath(QueryController.URL_TEMPLATE)
-                    .setParameter(
-                        "q",
-                        String.format(
-                            "%s LIKE 'nothing is in solr so this won''t match anything'",
-                            CONTENTS_ATTRIBUTE))
-                    .build()
-                    .toString()))
-        .exchange()
+    sendQuery(
+            String.format(
+                "%s LIKE 'nothing is in solr so this won''t match anything'", CONTENTS_ATTRIBUTE))
         .expectStatus()
         .isOk()
         .expectBody(List.class)
@@ -534,6 +288,70 @@ class SearchITest {
         .isBadRequest();
   }
 
+  @Test
+  void testQueryingExtractedText() throws URISyntaxException {
+    IndexRequest request = setupStoreRetrieveEndpoint(DATASET_ID, "irm", "content");
+    final String query = String.format("%s LIKE '%s'", CONTENTS_ATTRIBUTE, "content");
+
+    sendQuery(query)
+        .expectStatus()
+        .isOk()
+        .expectBody(List.class)
+        .value(hasItem(request.getIrmLocation()));
+  }
+
+  private ResponseSpec indexDataset(String datasetId, IndexRequest indexRequest) {
+    // Assumes the Store Retrieve endpoint is setup to respond with the contents of the File and
+    // IRM.
+    return webTestClient
+        .put()
+        .uri(IndexController.URL_TEMPLATE, datasetId)
+        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
+        .bodyValue(indexRequest)
+        .exchange();
+  }
+
+  @NotNull
+  private ResponseSpec sendQuery(String query) throws URISyntaxException {
+    return webTestClient
+        .get()
+        .uri(
+            URLDecoder.decode(
+                new URIBuilder()
+                    .setPath(QueryController.URL_TEMPLATE)
+                    .setParameter("q", query)
+                    .build()
+                    .toString()))
+        .exchange();
+  }
+
+  /* Given a collection of dataset IDs, setup a mock Store Retrieve endpoint to return, first an
+  IRM document for a GET request and then a File's contents for EACH dataset ID. Return a collection
+  of index request objects that can be sent to the Index endpoint.
+   */
+  @NotNull
+  private IndexRequest setupStoreRetrieveEndpoint(
+      UUID datasetId, String irmContent, String fileContent) {
+    IndexRequest indexRequest =
+        new IndexRequest()
+            .irmLocation(
+                storeMockWebServer
+                    .url(String.format("/dataset/%s/irm", datasetId))
+                    .uri()
+                    .toString())
+            .fileLocation(storeMockWebServer.url("/mockserverdoesntcare").uri().toString());
+
+
+    //TODO: Eventually  incorporate metacard into tests
+    indexRequest.setMetacardLocation("http://none");
+
+    // Each call to the Index endpoint kicks off two calls to the Store endpoint
+    storeMockWebServer.enqueue(new MockResponse().setBody(irmContent).setResponseCode(200));
+    storeMockWebServer.enqueue(new MockResponse().setBody(fileContent).setResponseCode(200));
+    indexDataset(datasetId.toString(), indexRequest).expectStatus().isOk();
+    return indexRequest;
+  }
+
   private static Stream<Arguments> badQueryStrings() {
     return Stream.of(
         Arguments.of(""),
@@ -553,6 +371,23 @@ class SearchITest {
       @Override
       public void describeTo(final Description description) {
         description.appendText("a List containing " + string);
+      }
+    };
+  }
+
+  @NotNull
+  private static TypeSafeMatcher<List> containsInAnyOrder(Collection actualItems) {
+
+    return new TypeSafeMatcher<>() {
+
+      @Override
+      protected boolean matchesSafely(List list) {
+        return CollectionUtils.isEqualCollection(list, actualItems);
+      }
+
+      @Override
+      public void describeTo(final Description description) {
+        description.appendValue(actualItems);
       }
     };
   }

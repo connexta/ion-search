@@ -61,12 +61,9 @@ public class SolrConfiguration {
           COUNTRY_CODE_ATTRIBUTE,
           CREATED_DATE_ATTRIBUTE,
           EXPIRATION_DATE_ATTRIBUTE,
-          FILE_URL_ATTRIBUTE,
           ICID_ATTRIBUTE,
           ID_ATTRIBUTE,
-          IRM_URL_ATTRIBUTE,
           KEYWORD_ATTRIBUTE,
-          METACARD_URL_ATTRIBUTE,
           MODIFIED_ATTRIBUTE,
           TITLE_ATTRIBUTE);
 

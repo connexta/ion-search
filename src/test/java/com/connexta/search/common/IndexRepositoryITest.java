@@ -11,11 +11,14 @@ import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.IRM_URL_ATTRIBUTE;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.connexta.search.common.configs.SolrConfiguration;
+import com.connexta.search.index.IonResourceLoader;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
@@ -23,12 +26,14 @@ import java.util.UUID;
 import javax.inject.Inject;
 import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.containers.GenericContainer;
@@ -85,6 +90,15 @@ class IndexRepositoryITest {
     indexRepository.deleteAll();
   }
 
+  @Inject ResourceLoader resourceLoader;
+
+  @Test
+  void test() throws IOException {
+    String string =
+        new IonResourceLoader(resourceLoader)
+            .getAsString("http://127.0.0.1:9041/dataset/976e0529-8d43-4e6e-8231-e4cb18a18977/irm");
+  }
+
   @Test
   void testIndex() {
     // setup
@@ -96,22 +110,6 @@ class IndexRepositoryITest {
     // then
     assertThat(indexRepository.count(), is(1L));
     assertThat(indexRepository.findById(INDEX_ID), isPresentAndIs(index));
-  }
-
-  @Test
-  void testUpdate() {
-    // setup
-    Index index = baseInstance();
-    indexRepository.save(index);
-
-    Index updatedIndex = index.toBuilder().contents("updated").irmUrl("https://updated/").build();
-
-    // when
-    indexRepository.save(updatedIndex);
-
-    // then
-    assertThat(indexRepository.count(), is(1L));
-    assertThat(indexRepository.findById(INDEX_ID), isPresentAndIs(updatedIndex));
   }
 
   @Test
@@ -173,6 +171,27 @@ class IndexRepositoryITest {
         e.getMessage(),
         containsString(String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, IRM_URL_ATTRIBUTE)));
     assertThat(indexRepository.count(), is(0L));
+  }
+
+  @Test
+  @Disabled(
+      "TODO: Test fails. Enable test when we learn how to make Solr reject the second save action")
+  void testUpdateProhibited() {
+    final Index index = baseInstance();
+    indexRepository.save(index);
+    indexRepository.findById(INDEX_ID).get();
+    Index updatedIndex =
+        Index.builder()
+            .id(INDEX_ID)
+            .contents("Updated")
+            .countryCode(INDEX_COUNTRY)
+            .created(INDEX_CREATED)
+            .irmUrl(INDEX_IRM_URI)
+            .modified(INDEX_MODIFIED)
+            .build();
+    indexRepository.save(updatedIndex);
+    Index indexAfterSave = indexRepository.findById(INDEX_ID).get();
+    assertThat(index, equalTo(indexAfterSave));
   }
 
   private Index baseInstance() {

@@ -59,7 +59,8 @@ public class IndexComponentTest {
         .bodyValue(
             (new IndexRequest()
                 .irmLocation(
-                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm"))))
+                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm")
+                        .toString())))
         .exchange()
         .expectStatus()
         .isBadRequest();
@@ -115,7 +116,8 @@ public class IndexComponentTest {
         .bodyValue(
             (new IndexRequest()
                 .irmLocation(
-                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm"))))
+                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm")
+                        .toString())))
         .exchange()
         .expectStatus()
         .isNotFound();

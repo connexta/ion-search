@@ -6,7 +6,6 @@
  */
 package com.connexta.search.common.configs;
 
-import com.connexta.search.common.IndexRepository;
 import com.connexta.search.common.SearchManager;
 import com.connexta.search.common.SearchManagerImpl;
 import java.net.URL;
@@ -33,8 +32,7 @@ public class SearchManagerConfiguration {
   }
 
   @Bean
-  public SearchManager searchManager(
-      @NotNull final IndexRepository indexRepository, @NotNull final SolrClient solrClient) {
-    return new SearchManagerImpl(indexRepository, solrClient);
+  public SearchManager searchManager(@NotNull final SolrClient solrClient) {
+    return new SearchManagerImpl(solrClient);
   }
 }

@@ -19,6 +19,8 @@ import com.connexta.search.index.IndexService;
 import com.connexta.search.rest.models.IndexRequest;
 import com.connexta.search.rest.spring.IndexApi;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,10 +44,19 @@ public class IndexControllerTest {
   @Mock private IndexService mockIndexService;
 
   private IndexApi indexApi;
+  private static final String DATASET_ID = "63c2006b-32f4-437b-8689-d673107ed5a7";
+  private static final UUID DATASET_UUID = UUID.fromString(DATASET_ID);
+  private IndexRequest indexRequest;
 
   @BeforeEach
-  public void beforeEach() {
+  public void beforeEach() throws URISyntaxException {
     indexApi = new IndexController(mockIndexService, INDEX_API_VERSION);
+    indexRequest =
+        new IndexRequest()
+            .irmLocation(
+                new URI(String.format("http://store:9041/dataset/%s/irm", DATASET_ID)).toString())
+            .fileLocation(
+                new URI(String.format("http://store:9041/dataset/%s/file", DATASET_ID)).toString());
   }
 
   @AfterEach
@@ -57,18 +68,10 @@ public class IndexControllerTest {
   @NullAndEmptySource
   @ValueSource(strings = {"this is invalid"})
   void testInvalidAcceptVersion(final String acceptVersion) {
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
     final ResponseStatusException thrown =
         assertThrows(
             ResponseStatusException.class,
-            () ->
-                indexApi.index(
-                    acceptVersion,
-                    datasetId,
-                    new IndexRequest()
-                        .irmLocation(
-                            new URI(
-                                String.format("http://store:9041/dataset/%s/irm", datasetId)))));
+            () -> indexApi.index(acceptVersion, DATASET_UUID, indexRequest));
     assertThat(thrown.getStatus(), is(HttpStatus.NOT_IMPLEMENTED));
     verifyNoInteractions(mockIndexService);
   }
@@ -76,16 +79,11 @@ public class IndexControllerTest {
   @ParameterizedTest
   @MethodSource("exceptionsThrownByIndexService")
   void testIndexServiceThrowsThrowable(final Throwable throwable) throws Exception {
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", datasetId));
-    doThrow(throwable).when(mockIndexService).index(datasetId, irmUri);
+    doThrow(throwable).when(mockIndexService).index(DATASET_ID, indexRequest);
 
     final Throwable thrown =
         assertThrows(
-            Throwable.class,
-            () ->
-                indexApi.index(
-                    INDEX_API_VERSION, datasetId, new IndexRequest().irmLocation(irmUri)));
+            Throwable.class, () -> indexApi.index(INDEX_API_VERSION, DATASET_UUID, indexRequest));
     assertThat(
         "thrown exception is the exact same exception thrown by the IndexService",
         thrown,
@@ -94,11 +92,15 @@ public class IndexControllerTest {
 
   @Test
   void testIndex() throws Exception {
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", datasetId));
-    indexApi.index(INDEX_API_VERSION, datasetId, new IndexRequest().irmLocation(irmUri));
+    final String uuidString = "63c2006b-32f4-437b-8689-d673107ed5a7";
+    final URI fileUri = new URI(String.format("http://store:9041/dataset/%s/file", uuidString));
+    final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", uuidString));
+    final IndexRequest indexRequest =
+        new IndexRequest().fileLocation(fileUri.toString()).irmLocation(irmUri.toString());
+    final UUID uuid = UUID.fromString(uuidString);
+    indexApi.index(INDEX_API_VERSION, uuid, indexRequest);
 
-    verify(mockIndexService).index(datasetId, irmUri);
+    verify(mockIndexService).index(uuidString, indexRequest);
   }
 
   private static Stream<Arguments> exceptionsThrownByIndexService() {

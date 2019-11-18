@@ -6,36 +6,30 @@
  */
 package com.connexta.search.common;
 
-import static com.connexta.search.common.SearchManagerImpl.EXT_EXTRACTED_TEXT;
 import static com.connexta.search.common.configs.SolrConfiguration.IRM_URL_ATTRIBUTE;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.common.exceptions.SearchException;
+import com.connexta.search.index.ContentExtractor;
+import com.connexta.search.index.IonResourceLoader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -56,157 +50,14 @@ class SearchManagerImplTest {
 
   @Mock private IndexRepository mockIndexRepository;
   @Mock private SolrClient mockSolrClient;
+  @Mock private ContentExtractor mockContentExtractor;
+  @Mock private IonResourceLoader mockGetInputStream;
 
   private SearchManagerImpl searchManagerImpl;
 
   @BeforeEach
   void beforeEach() {
-    searchManagerImpl = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
-  }
-
-  // index tests
-
-  @Test
-  void testExistingDataset(@Mock final InputStream mockInputStream) {
-    // given
-    final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-
-    // and stub dataset already exists
-    when(mockIndexRepository.existsById(datasetId)).thenReturn(true);
-
-    // expect
-    assertThrows(
-        SearchException.class,
-        () ->
-            indexManager.index(
-                datasetId,
-                new URI(String.format("http://store:9041/dataset/%s/irm", datasetId)),
-                mockInputStream));
-
-    // and
-    verifyNoMoreInteractions(mockIndexRepository, mockSolrClient, mockInputStream);
-  }
-
-  @Test
-  void testExceptionWhenCheckingIfDatasetExists(@Mock final InputStream mockInputStream) {
-    // given
-    final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-
-    // and stub dataset already exists
-    final RuntimeException runtimeException = new RuntimeException();
-    doThrow(runtimeException).when(mockIndexRepository).existsById(datasetId);
-
-    // expect
-    final SearchException thrown =
-        assertThrows(
-            SearchException.class,
-            () ->
-                indexManager.index(
-                    datasetId,
-                    new URI(String.format("http://store:9041/dataset/%s/irm", datasetId)),
-                    mockInputStream));
-    assertThat(thrown.getCause(), is(runtimeException));
-
-    // and
-    verifyNoMoreInteractions(mockIndexRepository, mockSolrClient, mockInputStream);
-  }
-
-  /** TODO change this from IRM to CST */
-  @ParameterizedTest
-  @ValueSource(strings = {"", "{}", "{ \"\": \"text\"}", "this isn't json"})
-  void testIrmFormatIsInvalid(final String body) {
-    // given
-    final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-
-    // and stub CrudRepository
-    when(mockIndexRepository.existsById(datasetId)).thenReturn(false);
-
-    // expect
-    assertThrows(
-        SearchException.class,
-        () ->
-            indexManager.index(
-                datasetId,
-                new URI(String.format("http://store:9041/dataset/%s/irm", datasetId)),
-                IOUtils.toInputStream(body, StandardCharsets.UTF_8)));
-  }
-
-  @Test
-  void testExceptionWhenSaving() throws Exception {
-    // given
-    final SearchManager searchManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final String contents =
-        "All the color had been leached from Winterfell until only grey and white remained.";
-
-    final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", datasetId));
-
-    // and stub CrudRepository#existsById
-    when(mockIndexRepository.existsById(datasetId)).thenReturn(false);
-
-    // and stub CrudRepository#save
-    final RuntimeException runtimeException = new RuntimeException();
-    doThrow(runtimeException)
-        .when(mockIndexRepository)
-        .save(
-            argThat(
-                index ->
-                    index.equals(
-                        Index.builder()
-                            .id(datasetId)
-                            .contents(contents)
-                            .irmUrl(irmUri.toString())
-                            .build())));
-
-    // expect
-    final SearchException thrown =
-        assertThrows(
-            SearchException.class,
-            () ->
-                searchManager.index(
-                    datasetId,
-                    irmUri,
-                    IOUtils.toInputStream(
-                        String.format("{\"%s\" : \"%s\"}", EXT_EXTRACTED_TEXT, contents),
-                        StandardCharsets.UTF_8)));
-    assertThat(thrown.getCause(), is(runtimeException));
-  }
-
-  @Test
-  public void testIndex() throws Exception {
-    // given
-    final SearchManager searchManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
-    final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final String contents =
-        "All the color had been leached from Winterfell until only grey and white remained.";
-
-    final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", datasetId));
-
-    // and stub CrudRepository
-    when(mockIndexRepository.existsById(datasetId)).thenReturn(false);
-
-    // when
-    searchManager.index(
-        datasetId,
-        irmUri,
-        IOUtils.toInputStream(
-            String.format("{\"%s\" : \"%s\"}", EXT_EXTRACTED_TEXT, contents),
-            StandardCharsets.UTF_8));
-
-    // then
-    verify(mockIndexRepository)
-        .save(
-            argThat(
-                index ->
-                    index.equals(
-                        Index.builder()
-                            .id(datasetId)
-                            .contents(contents)
-                            .irmUrl(irmUri.toString())
-                            .build())));
+    searchManagerImpl = new SearchManagerImpl(mockSolrClient);
   }
 
   // query tests
@@ -225,17 +76,14 @@ class SearchManagerImplTest {
   void testSupportedAttributes() throws Exception {
     // setup
     final String template = "%s = '%s'";
-    final Map<String, String> queryPairs = new HashMap();
+    final Map<String, String> queryPairs = new HashMap<>();
     queryPairs.put("contents", "lots of words");
     queryPairs.put("country_code", "USA");
     queryPairs.put("created", "2019-11-13");
     queryPairs.put("expiration", "2119-11-01");
-    queryPairs.put("file_url", "http://host/1");
     queryPairs.put("icid", "floop");
     queryPairs.put("id", "bloop");
-    queryPairs.put("irm_url", "http://host/2");
     queryPairs.put("keyword", "key");
-    queryPairs.put("metacard_url", "http://host/3");
     queryPairs.put("modified", "2019-11-14");
     queryPairs.put("title", "A Title");
 

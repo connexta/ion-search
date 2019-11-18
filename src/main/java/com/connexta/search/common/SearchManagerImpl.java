@@ -12,17 +12,13 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.common.exceptions.SearchException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,49 +41,7 @@ public class SearchManagerImpl implements SearchManager {
 
   public static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
 
-  @NotNull private final IndexRepository indexRepository;
   @NotNull private final SolrClient solrClient;
-
-  /**
-   * TODO Right now this method parses the {@link InputStream} as CST. This should be updated to
-   * parse IRM instead.
-   */
-  @Override
-  public void index(
-      @NotBlank final String datasetId,
-      @NotNull final URI irmUri,
-      @NotNull final InputStream irmInputStream) {
-    // TODO check that the dataset exists in S3
-
-    // TODO 11/4/2019 PeterHuffer: this check should be done by the database so separate
-    // index instances don't have timing issues
-    final boolean idAlreadyExists;
-    try {
-      idAlreadyExists = indexRepository.existsById(datasetId);
-    } catch (final Exception e) {
-      throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to query index", e);
-    }
-    if (idAlreadyExists) {
-      throw new SearchException(
-          BAD_REQUEST, "Dataset already exists. Overwriting is not supported");
-    }
-
-    final String contents;
-    try {
-      contents = getElement(parseJson(irmInputStream), EXT_EXTRACTED_TEXT);
-    } catch (IOException e) {
-      throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to convert InputStream to JSON", e);
-    }
-
-    log.info("Attempting to index datasetId={}", datasetId);
-    try {
-      indexRepository.save(
-          Index.builder().id(datasetId).contents(contents).irmUrl(irmUri.toString()).build());
-    } catch (final Exception e) {
-      throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
-    }
-    log.info("Successfully indexed datasetId={}", datasetId);
-  }
 
   @Override
   public Set<URI> query(String cql) {
@@ -155,22 +109,5 @@ public class SearchManagerImpl implements SearchManager {
     }
 
     return irmURIs;
-  }
-
-  /** @throws IOException if the {@link InputStream} contains invalid content */
-  private static JsonNode parseJson(InputStream stream) throws IOException {
-    final ObjectMapper objectMapper;
-    objectMapper = new ObjectMapper();
-    return objectMapper.readTree(stream);
-  }
-
-  /** @throws SearchException if the {@link JsonNode} does not have a {@code fieldName} field */
-  private static String getElement(JsonNode json, String fieldName) {
-    if (json.get(fieldName) == null) {
-      throw new SearchException(
-          BAD_REQUEST,
-          String.format("JSON is malformed because it does not have a %s field", fieldName));
-    }
-    return json.get(fieldName).asText();
   }
 }
