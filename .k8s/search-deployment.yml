@@ -64,12 +64,12 @@ spec:
             - containerPort: 8983
               protocol: TCP
           volumeMounts:
-            - name: solr-pvc
+            - name: solr-pv
               mountPath: /var/solr/data
       volumes:
-        - name: solr-pvc
+        - name: solr-pv
           persistentVolumeClaim:
-            claimName: pvc
+            claimName: solr-pvc
 
 # Exposes the search container as a service that can be reached externally
 ---
@@ -102,7 +102,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pvc
+  name: solr-pvc
 spec:
   accessModes:
     - ReadWriteOnce
