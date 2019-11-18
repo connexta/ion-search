@@ -81,7 +81,9 @@ public class SearchManagerImpl implements SearchManager {
 
     log.info("Attempting to index datasetId={}", datasetId);
     try {
-      indexRepository.save(new Index(datasetId, contents, irmUri.toString()));
+      //      indexRepository.save(new Index(datasetId, contents, irmUri.toString()));
+      indexRepository.save(
+          Index.builder().id(datasetId).contents(contents).irmUriString(irmUri.toString()).build());
     } catch (final Exception e) {
       throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
     }

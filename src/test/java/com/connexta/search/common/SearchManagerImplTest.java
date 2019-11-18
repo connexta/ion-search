@@ -147,7 +147,15 @@ class SearchManagerImplTest {
     final RuntimeException runtimeException = new RuntimeException();
     doThrow(runtimeException)
         .when(mockIndexRepository)
-        .save(argThat(index -> index.equals(new Index(datasetId, contents, irmUri.toString()))));
+        .save(
+            argThat(
+                index ->
+                    index.equals(
+                        Index.builder()
+                            .id(datasetId)
+                            .contents(contents)
+                            .irmUriString(irmUri.toString())
+                            .build())));
 
     // expect
     final SearchException thrown =
@@ -186,7 +194,15 @@ class SearchManagerImplTest {
 
     // then
     verify(mockIndexRepository)
-        .save(argThat(index -> index.equals(new Index(datasetId, contents, irmUri.toString()))));
+        .save(
+            argThat(
+                index ->
+                    index.equals(
+                        Index.builder()
+                            .id(datasetId)
+                            .contents(contents)
+                            .irmUriString(irmUri.toString())
+                            .build())));
   }
 
   // query tests
