@@ -63,7 +63,7 @@ class SearchManagerImplTest {
   // index tests
 
   @Test
-  public void testExistingDataset(@Mock final InputStream mockInputStream) {
+  void testExistingDataset(@Mock final InputStream mockInputStream) {
     // given
     final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
@@ -85,7 +85,7 @@ class SearchManagerImplTest {
   }
 
   @Test
-  public void testExceptionWhenCheckingIfDatasetExists(@Mock final InputStream mockInputStream) {
+  void testExceptionWhenCheckingIfDatasetExists(@Mock final InputStream mockInputStream) {
     // given
     final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
@@ -112,7 +112,7 @@ class SearchManagerImplTest {
   /** TODO change this from IRM to CST */
   @ParameterizedTest
   @ValueSource(strings = {"", "{}", "{ \"\": \"text\"}", "this isn't json"})
-  public void testIrmFormatIsInvalid(final String body) {
+  void testIrmFormatIsInvalid(final String body) {
     // given
     final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
@@ -131,7 +131,7 @@ class SearchManagerImplTest {
   }
 
   @Test
-  public void testExceptionWhenSaving() throws Exception {
+  void testExceptionWhenSaving() throws Exception {
     // given
     final SearchManager searchManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
@@ -172,7 +172,7 @@ class SearchManagerImplTest {
   }
 
   @Test
-  public void testQueryContents() throws Exception {
+  public void testIndex() throws Exception {
     // given
     final SearchManager searchManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
