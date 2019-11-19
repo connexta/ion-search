@@ -33,7 +33,53 @@ public class IndexServiceImpl implements IndexService {
   @Override
   public void index(
       @Pattern(regexp = "^[0-9a-zA-Z]+$") @Size(min = 32, max = 32) final String datasetId,
+      @NotNull URI fileUri,
       @NotNull final URI irmUri) {
+    try (final InputStream fileInputStream = getFile(fileUri).getInputStream();
+        final InputStream irmInputStream = getIrm(irmUri).getInputStream()) {
+      searchManager.index(datasetId, fileUri, fileInputStream, irmUri, irmInputStream);
+    } catch (IOException e) {
+      throw new SearchException(BAD_REQUEST, String.format("Unable to get InputStream."), e);
+    }
+  }
+
+  private Resource getFile(URI fileUri) {
+    final Resource resource;
+    try {
+      final HttpStatus expectedHttpStatus = HttpStatus.OK;
+      resource =
+          webClient
+              .get()
+              .uri(fileUri)
+              .retrieve()
+              .onStatus(
+                  httpStatus -> !expectedHttpStatus.equals(httpStatus),
+                  clientResponse ->
+                      Mono.error(
+                          () ->
+                              new SearchException(
+                                  BAD_REQUEST,
+                                  String.format(
+                                      "Excepted %s but received status code of %s when getting resource at fileUri=%s",
+                                      expectedHttpStatus, clientResponse.statusCode(), fileUri))))
+              .bodyToMono(Resource.class)
+              .block();
+    } catch (final Exception e) {
+      throw new SearchException(
+          BAD_REQUEST, String.format("Unable to complete GET request to fileUri=%s", fileUri), e);
+    }
+
+    if (resource == null) {
+      throw new SearchException(
+          BAD_REQUEST,
+          String.format(
+              "Unable to complete GET request to fileUri=%s because the resource was null",
+              fileUri));
+    }
+    return resource;
+  }
+
+  private Resource getIrm(URI irmUri) {
     final Resource resource;
     try {
       final HttpStatus expectedHttpStatus = HttpStatus.OK;
@@ -66,11 +112,6 @@ public class IndexServiceImpl implements IndexService {
               "Unable to complete GET request to irmUri=%s because the resource was null", irmUri));
     }
 
-    try (final InputStream irmInputStream = resource.getInputStream()) {
-      searchManager.index(datasetId, irmUri, irmInputStream);
-    } catch (IOException e) {
-      throw new SearchException(
-          BAD_REQUEST, String.format("Unable to get InputStream from irmUri=%s", irmUri), e);
-    }
+    return resource;
   }
 }

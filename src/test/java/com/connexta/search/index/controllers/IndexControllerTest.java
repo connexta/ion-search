@@ -77,15 +77,18 @@ public class IndexControllerTest {
   @MethodSource("exceptionsThrownByIndexService")
   void testIndexServiceThrowsThrowable(final Throwable throwable) throws Exception {
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
+    final URI fileUri = new URI(String.format("http://store:9041/dataset/%s/file", datasetId));
     final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", datasetId));
-    doThrow(throwable).when(mockIndexService).index(datasetId, irmUri);
+    doThrow(throwable).when(mockIndexService).index(datasetId, fileUri, irmUri);
 
     final Throwable thrown =
         assertThrows(
             Throwable.class,
             () ->
                 indexApi.index(
-                    INDEX_API_VERSION, datasetId, new IndexRequest().irmLocation(irmUri)));
+                    INDEX_API_VERSION,
+                    datasetId,
+                    new IndexRequest().fileLocation(fileUri).irmLocation(irmUri)));
     assertThat(
         "thrown exception is the exact same exception thrown by the IndexService",
         thrown,
@@ -95,10 +98,12 @@ public class IndexControllerTest {
   @Test
   void testIndex() throws Exception {
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
+    final URI fileUri = new URI(String.format("http://store:9041/dataset/%s/file", datasetId));
     final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", datasetId));
-    indexApi.index(INDEX_API_VERSION, datasetId, new IndexRequest().irmLocation(irmUri));
+    indexApi.index(
+        INDEX_API_VERSION, datasetId, new IndexRequest().fileLocation(fileUri).irmLocation(irmUri));
 
-    verify(mockIndexService).index(datasetId, irmUri);
+    verify(mockIndexService).index(datasetId, fileUri, irmUri);
   }
 
   private static Stream<Arguments> exceptionsThrownByIndexService() {

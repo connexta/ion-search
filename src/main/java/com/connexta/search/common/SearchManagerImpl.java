@@ -12,6 +12,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.common.exceptions.SearchException;
+import com.connexta.search.index.content.BodyContentExtractor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -31,6 +32,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.apache.tika.exception.TikaException;
 import org.geotools.data.solr.FilterToSolr;
 import org.geotools.filter.Filters;
 import org.geotools.filter.text.cql2.CQL;
@@ -45,8 +47,12 @@ public class SearchManagerImpl implements SearchManager {
 
   public static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
 
+  // max length disabled
+  private static final int MAX_CONTENT_LENGTH = -1;
+
   @NotNull private final IndexRepository indexRepository;
   @NotNull private final SolrClient solrClient;
+  @NotNull private final BodyContentExtractor bodyContentExtractor;
 
   /**
    * TODO Right now this method parses the {@link InputStream} as CST. This should be updated to
@@ -55,6 +61,8 @@ public class SearchManagerImpl implements SearchManager {
   @Override
   public void index(
       @NotBlank final String datasetId,
+      @NotNull final URI fileUri,
+      @NotNull final InputStream fileInputStream,
       @NotNull final URI irmUri,
       @NotNull final InputStream irmInputStream) {
     // TODO check that the dataset exists in S3
@@ -74,14 +82,17 @@ public class SearchManagerImpl implements SearchManager {
 
     final String contents;
     try {
-      contents = getElement(parseJson(irmInputStream), EXT_EXTRACTED_TEXT);
-    } catch (IOException e) {
-      throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to convert InputStream to JSON", e);
+      contents = bodyContentExtractor.extractText(fileInputStream);
+    } catch (IOException | TikaException e) {
+      throw new SearchException(
+          INTERNAL_SERVER_ERROR,
+          String.format("Unable to extract content from file %s", fileUri),
+          e);
     }
 
     log.info("Attempting to index datasetId={}", datasetId);
     try {
-      indexRepository.save(new Index(datasetId, contents, irmUri.toString()));
+      indexRepository.save(new Index(datasetId, contents, fileUri.toString(), irmUri.toString()));
     } catch (final Exception e) {
       throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
     }

@@ -7,6 +7,7 @@
 package com.connexta.search.common;
 
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.FILE_URI_STRING_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_STRING_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
@@ -34,6 +35,9 @@ public class Index {
 
   @Indexed(name = CONTENTS_ATTRIBUTE, type = "string")
   private String contents;
+
+  @Indexed(name = FILE_URI_STRING_ATTRIBUTE, type = "string")
+  private String fileUriString;
 
   @Indexed(name = IRM_URI_STRING_ATTRIBUTE, type = "string")
   private String irmUriString;

@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Profile;
 public class SolrConfiguration {
 
   public static final String SOLR_COLLECTION = "search_terms";
+  public static final String FILE_URI_STRING_ATTRIBUTE = "file_uri_string";
   public static final String IRM_URI_STRING_ATTRIBUTE = "irm_uri_string";
 
   // TODO Contents is not an attribute in the CST

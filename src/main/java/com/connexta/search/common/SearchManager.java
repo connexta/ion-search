@@ -21,12 +21,16 @@ public interface SearchManager {
    * Indexes the resource.
    *
    * @param datasetId the id of the dataset
+   * @param fileUri {@link URI} to download the file of the dataset
+   * @param fileInputStream the file
    * @param irmUri {@link URI} to download the IRM of the dataset
    * @param irmInputStream the irm
    * @throws SearchException if there was an error indexing the resource
    */
   void index(
       @Pattern(regexp = "^[0-9a-zA-Z]+$") @Size(min = 32, max = 32) final String datasetId,
+      @NotNull final URI fileUri,
+      @NotNull final InputStream fileInputStream,
       @NotNull final URI irmUri,
       @NotNull final InputStream irmInputStream);
 

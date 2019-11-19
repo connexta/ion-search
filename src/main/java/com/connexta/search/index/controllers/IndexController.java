@@ -47,7 +47,7 @@ public class IndexController implements IndexApi {
               ACCEPT_VERSION_HEADER_NAME, acceptVersion, expectedAcceptVersion));
     }
 
-    indexService.index(datasetId, indexRequest.getIrmLocation());
+    indexService.index(datasetId, indexRequest.getFileLocation(), indexRequest.getIrmLocation());
     return ResponseEntity.ok().build();
   }
 }
