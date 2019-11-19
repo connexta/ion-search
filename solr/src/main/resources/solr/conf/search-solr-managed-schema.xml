@@ -123,14 +123,16 @@
     multiValued="false"/>
   <field name="created" type="pdate" sortMissingLast="true"
     indexed="true" stored="true" required="false" multiValued="false"/>
-  <field name="expiration" type="pdate" indexed="true" stored="true" required="false"
-    multiValued="false"/>
   <field name="icid" type="string" indexed="true" stored="true" required="false"
     multiValued="false"/>
-  <field name="irm_uri_string" type="string" indexed="true" stored="true" required="true"
+  <field name="irm_uri" type="string" indexed="true" stored="true" required="true"
     multiValued="false"/>
   <field name="keyword" type="string" indexed="true" stored="true" multiValued="false"/>
   <field name="modified" type="pdate" indexed="true" stored="true" multiValued="false"/>
+  <field name="date_range" type="pdate" indexed="true" stored="true" multiValued="false"/>
+  <field name="end" type="pdate" indexed="true" stored="true" multiValued="false"/>
+  <field name="posted" type="pdate" indexed="true" stored="true" required="false"
+    multiValued="false"/>
   <field name="resource_uri" type="string" indexed="true" stored="true" multiValued="false"/>
   <field name="title" type="text_general" indexed="true" stored="true" multiValued="false"/>
 

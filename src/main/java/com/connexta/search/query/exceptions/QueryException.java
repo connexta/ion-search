@@ -6,8 +6,6 @@
  */
 package com.connexta.search.query.exceptions;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-
 import com.connexta.search.common.exceptions.DetailedResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -23,9 +21,5 @@ public class QueryException extends DetailedResponseStatusException {
 
   public QueryException(HttpStatus status, String reason, Throwable cause) {
     super(status, reason, cause);
-  }
-
-  public QueryException(String reason, Throwable cause) {
-    this(INTERNAL_SERVER_ERROR, reason, cause);
   }
 }

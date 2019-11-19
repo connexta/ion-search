@@ -7,7 +7,7 @@
 package com.connexta.search.common;
 
 import static com.connexta.search.common.SearchManagerImpl.EXT_EXTRACTED_TEXT;
-import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_STRING_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_ATTRIBUTE;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -154,7 +154,7 @@ class SearchManagerImplTest {
                         Index.builder()
                             .id(datasetId)
                             .contents(contents)
-                            .irmUriString(irmUri.toString())
+                            .irmUri(irmUri.toString())
                             .build())));
 
     // expect
@@ -172,7 +172,7 @@ class SearchManagerImplTest {
   }
 
   @Test
-  public void testIndex() throws Exception {
+  public void testQueryContents() throws Exception {
     // given
     final SearchManager searchManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
@@ -201,7 +201,7 @@ class SearchManagerImplTest {
                         Index.builder()
                             .id(datasetId)
                             .contents(contents)
-                            .irmUriString(irmUri.toString())
+                            .irmUri(irmUri.toString())
                             .build())));
   }
 
@@ -317,9 +317,9 @@ class SearchManagerImplTest {
 
   private static QueryResponse mockQueryResponse(final String... irmUriStrings) {
     List<SolrDocument> solrDocuments = new ArrayList<>();
-    for (final String irmUriString : irmUriStrings) {
+    for (final String irmUri : irmUriStrings) {
       SolrDocument document = mock(SolrDocument.class);
-      when(document.get(IRM_URI_STRING_ATTRIBUTE)).thenReturn(irmUriString);
+      when(document.get(IRM_URI_ATTRIBUTE)).thenReturn(irmUri);
       solrDocuments.add(document);
     }
 

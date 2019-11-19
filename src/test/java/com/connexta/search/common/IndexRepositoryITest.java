@@ -8,7 +8,7 @@ package com.connexta.search.common;
 
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
-import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_STRING_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_ATTRIBUTE;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.connexta.search.common.configs.SolrConfiguration;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.UUID;
 import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
 import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class IndexRepositoryITest {
 
   private static final String INDEX_ID = UUID.randomUUID().toString().replace("-", "");
   private static final String INDEX_CONTENT = "Winterfell";
-  private static final String INDEX_MEDIA_TYPE = MediaType.APPLICATION_JSON;
+  private static final String INDEX_IRM_URI = "http://host/irm/123";
   private static final String MISSING_REQUIRED_FIELD_MESSAGE_FORMAT = "missing required field: %s";
 
   @Container
@@ -58,6 +58,10 @@ class IndexRepositoryITest {
       new GenericContainer("cnxta/search-solr")
           .withExposedPorts(SOLR_PORT)
           .waitingFor(Wait.forHttp("/solr/" + SolrConfiguration.SOLR_COLLECTION + "/admin/ping"));
+
+  private static final String INDEX_COUNTRY = "USA";
+  private static final Date INDEX_CREATED = new Date(1574179891);
+  private static final Date INDEX_MODIFIED = new Date(1000088888);
 
   @Inject private IndexRepository indexRepository;
 
@@ -84,8 +88,7 @@ class IndexRepositoryITest {
   @Test
   void testIndex() {
     // setup
-    Index index =
-        Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
+    Index index = baseInstance();
 
     // when
     indexRepository.save(index);
@@ -98,17 +101,10 @@ class IndexRepositoryITest {
   @Test
   void testUpdate() {
     // setup
-    Index index =
-        Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
+    Index index = baseInstance();
     indexRepository.save(index);
 
-    //    Index updatedIndex = new Index(INDEX_ID, "updatedContext", "updated/contentType");
-    Index updatedIndex =
-        Index.builder()
-            .id(INDEX_ID)
-            .contents("updatedContext")
-            .irmUriString("updated/contentType")
-            .build();
+    Index updatedIndex = index.toBuilder().contents("updated").irmUri("https://updated/").build();
 
     // when
     indexRepository.save(updatedIndex);
@@ -121,8 +117,7 @@ class IndexRepositoryITest {
   @Test
   void testDelete() {
     // setup
-    Index index =
-        Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
+    Index index = baseInstance();
     indexRepository.save(index);
 
     // when
@@ -135,7 +130,7 @@ class IndexRepositoryITest {
   @Test
   void testIdRequired() {
     // setup
-    Index index = Index.builder().contents(INDEX_CONTENT).irmUriString(INDEX_MEDIA_TYPE).build();
+    Index index = Index.builder().contents(INDEX_CONTENT).irmUri(INDEX_IRM_URI).build();
 
     // when
     DataAccessResourceFailureException e =
@@ -151,7 +146,7 @@ class IndexRepositoryITest {
   @Test
   void testContentRequired() {
     // setup
-    Index index = Index.builder().id(INDEX_ID).irmUriString(INDEX_MEDIA_TYPE).build();
+    Index index = Index.builder().id(INDEX_ID).irmUri(INDEX_IRM_URI).build();
 
     // when
     DataAccessResourceFailureException e =
@@ -165,7 +160,7 @@ class IndexRepositoryITest {
   }
 
   @Test
-  void testMediaTypeRequired() {
+  void testIrmUriRequired() {
     // setup
     Index index = Index.builder().id(INDEX_ID).contents(INDEX_CONTENT).build();
 
@@ -176,8 +171,18 @@ class IndexRepositoryITest {
     // then
     assertThat(
         e.getMessage(),
-        containsString(
-            String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, IRM_URI_STRING_ATTRIBUTE)));
+        containsString(String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, IRM_URI_ATTRIBUTE)));
     assertThat(indexRepository.count(), is(0L));
+  }
+
+  private Index baseInstance() {
+    return Index.builder()
+        .id(INDEX_ID)
+        .contents(INDEX_CONTENT)
+        .countryCode(INDEX_COUNTRY)
+        .created(INDEX_CREATED)
+        .irmUri(INDEX_IRM_URI)
+        .modified(INDEX_MODIFIED)
+        .build();
   }
 }

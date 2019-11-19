@@ -83,7 +83,7 @@ public class SearchManagerImpl implements SearchManager {
     try {
       //      indexRepository.save(new Index(datasetId, contents, irmUri.toString()));
       indexRepository.save(
-          Index.builder().id(datasetId).contents(contents).irmUriString(irmUri.toString()).build());
+          Index.builder().id(datasetId).contents(contents).irmUri(irmUri.toString()).build());
     } catch (final Exception e) {
       throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
     }
@@ -139,17 +139,15 @@ public class SearchManagerImpl implements SearchManager {
 
     final Set<URI> irmURIs = new HashSet<>();
     for (SolrDocument doc : response.getResults()) {
-      Object obj = doc.get(SolrConfiguration.IRM_URI_STRING_ATTRIBUTE);
+      Object obj = doc.get(SolrConfiguration.IRM_URI_ATTRIBUTE);
       if (obj instanceof String) {
-        final String irmUriString = (String) obj;
+        final String irmUri = (String) obj;
         try {
-          irmURIs.add(new URI(irmUriString));
+          irmURIs.add(new URI(irmUri));
         } catch (URISyntaxException e) {
           // TODO write tests for this case
           throw new SearchException(
-              INTERNAL_SERVER_ERROR,
-              "Unable to construct URI from irmUriString=" + irmUriString,
-              e);
+              INTERNAL_SERVER_ERROR, "Unable to construct URI from irmUri=" + irmUri, e);
         }
       } else {
         // shouldn't hit this since the schema enforces the ID is a string
