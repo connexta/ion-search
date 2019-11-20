@@ -265,7 +265,7 @@ class SearchITest {
             + CONTENTS_ATTRIBUTE
             + " = 'first IRM metadata'"
       })
-  void testQuery(final String cqlStringOnlyMatchingFirstDataset) throws Exception {
+  void testQueryContents(final String cqlStringOnlyMatchingFirstDataset) throws Exception {
     // given index a dataset
     storeMockWebServer.enqueue(
         new MockResponse()

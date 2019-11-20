@@ -61,6 +61,7 @@ public class SolrConfiguration {
           EXPIRATION_DATE_ATTRIBUTE,
           ICID_ATTRIBUTE,
           ID_ATTRIBUTE,
+          IRM_URI_ATTRIBUTE,
           KEYWORD_ATTRIBUTE,
           MODIFIED_ATTRIBUTE,
           RESOURCE_URI_ATTRIBUTE,

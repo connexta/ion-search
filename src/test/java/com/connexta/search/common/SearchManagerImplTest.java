@@ -10,7 +10,6 @@ import static com.connexta.search.common.SearchManagerImpl.EXT_EXTRACTED_TEXT;
 import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_ATTRIBUTE;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
@@ -24,13 +23,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.common.exceptions.SearchException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -218,16 +222,40 @@ class SearchManagerImplTest {
   }
 
   @Test
-  void testQueryIdEquals() throws Exception {
+  void testSupportedAttributes() throws Exception {
     // setup
-    final String idQuery = "id = 'value'";
+    final String template = "%s = '%s'";
+    final Map<String, String> queryPairs = new HashMap();
+    queryPairs.put("irm_uri", "http://irm/123");
+    queryPairs.put("contents", "lots of words");
+    queryPairs.put("country_code", "USA");
+    queryPairs.put("created", "2019-11-13");
+    queryPairs.put("expiration", "2119-11-01");
+    queryPairs.put("icid", "floop");
+    queryPairs.put("id", "bloop");
+    queryPairs.put("keyword", "key");
+    queryPairs.put("modified", "2019-11-14");
+    queryPairs.put("resource_uri", "http://resource/123");
+    queryPairs.put("title", "A Title");
 
-    final URI irmUri = new URI("value");
-    QueryResponse queryResponse = mockQueryResponse(irmUri.toString());
+    assertThat(
+        "Expected attributes do not match actual attributes. These collections need to be the same.",
+        List.of(queryPairs.keySet()),
+        containsInAnyOrder(SolrConfiguration.QUERY_TERMS));
+
+    List<String> queryPreds = new ArrayList<>();
+    queryPairs.forEach((k, v) -> queryPreds.add(String.format(template, k, v)));
+
+    String queryString =
+        queryPairs.entrySet().stream()
+            .map(e -> String.format(template, e.getKey(), e.getValue()))
+            .collect(Collectors.joining(" AND "));
+    QueryResponse queryResponse = mockQueryResponse("something");
     when(mockSolrClient.query(anyString(), any())).thenReturn(queryResponse);
 
     // expect
-    assertThat(searchManagerImpl.query(idQuery), contains(irmUri));
+    Set<URI> result = searchManagerImpl.query(queryString);
+    assertThat(result, containsInAnyOrder(new URI("something")));
   }
 
   @Test
