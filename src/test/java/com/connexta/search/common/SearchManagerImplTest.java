@@ -7,7 +7,7 @@
 package com.connexta.search.common;
 
 import static com.connexta.search.common.SearchManagerImpl.EXT_EXTRACTED_TEXT;
-import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.IRM_URL_ATTRIBUTE;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -158,7 +158,7 @@ class SearchManagerImplTest {
                         Index.builder()
                             .id(datasetId)
                             .contents(contents)
-                            .irmUri(irmUri.toString())
+                            .irmUrl(irmUri.toString())
                             .build())));
 
     // expect
@@ -205,7 +205,7 @@ class SearchManagerImplTest {
                         Index.builder()
                             .id(datasetId)
                             .contents(contents)
-                            .irmUri(irmUri.toString())
+                            .irmUrl(irmUri.toString())
                             .build())));
   }
 
@@ -226,16 +226,17 @@ class SearchManagerImplTest {
     // setup
     final String template = "%s = '%s'";
     final Map<String, String> queryPairs = new HashMap();
-    queryPairs.put("irm_uri", "http://irm/123");
     queryPairs.put("contents", "lots of words");
     queryPairs.put("country_code", "USA");
     queryPairs.put("created", "2019-11-13");
     queryPairs.put("expiration", "2119-11-01");
+    queryPairs.put("file_url", "http://host/1");
     queryPairs.put("icid", "floop");
     queryPairs.put("id", "bloop");
+    queryPairs.put("irm_url", "http://host/2");
     queryPairs.put("keyword", "key");
+    queryPairs.put("metacard_url", "http://host/3");
     queryPairs.put("modified", "2019-11-14");
-    queryPairs.put("resource_uri", "http://resource/123");
     queryPairs.put("title", "A Title");
 
     assertThat(
@@ -347,7 +348,7 @@ class SearchManagerImplTest {
     List<SolrDocument> solrDocuments = new ArrayList<>();
     for (final String irmUri : irmUriStrings) {
       SolrDocument document = mock(SolrDocument.class);
-      when(document.get(IRM_URI_ATTRIBUTE)).thenReturn(irmUri);
+      when(document.get(IRM_URL_ATTRIBUTE)).thenReturn(irmUri);
       solrDocuments.add(document);
     }
 

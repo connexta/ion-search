@@ -20,7 +20,6 @@ import org.springframework.context.annotation.Profile;
 public class SolrConfiguration {
 
   public static final String SOLR_COLLECTION = "search_terms";
-  public static final String IRM_URI_ATTRIBUTE = "irm_uri";
 
   // TODO Contents is not an attribute in the CST
   public static final String CONTENTS_ATTRIBUTE = "contents";
@@ -34,6 +33,8 @@ public class SolrConfiguration {
   // Date (often a range) of validity of a File.
   public static final String EXPIRATION_DATE_ATTRIBUTE = "expiration";
 
+  public static final String FILE_URL_ATTRIBUTE = "file_url";
+
   // Intelligence Community Identifier. An ICID is an unambiguous reference to the resource within a
   // given context.
   public static final String ICID_ATTRIBUTE = "icid";
@@ -41,14 +42,15 @@ public class SolrConfiguration {
   // The unique ID of a Dataset
   public static final String ID_ATTRIBUTE = "id";
 
+  public static final String IRM_URL_ATTRIBUTE = "irm_url";
+
   // The topic of the File.
   public static final String KEYWORD_ATTRIBUTE = "keyword";
 
+  public static final String METACARD_URL_ATTRIBUTE = "metacard_url";
+
   // Date when the file was  last changed.  Format is YYYY-MM-DDThh:mm:ss.sZ
   public static final String MODIFIED_ATTRIBUTE = "modified";
-
-  // Location of the File
-  public static final String RESOURCE_URI_ATTRIBUTE = "resource_uri";
 
   // Name given to the resource. See Dublin Core http://purl.org/dc/terms/title
   public static final String TITLE_ATTRIBUTE = "title";
@@ -59,12 +61,13 @@ public class SolrConfiguration {
           COUNTRY_CODE_ATTRIBUTE,
           CREATED_DATE_ATTRIBUTE,
           EXPIRATION_DATE_ATTRIBUTE,
+          FILE_URL_ATTRIBUTE,
           ICID_ATTRIBUTE,
           ID_ATTRIBUTE,
-          IRM_URI_ATTRIBUTE,
+          IRM_URL_ATTRIBUTE,
           KEYWORD_ATTRIBUTE,
+          METACARD_URL_ATTRIBUTE,
           MODIFIED_ATTRIBUTE,
-          RESOURCE_URI_ATTRIBUTE,
           TITLE_ATTRIBUTE);
 
   @Bean

@@ -117,24 +117,19 @@
     <field name="_version_" type="plong" indexed="false" stored="false"/>
 
   <!-- CST fields -->
-  <field name="contents" type="text_general" indexed="true" stored="true" required="true"
-    multiValued="false"/>
-  <field name="country_code" type="string" indexed="true" stored="true" required="false"
-    multiValued="false"/>
-  <field name="created" type="pdate" sortMissingLast="true"
-    indexed="true" stored="true" required="false" multiValued="false"/>
-  <field name="icid" type="string" indexed="true" stored="true" required="false"
-    multiValued="false"/>
-  <field name="irm_uri" type="string" indexed="true" stored="true" required="true"
-    multiValued="false"/>
-  <field name="keyword" type="string" indexed="true" stored="true" multiValued="false"/>
-  <field name="modified" type="pdate" indexed="true" stored="true" multiValued="false"/>
-  <field name="date_range" type="pdate" indexed="true" stored="true" multiValued="false"/>
-  <field name="end" type="pdate" indexed="true" stored="true" multiValued="false"/>
-  <field name="posted" type="pdate" indexed="true" stored="true" required="false"
-    multiValued="false"/>
-  <field name="resource_uri" type="string" indexed="true" stored="true" multiValued="false"/>
-  <field name="title" type="text_general" indexed="true" stored="true" multiValued="false"/>
+  <field name="contents" type="text_general" multiValued="false" required="true" />
+  <field name="country_code" type="string" />
+  <field name="created" type="pdate" sortMissingLast="true" />
+  <field name="file_url" type="string" indexed="false" required="false" /> <!--TODO: Required? -->
+  <field name="icid" type="string" indexed="false"  />
+  <field name="irm_url" type="string" indexed="false" required="true" />
+  <field name="keyword" type="string" />
+  <field name="metacard_url" type="string" indexed="false" required="false" /> <!--TODO: Required?-->
+  <field name="modified" type="pdate"/>
+  <field name="date_range" type="pdate" />
+  <field name="end" type="pdate" />
+  <field name="posted" type="pdate" />
+  <field name="title" type="text_general" />
 
     <!-- This can be enabled, in case the client does not know what fields may be searched. It isn't enabled by default
          because it's very expensive to index everything twice. -->

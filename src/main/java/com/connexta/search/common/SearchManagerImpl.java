@@ -83,7 +83,7 @@ public class SearchManagerImpl implements SearchManager {
     try {
       //      indexRepository.save(new Index(datasetId, contents, irmUri.toString()));
       indexRepository.save(
-          Index.builder().id(datasetId).contents(contents).irmUri(irmUri.toString()).build());
+          Index.builder().id(datasetId).contents(contents).irmUrl(irmUri.toString()).build());
     } catch (final Exception e) {
       throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to save index", e);
     }
@@ -139,7 +139,7 @@ public class SearchManagerImpl implements SearchManager {
 
     final Set<URI> irmURIs = new HashSet<>();
     for (SolrDocument doc : response.getResults()) {
-      Object obj = doc.get(SolrConfiguration.IRM_URI_ATTRIBUTE);
+      Object obj = doc.get(SolrConfiguration.IRM_URL_ATTRIBUTE);
       if (obj instanceof String) {
         final String irmUri = (String) obj;
         try {

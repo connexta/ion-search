@@ -9,10 +9,13 @@ package com.connexta.search.common;
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.COUNTRY_CODE_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.CREATED_DATE_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.FILE_URL_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
-import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.IRM_URL_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.METACARD_URL_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.MODIFIED_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.SOLR_COLLECTION;
+import static com.connexta.search.common.configs.SolrConfiguration.TITLE_ATTRIBUTE;
 
 import java.util.Date;
 import lombok.Builder;
@@ -28,10 +31,6 @@ import org.springframework.data.solr.core.mapping.SolrDocument;
 @Builder(toBuilder = true)
 public class Index {
 
-  @Id
-  @Indexed(name = ID_ATTRIBUTE)
-  private String id;
-
   @Indexed(name = CONTENTS_ATTRIBUTE)
   private String contents;
 
@@ -41,9 +40,22 @@ public class Index {
   @Indexed(name = CREATED_DATE_ATTRIBUTE)
   private Date created;
 
-  @Indexed(name = IRM_URI_ATTRIBUTE)
-  private String irmUri;
+  @Indexed(name = FILE_URL_ATTRIBUTE)
+  private String fileUrl;
+
+  @Id
+  @Indexed(name = ID_ATTRIBUTE)
+  private String id;
+
+  @Indexed(name = IRM_URL_ATTRIBUTE)
+  private String irmUrl;
+
+  @Indexed(name = METACARD_URL_ATTRIBUTE)
+  private String metacardUrl;
 
   @Indexed(name = MODIFIED_ATTRIBUTE)
   private Date modified;
+
+  @Indexed(name = TITLE_ATTRIBUTE)
+  private String title;
 }

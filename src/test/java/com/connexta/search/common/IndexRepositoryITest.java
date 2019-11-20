@@ -8,7 +8,7 @@ package com.connexta.search.common;
 
 import static com.connexta.search.common.configs.SolrConfiguration.CONTENTS_ATTRIBUTE;
 import static com.connexta.search.common.configs.SolrConfiguration.ID_ATTRIBUTE;
-import static com.connexta.search.common.configs.SolrConfiguration.IRM_URI_ATTRIBUTE;
+import static com.connexta.search.common.configs.SolrConfiguration.IRM_URL_ATTRIBUTE;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAndIs;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -104,7 +104,7 @@ class IndexRepositoryITest {
     Index index = baseInstance();
     indexRepository.save(index);
 
-    Index updatedIndex = index.toBuilder().contents("updated").irmUri("https://updated/").build();
+    Index updatedIndex = index.toBuilder().contents("updated").irmUrl("https://updated/").build();
 
     // when
     indexRepository.save(updatedIndex);
@@ -130,7 +130,7 @@ class IndexRepositoryITest {
   @Test
   void testIdRequired() {
     // setup
-    Index index = Index.builder().contents(INDEX_CONTENT).irmUri(INDEX_IRM_URI).build();
+    Index index = Index.builder().contents(INDEX_CONTENT).irmUrl(INDEX_IRM_URI).build();
 
     // when
     DataAccessResourceFailureException e =
@@ -146,7 +146,7 @@ class IndexRepositoryITest {
   @Test
   void testContentRequired() {
     // setup
-    Index index = Index.builder().id(INDEX_ID).irmUri(INDEX_IRM_URI).build();
+    Index index = Index.builder().id(INDEX_ID).irmUrl(INDEX_IRM_URI).build();
 
     // when
     DataAccessResourceFailureException e =
@@ -171,7 +171,7 @@ class IndexRepositoryITest {
     // then
     assertThat(
         e.getMessage(),
-        containsString(String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, IRM_URI_ATTRIBUTE)));
+        containsString(String.format(MISSING_REQUIRED_FIELD_MESSAGE_FORMAT, IRM_URL_ATTRIBUTE)));
     assertThat(indexRepository.count(), is(0L));
   }
 
@@ -181,7 +181,7 @@ class IndexRepositoryITest {
         .contents(INDEX_CONTENT)
         .countryCode(INDEX_COUNTRY)
         .created(INDEX_CREATED)
-        .irmUri(INDEX_IRM_URI)
+        .irmUrl(INDEX_IRM_URI)
         .modified(INDEX_MODIFIED)
         .build();
   }
