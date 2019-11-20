@@ -9,6 +9,7 @@ package com.connexta.search.common.configs;
 import com.connexta.search.common.IndexRepository;
 import com.connexta.search.common.SearchManager;
 import com.connexta.search.common.SearchManagerImpl;
+import com.connexta.search.index.content.BodyContentExtractor;
 import java.net.URL;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrClient;
@@ -33,8 +34,15 @@ public class SearchManagerConfiguration {
   }
 
   @Bean
+  public BodyContentExtractor bodyContentExtractor() {
+    return new BodyContentExtractor();
+  }
+
+  @Bean
   public SearchManager searchManager(
-      @NotNull final IndexRepository indexRepository, @NotNull final SolrClient solrClient) {
-    return new SearchManagerImpl(indexRepository, solrClient);
+      @NotNull final IndexRepository indexRepository,
+      @NotNull final SolrClient solrClient,
+      @NotNull final BodyContentExtractor bodyContentExtractor) {
+    return new SearchManagerImpl(indexRepository, solrClient, bodyContentExtractor);
   }
 }

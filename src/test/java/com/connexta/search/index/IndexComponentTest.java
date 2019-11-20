@@ -13,7 +13,7 @@ import com.connexta.search.index.configs.IndexControllerConfiguration;
 import com.connexta.search.index.controllers.IndexController;
 import com.connexta.search.index.controllers.IndexControllerTest;
 import com.connexta.search.rest.models.IndexRequest;
-import java.net.URI;
+import java.net.URL;
 import javax.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,8 @@ public class IndexComponentTest {
         .bodyValue(
             (new IndexRequest()
                 .irmLocation(
-                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm"))))
+                    new URL("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm")
+                        .toString())))
         .exchange()
         .expectStatus()
         .isBadRequest();
@@ -115,7 +116,8 @@ public class IndexComponentTest {
         .bodyValue(
             (new IndexRequest()
                 .irmLocation(
-                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm"))))
+                    new URL("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm")
+                        .toString())))
         .exchange()
         .expectStatus()
         .isNotFound();

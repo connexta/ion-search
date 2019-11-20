@@ -12,6 +12,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.common.exceptions.SearchException;
+import com.connexta.search.index.content.BodyContentExtractor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -47,6 +48,7 @@ public class SearchManagerImpl implements SearchManager {
 
   @NotNull private final IndexRepository indexRepository;
   @NotNull private final SolrClient solrClient;
+  @NotNull private final BodyContentExtractor bodyContentExtractor;
 
   /**
    * TODO Right now this method parses the {@link InputStream} as CST. This should be updated to
@@ -74,6 +76,8 @@ public class SearchManagerImpl implements SearchManager {
 
     final String contents;
     try {
+      // TODO: Use the bodyContentExtractor to get the contents
+      // contents = bodyContentExtractor.extractText(fileInputStream);
       contents = getElement(parseJson(irmInputStream), EXT_EXTRACTED_TEXT);
     } catch (IOException e) {
       throw new SearchException(INTERNAL_SERVER_ERROR, "Unable to convert InputStream to JSON", e);

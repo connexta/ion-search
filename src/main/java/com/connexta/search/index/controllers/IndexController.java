@@ -10,6 +10,8 @@ import com.connexta.search.common.exceptions.DetailedResponseStatusException;
 import com.connexta.search.index.IndexService;
 import com.connexta.search.rest.models.IndexRequest;
 import com.connexta.search.rest.spring.IndexApi;
+import java.net.URI;
+import java.net.URISyntaxException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -47,7 +49,16 @@ public class IndexController implements IndexApi {
               ACCEPT_VERSION_HEADER_NAME, acceptVersion, expectedAcceptVersion));
     }
 
-    indexService.index(datasetId, indexRequest.getIrmLocation());
+    // TODO: Change all instances of URI to URL. This is just a temporary workaround for now to work
+    // with the current
+    // version of the Index API.
+    try {
+      indexService.index(datasetId, new URI(indexRequest.getIrmLocation()));
+    } catch (URISyntaxException e) {
+      throw new DetailedResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          String.format("Invalid URI syntax: %s", indexRequest.getIrmLocation()));
+    }
     return ResponseEntity.ok().build();
   }
 }
