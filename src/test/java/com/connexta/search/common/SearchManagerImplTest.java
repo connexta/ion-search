@@ -244,9 +244,6 @@ class SearchManagerImplTest {
         List.of(queryPairs.keySet()),
         containsInAnyOrder(SolrConfiguration.QUERY_TERMS));
 
-    List<String> queryPreds = new ArrayList<>();
-    queryPairs.forEach((k, v) -> queryPreds.add(String.format(template, k, v)));
-
     String queryString =
         queryPairs.entrySet().stream()
             .map(e -> String.format(template, e.getKey(), e.getValue()))
