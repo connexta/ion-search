@@ -50,15 +50,17 @@ public class IndexController implements IndexApi {
     }
 
     // TODO: Change all instances of URI to URL. This is just a temporary workaround for now to work
-    // with the current
-    // version of the Index API.
+    // with the current version of the Index API.
+    URI irmLocation;
     try {
-      indexService.index(datasetId, new URI(indexRequest.getIrmLocation()));
+      irmLocation = new URI(indexRequest.getIrmLocation());
     } catch (URISyntaxException e) {
       throw new DetailedResponseStatusException(
           HttpStatus.BAD_REQUEST,
-          String.format("Invalid URI syntax: %s", indexRequest.getIrmLocation()));
+          String.format("Invalid URI syntax: %s", indexRequest.getIrmLocation()),
+          e);
     }
+    indexService.index(datasetId, irmLocation);
     return ResponseEntity.ok().build();
   }
 }
