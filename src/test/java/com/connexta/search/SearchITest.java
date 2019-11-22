@@ -19,7 +19,6 @@ import com.connexta.search.query.controllers.QueryController;
 import com.connexta.search.rest.models.IndexRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.List;
@@ -130,24 +129,26 @@ class SearchITest {
                     EXT_EXTRACTED_TEXT, keyword))
             .setResponseCode(200));
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI irmUri = storeMockWebServer.url(String.format("/dataset/%s/irm", datasetId)).uri();
+    final URL fileUrl = storeMockWebServer.url(String.format("/dataset/%s/file", datasetId)).url();
+    final URL irmUrl = storeMockWebServer.url(String.format("/dataset/%s/irm", datasetId)).url();
 
     // when index
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, datasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(irmUri)))
+        .bodyValue(
+            (new IndexRequest().fileLocation(fileUrl.toString()).irmLocation(irmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
 
-    // then verify GET request to irmUri
+    // then verify GET request to irmUrl
     final RecordedRequest getIrmRequest = storeMockWebServer.takeRequest();
     assertThat(getIrmRequest.getMethod(), is(HttpMethod.GET.name()));
     assertThat(getIrmRequest.getPath(), is(String.format("/dataset/%s/irm", datasetId)));
 
-    // and verify query returns irmUri
+    // and verify query returns irmUrl
     webTestClient
         .get()
         .uri(
@@ -161,7 +162,7 @@ class SearchITest {
         .expectStatus()
         .isOk()
         .expectBody(List.class)
-        .value(hasItem(irmUri.toString()));
+        .value(hasItem(irmUrl.toString()));
   }
 
   @Test
@@ -178,10 +179,14 @@ class SearchITest {
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
         .bodyValue(
             (new IndexRequest()
+                .fileLocation(
+                    storeMockWebServer
+                        .url(String.format("/dataset/%s/file", firstDatasetId))
+                        .toString())
                 .irmLocation(
                     storeMockWebServer
                         .url(String.format("/dataset/%s/irm", firstDatasetId))
-                        .uri())))
+                        .toString())))
         .exchange()
         .expectStatus()
         .isOk();
@@ -199,13 +204,17 @@ class SearchITest {
                     EXT_EXTRACTED_TEXT, keyword))
             .setResponseCode(200));
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI irmUri = storeMockWebServer.url(String.format("/dataset/%s/irm", datasetId)).uri();
+    final URL fileUri = storeMockWebServer.url(String.format("/dataset/%s/file", datasetId)).url();
+    final URL irmUri = storeMockWebServer.url(String.format("/dataset/%s/irm", datasetId)).url();
     final ResponseSpec response =
         webTestClient
             .put()
             .uri(IndexController.URL_TEMPLATE, datasetId)
             .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-            .bodyValue((new IndexRequest().irmLocation(irmUri)))
+            .bodyValue(
+                (new IndexRequest()
+                    .fileLocation(fileUri.toString())
+                    .irmLocation(irmUri.toString())))
             .exchange();
 
     // then verify status code is 200
@@ -248,8 +257,12 @@ class SearchITest {
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
         .bodyValue(
             (new IndexRequest()
+                .fileLocation(
+                    new URL("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/file")
+                        .toString())
                 .irmLocation(
-                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm"))))
+                    new URL("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm")
+                        .toString())))
         .exchange()
         .expectStatus()
         .isBadRequest();
@@ -272,13 +285,18 @@ class SearchITest {
             .setBody(String.format("{\"%s\":\"first IRM metadata\"}", EXT_EXTRACTED_TEXT))
             .setResponseCode(200));
     final String firstDatasetId = "000b27ffc35d46d9ba041f663d9ccaff";
-    final URI firstIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).uri();
+    final URL firstFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/file", firstDatasetId)).url();
+    final URL firstIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, firstDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(firstIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(firstFileUrl.toString())
+                .irmLocation(firstIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
@@ -289,13 +307,18 @@ class SearchITest {
             .setBody(String.format("{\"%s\":\"second IRM metadata\"}", EXT_EXTRACTED_TEXT))
             .setResponseCode(200));
     final String secondDatasetId = "001ccb7241284f21a3d15cc340c6aa9c";
-    final URI secondIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).uri();
+    final URL secondFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/file", secondDatasetId)).url();
+    final URL secondIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, secondDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(secondIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(secondFileUrl.toString())
+                .irmLocation(secondIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
@@ -306,18 +329,23 @@ class SearchITest {
             .setBody(String.format("{\"%s\":\"third IRM metadata\"}", EXT_EXTRACTED_TEXT))
             .setResponseCode(200));
     final String thirdDatasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI thirdIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).uri();
+    final URL thirdFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/file", thirdDatasetId)).url();
+    final URL thirdIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, thirdDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(thirdIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(thirdFileUrl.toString())
+                .irmLocation(thirdIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
 
-    // verify query only returns firstUri
+    // verify query only returns firstUrl
     webTestClient
         .get()
         .uri(
@@ -333,9 +361,9 @@ class SearchITest {
         .expectBody(List.class)
         .value(
             Matchers.allOf(
-                hasItem(firstIrmUri.toString()),
-                not(hasItem(secondIrmUri.toString())),
-                not(hasItem(thirdIrmUri.toString()))));
+                hasItem(firstIrmUrl.toString()),
+                not(hasItem(secondIrmUrl.toString())),
+                not(hasItem(thirdIrmUrl.toString()))));
   }
 
   @Test
@@ -350,13 +378,18 @@ class SearchITest {
                 String.format("{\"%s\":\"first IRM metadata %s\"}", EXT_EXTRACTED_TEXT, keyword))
             .setResponseCode(200));
     final String firstDatasetId = "000b27ffc35d46d9ba041f663d9ccaff";
-    final URI firstIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).uri();
+    final URL firstFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/file", firstDatasetId)).url();
+    final URL firstIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, firstDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(firstIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(firstFileUrl.toString())
+                .irmLocation(firstIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
@@ -368,13 +401,18 @@ class SearchITest {
                 String.format("{\"%s\":\"second IRM metadata %s\"}", EXT_EXTRACTED_TEXT, keyword))
             .setResponseCode(200));
     final String secondDatasetId = "001ccb7241284f21a3d15cc340c6aa9c";
-    final URI secondIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).uri();
+    final URL secondFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/file", secondDatasetId)).url();
+    final URL secondIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, secondDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(secondIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(secondFileUrl.toString())
+                .irmLocation(secondIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
@@ -385,18 +423,23 @@ class SearchITest {
             .setBody(String.format("{\"%s\":\"third IRM metadata\"}", EXT_EXTRACTED_TEXT))
             .setResponseCode(200));
     final String thirdDatasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI thirdIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).uri();
+    final URL thirdFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/file", thirdDatasetId)).url();
+    final URL thirdIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, thirdDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(thirdIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(thirdFileUrl.toString())
+                .irmLocation(thirdIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
 
-    // verify query only returns firstUri
+    // verify query only returns firstUrl
     webTestClient
         .get()
         .uri(
@@ -412,9 +455,9 @@ class SearchITest {
         .expectBody(List.class)
         .value(
             Matchers.allOf(
-                hasItem(firstIrmUri.toString()),
-                hasItem(secondIrmUri.toString()),
-                not(hasItem(thirdIrmUri.toString()))));
+                hasItem(firstIrmUrl.toString()),
+                hasItem(secondIrmUrl.toString()),
+                not(hasItem(thirdIrmUrl.toString()))));
   }
 
   @Test
@@ -425,13 +468,18 @@ class SearchITest {
             .setBody(String.format("{\"%s\":\"first IRM metadata\"}", EXT_EXTRACTED_TEXT))
             .setResponseCode(200));
     final String firstDatasetId = "000b27ffc35d46d9ba041f663d9ccaff";
-    final URI firstIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).uri();
+    final URL firstFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/file", firstDatasetId)).url();
+    final URL firstIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", firstDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, firstDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(firstIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(firstFileUrl.toString())
+                .irmLocation(firstIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
@@ -442,13 +490,18 @@ class SearchITest {
             .setBody(String.format("{\"%s\":\"second IRM metadata\"}", EXT_EXTRACTED_TEXT))
             .setResponseCode(200));
     final String secondDatasetId = "001ccb7241284f21a3d15cc340c6aa9c";
-    final URI secondIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).uri();
+    final URL secondFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).url();
+    final URL secondIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", secondDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, secondDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(secondIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(secondFileUrl.toString())
+                .irmLocation(secondIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
@@ -459,18 +512,23 @@ class SearchITest {
             .setBody(String.format("{\"%s\":\"third IRM metadata\"}", EXT_EXTRACTED_TEXT))
             .setResponseCode(200));
     final String thirdDatasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI thirdIrmUri =
-        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).uri();
+    final URL thirdFileUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).url();
+    final URL thirdIrmUrl =
+        storeMockWebServer.url(String.format("/dataset/%s/irm", thirdDatasetId)).url();
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, thirdDatasetId)
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest().irmLocation(thirdIrmUri)))
+        .bodyValue(
+            (new IndexRequest()
+                .fileLocation(thirdFileUrl.toString())
+                .irmLocation(thirdIrmUrl.toString())))
         .exchange()
         .expectStatus()
         .isOk();
 
-    // verify query that doesn't match any of the datasets does not return the irmUris for those
+    // verify query that doesn't match any of the datasets does not return the irmUrls for those
     // datasets
     webTestClient
         .get()
@@ -487,9 +545,9 @@ class SearchITest {
         .expectBody(List.class)
         .value(
             Matchers.allOf(
-                not(hasItem(firstIrmUri.toString())),
-                not(hasItem(secondIrmUri.toString())),
-                not(hasItem(thirdIrmUri.toString()))));
+                not(hasItem(firstIrmUrl.toString())),
+                not(hasItem(secondIrmUrl.toString())),
+                not(hasItem(thirdIrmUrl.toString()))));
   }
 
   @Test
@@ -518,7 +576,7 @@ class SearchITest {
    * TODO Move this to {@link com.connexta.search.query.QueryServiceComponentTest}. Not sure why
    * this fails in that class.
    */
-  @ParameterizedTest(name = "400 Bad Request is returned when query uri is {0}")
+  @ParameterizedTest(name = "400 Bad Request is returned when query url is {0}")
   @MethodSource("badQueryStrings")
   void testBadQueryRequests(final String query) {
     webTestClient

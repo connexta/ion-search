@@ -1,3 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <suppress>
+        <notes><![CDATA[
+        This suppresses CVE-2019-12415 for poi-ooxml-4.0.1.jar
+        ]]></notes>
+        <cve>CVE-2019-12415</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+        This suppresses CVE-2019-12415 for poi-scratchpad-4.0.1.jar
+        ]]></notes>
+        <cve>CVE-2019-12415</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+        This suppresses CVE-2019-12415 for poi-4.0.1.jar
+        ]]></notes>
+        <cve>CVE-2019-12415</cve>
+    </suppress>
 </suppressions>

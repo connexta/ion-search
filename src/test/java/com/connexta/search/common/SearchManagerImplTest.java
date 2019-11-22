@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.connexta.search.common.exceptions.SearchException;
+import com.connexta.search.index.content.BodyContentExtractor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -52,12 +53,14 @@ class SearchManagerImplTest {
 
   @Mock private IndexRepository mockIndexRepository;
   @Mock private SolrClient mockSolrClient;
+  @Mock private BodyContentExtractor mockBodyContentExtractor;
 
   private SearchManagerImpl searchManagerImpl;
 
   @BeforeEach
   void beforeEach() {
-    searchManagerImpl = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
+    searchManagerImpl =
+        new SearchManagerImpl(mockIndexRepository, mockSolrClient, mockBodyContentExtractor);
   }
 
   // index tests
@@ -65,7 +68,8 @@ class SearchManagerImplTest {
   @Test
   public void testExistingDataset(@Mock final InputStream mockInputStream) {
     // given
-    final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
+    final SearchManager indexManager =
+        new SearchManagerImpl(mockIndexRepository, mockSolrClient, mockBodyContentExtractor);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
 
     // and stub dataset already exists
@@ -87,7 +91,8 @@ class SearchManagerImplTest {
   @Test
   public void testExceptionWhenCheckingIfDatasetExists(@Mock final InputStream mockInputStream) {
     // given
-    final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
+    final SearchManager indexManager =
+        new SearchManagerImpl(mockIndexRepository, mockSolrClient, mockBodyContentExtractor);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
 
     // and stub dataset already exists
@@ -114,7 +119,8 @@ class SearchManagerImplTest {
   @ValueSource(strings = {"", "{}", "{ \"\": \"text\"}", "this isn't json"})
   public void testIrmFormatIsInvalid(final String body) {
     // given
-    final SearchManager indexManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
+    final SearchManager indexManager =
+        new SearchManagerImpl(mockIndexRepository, mockSolrClient, mockBodyContentExtractor);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
 
     // and stub CrudRepository
@@ -133,7 +139,8 @@ class SearchManagerImplTest {
   @Test
   public void testExceptionWhenSaving() throws Exception {
     // given
-    final SearchManager searchManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
+    final SearchManager searchManager =
+        new SearchManagerImpl(mockIndexRepository, mockSolrClient, mockBodyContentExtractor);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
     final String contents =
         "All the color had been leached from Winterfell until only grey and white remained.";
@@ -166,7 +173,8 @@ class SearchManagerImplTest {
   @Test
   public void testIndex() throws Exception {
     // given
-    final SearchManager searchManager = new SearchManagerImpl(mockIndexRepository, mockSolrClient);
+    final SearchManager searchManager =
+        new SearchManagerImpl(mockIndexRepository, mockSolrClient, mockBodyContentExtractor);
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
     final String contents =
         "All the color had been leached from Winterfell until only grey and white remained.";

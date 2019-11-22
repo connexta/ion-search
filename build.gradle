@@ -7,7 +7,7 @@
 /* Build Script */
 buildscript {
     ext {
-        indexApiVersion = "0.4.0"
+        indexApiVersion = "0.5.0"
         junitJupiterVersion = "5.5.2"
         lombokVersion = "1.18.10"
         springBootVersion = "2.2.1.RELEASE"
@@ -46,6 +46,23 @@ dependencies {
     implementation "io.springfox:springfox-swagger2:${springfoxSwaggerVersion}"
     implementation "io.springfox:springfox-swagger-ui:${springfoxSwaggerVersion}"
     implementation "javax.inject:javax.inject:1"
+    implementation ("org.apache.tika:tika-parsers:1.22") {
+        exclude group: "c3p0", module: "c3p0"
+        because "CVE-2019-5427"
+
+        exclude group: "org.apache.cxf", module: "cxf-core"
+        because "CVE-2019-12406, CVE-2019-12419"
+
+        exclude group: "org.apache.cxf", module: "cxf-rt-security"
+        because "CVE-2019-12406, CVE-2019-12419"
+
+        exclude group: "org.apache.cxf", module: "cxf-rt-rs-client"
+        because "CVE-2019-12406, CVE-2019-12419"
+
+        exclude group: "org.apache.commons", module: "commons-compress"
+        because "CVE-2019-12402"
+    }
+    implementation "org.apache.commons:commons-compress:1.19"
     implementation("org.geotools:gt-solr:22.0") {
         exclude group: "org.apache.axis", module: "axis"
         because "CVE-2012-5784, CVE-2014-3596, CVE-2018-8032, CVE-2019-0227"

@@ -18,7 +18,7 @@ import com.connexta.search.common.exceptions.SearchException;
 import com.connexta.search.index.IndexService;
 import com.connexta.search.rest.models.IndexRequest;
 import com.connexta.search.rest.spring.IndexApi;
-import java.net.URI;
+import java.net.URL;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,8 +67,8 @@ public class IndexControllerTest {
                     datasetId,
                     new IndexRequest()
                         .irmLocation(
-                            new URI(
-                                String.format("http://store:9041/dataset/%s/irm", datasetId)))));
+                            new URL(String.format("http://store:9041/dataset/%s/irm", datasetId))
+                                .toString())));
     assertThat(thrown.getStatus(), is(HttpStatus.NOT_IMPLEMENTED));
     verifyNoInteractions(mockIndexService);
   }
@@ -77,15 +77,17 @@ public class IndexControllerTest {
   @MethodSource("exceptionsThrownByIndexService")
   void testIndexServiceThrowsThrowable(final Throwable throwable) throws Exception {
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", datasetId));
-    doThrow(throwable).when(mockIndexService).index(datasetId, irmUri);
+    final URL irmUrl = new URL(String.format("http://store:9041/dataset/%s/irm", datasetId));
+    doThrow(throwable).when(mockIndexService).index(datasetId, irmUrl.toURI());
 
     final Throwable thrown =
         assertThrows(
             Throwable.class,
             () ->
                 indexApi.index(
-                    INDEX_API_VERSION, datasetId, new IndexRequest().irmLocation(irmUri)));
+                    INDEX_API_VERSION,
+                    datasetId,
+                    new IndexRequest().irmLocation(irmUrl.toString())));
     assertThat(
         "thrown exception is the exact same exception thrown by the IndexService",
         thrown,
@@ -95,10 +97,10 @@ public class IndexControllerTest {
   @Test
   void testIndex() throws Exception {
     final String datasetId = "00067360b70e4acfab561fe593ad3f7a";
-    final URI irmUri = new URI(String.format("http://store:9041/dataset/%s/irm", datasetId));
-    indexApi.index(INDEX_API_VERSION, datasetId, new IndexRequest().irmLocation(irmUri));
+    final URL irmUrl = new URL(String.format("http://store:9041/dataset/%s/irm", datasetId));
+    indexApi.index(INDEX_API_VERSION, datasetId, new IndexRequest().irmLocation(irmUrl.toString()));
 
-    verify(mockIndexService).index(datasetId, irmUri);
+    verify(mockIndexService).index(datasetId, irmUrl.toURI());
   }
 
   private static Stream<Arguments> exceptionsThrownByIndexService() {

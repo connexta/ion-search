@@ -15,5 +15,5 @@ public interface IndexService {
 
   void index(
       @Pattern(regexp = "^[0-9a-zA-Z]+$") @Size(min = 32, max = 32) final String datasetId,
-      @NotNull final URI irmUri);
+      @NotNull final URI irmLocation);
 }
