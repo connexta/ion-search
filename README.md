@@ -128,7 +128,6 @@ The following are valid query attributes:
 | `id` | The unique ID that is associated with each Dataset |
 | `keyword` | The topic of the Dataset |
 | `modified` | The date the File was last modified |
-| `irm_url` | Location of the IRM document |
 | `title` | Name given to the Dataset |
 
 ### Inspecting

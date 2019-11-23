@@ -120,11 +120,11 @@
   <field name="contents" type="text_general" multiValued="false" required="true" />
   <field name="country_code" type="string" />
   <field name="created" type="pdate" sortMissingLast="true" />
-  <field name="file_url" type="string" required="false" /> <!--TODO: Required? -->
+  <field name="file_url" type="string" indexed="false" required="false" /> <!--TODO: Required? -->
   <field name="icid" type="string" />
-  <field name="irm_url" type="string" required="true" />
+  <field name="irm_url" type="string" indexed="false" required="true" />
   <field name="keyword" type="string" />
-  <field name="metacard_url" type="string" required="false" /> <!--TODO: Required?-->
+  <field name="metacard_url" type="string" indexed="false" required="false" /> <!--TODO: Required?-->
   <field name="modified" type="pdate"/>
   <field name="date_range" type="pdate" />
   <field name="end" type="pdate" />
