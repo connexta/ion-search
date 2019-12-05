@@ -6,11 +6,12 @@
  */
 package com.connexta.search.common.configs;
 
-import com.google.common.collect.ImmutableSet;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Set;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,22 +56,15 @@ public class SolrConfiguration {
   // Name given to the resource. See Dublin Core http://purl.org/dc/terms/title
   public static final String TITLE_ATTRIBUTE = "title";
 
-  public static final Set<String> QUERY_TERMS =
-      ImmutableSet.of(
-          CONTENTS_ATTRIBUTE,
-          COUNTRY_CODE_ATTRIBUTE,
-          CREATED_DATE_ATTRIBUTE,
-          EXPIRATION_DATE_ATTRIBUTE,
-          ICID_ATTRIBUTE,
-          ID_ATTRIBUTE,
-          KEYWORD_ATTRIBUTE,
-          MODIFIED_ATTRIBUTE,
-          TITLE_ATTRIBUTE);
-
   @Bean
   @Profile("production")
   public URL solrURL(@NotBlank @Value("${endpointUrl.solr}") final String solrEndpoint)
       throws MalformedURLException {
     return new URL(solrEndpoint);
+  }
+
+  @Bean
+  public SolrClient solrClient(@NotNull final URL solrUrl) {
+    return new HttpSolrClient.Builder(solrUrl.toString()).build();
   }
 }

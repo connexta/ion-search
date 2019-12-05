@@ -8,16 +8,15 @@ package com.connexta.search.index;
 
 import com.connexta.search.common.exceptions.SearchException;
 import com.connexta.search.rest.models.IndexRequest;
+import java.util.UUID;
 
 public interface IndexService {
 
   /**
-   * Create a persistent record of the information in the index request. Extract searchable
+   * Create a persistent record of the information in the {@link IndexRequest}. Extract searchable
    * information and create an entry for the dataset.
    *
-   * @param datasetId
-   * @param indexRequest
-   * @throws SearchException
+   * @throws SearchException if unable to index
    */
-  void index(String datasetId, IndexRequest indexRequest);
+  void index(final UUID datasetId, final IndexRequest indexRequest);
 }

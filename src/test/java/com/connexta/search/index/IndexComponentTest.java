@@ -13,7 +13,6 @@ import com.connexta.search.index.configs.IndexControllerConfiguration;
 import com.connexta.search.index.controllers.IndexController;
 import com.connexta.search.index.controllers.IndexControllerTest;
 import com.connexta.search.rest.models.IndexRequest;
-import java.net.URI;
 import javax.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -58,9 +57,9 @@ public class IndexComponentTest {
         .uri(IndexController.URL_TEMPLATE, "00067360b70e4acfab561fe593ad3f7a")
         .bodyValue(
             (new IndexRequest()
-                .irmLocation(
-                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm")
-                        .toString())))
+                .irmLocation("irmLocation")
+                .fileLocation("fileLocation")
+                .metacardLocation("metacardLocation")))
         .exchange()
         .expectStatus()
         .isBadRequest();
@@ -79,12 +78,38 @@ public class IndexComponentTest {
   }
 
   @Test
-  void testMissingIrmUrl() {
+  void testMissingIrmLocation() {
     webTestClient
         .put()
         .uri(IndexController.URL_TEMPLATE, "00067360b70e4acfab561fe593ad3f7a")
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
-        .bodyValue((new IndexRequest()))
+        .bodyValue(
+            (new IndexRequest().fileLocation("fileLocation").metacardLocation("metacardLocation")))
+        .exchange()
+        .expectStatus()
+        .isBadRequest();
+  }
+
+  @Test
+  void testMissingFileLocation() {
+    webTestClient
+        .put()
+        .uri(IndexController.URL_TEMPLATE, "00067360b70e4acfab561fe593ad3f7a")
+        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
+        .bodyValue(
+            (new IndexRequest().irmLocation("irmLocation").metacardLocation("metacardLocation")))
+        .exchange()
+        .expectStatus()
+        .isBadRequest();
+  }
+
+  @Test
+  void testMissingMetacardLocation() {
+    webTestClient
+        .put()
+        .uri(IndexController.URL_TEMPLATE, "00067360b70e4acfab561fe593ad3f7a")
+        .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
+        .bodyValue((new IndexRequest().irmLocation("irmLocation").fileLocation("fileLocation")))
         .exchange()
         .expectStatus()
         .isBadRequest();
@@ -115,9 +140,9 @@ public class IndexComponentTest {
         .header(IndexController.ACCEPT_VERSION_HEADER_NAME, indexApiVersion)
         .bodyValue(
             (new IndexRequest()
-                .irmLocation(
-                    new URI("http://store:9041/dataset/00067360b70e4acfab561fe593ad3f7a/irm")
-                        .toString())))
+                .irmLocation("irmLocation")
+                .fileLocation("fileLocation")
+                .metacardLocation("metacardLocation")))
         .exchange()
         .expectStatus()
         .isNotFound();

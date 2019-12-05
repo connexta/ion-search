@@ -16,9 +16,9 @@ public interface QueryService {
 
   /**
    * @throws com.connexta.search.common.exceptions.SearchException if there was an error querying or
-   *     the cql was invalid
+   *     the {@code commonQL} was invalid
    */
   @NotNull
   Set<URI> find(
-      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 5000) final String cqlString);
+      @NotNull @Pattern(regexp = ".*\\S.*") @Size(min = 1, max = 5000) final String commonQL);
 }

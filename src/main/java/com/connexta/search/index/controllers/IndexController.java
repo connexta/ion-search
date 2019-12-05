@@ -12,6 +12,7 @@ import com.connexta.search.rest.models.IndexRequest;
 import com.connexta.search.rest.spring.IndexApi;
 import java.util.UUID;
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -35,14 +36,20 @@ public class IndexController implements IndexApi {
   @Override
   public ResponseEntity<Void> index(
       final String acceptVersion, final UUID datasetId, @Valid final IndexRequest indexRequest) {
-    if (!StringUtils.equals(acceptVersion, indexApiVersion)) {
+    final String expectedAcceptVersion = indexApiVersion;
+    if (!StringUtils.equals(acceptVersion, expectedAcceptVersion)) {
       throw new DetailedResponseStatusException(
           HttpStatus.NOT_IMPLEMENTED,
           String.format(
               "%s was %s, but only %s is currently supported.",
-              ACCEPT_VERSION_HEADER_NAME, acceptVersion, indexApiVersion));
+              ACCEPT_VERSION_HEADER_NAME, acceptVersion, expectedAcceptVersion));
     }
-    indexService.index(datasetId.toString(), indexRequest);
+
+    if (datasetId == null) {
+      throw new ValidationException("Invalid dataset id");
+    }
+
+    indexService.index(datasetId, indexRequest);
     return ResponseEntity.ok().build();
   }
 }

@@ -6,21 +6,12 @@
  */
 package com.connexta.search.common.configs;
 
-import javax.validation.constraints.NotNull;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 @Configuration
 public class ApplicationConfiguration {
-
-  @Bean
-  public RestTemplate restTemplate(@NotNull RestTemplateBuilder builder) {
-    return builder.errorHandler(new DefaultResponseErrorHandler()).build();
-  }
 
   @Bean
   public CommonsRequestLoggingFilter requestLoggingFilter() {

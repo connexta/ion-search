@@ -4,15 +4,14 @@
  * Released under the GNU Lesser General Public License version 3; see
  * https://www.gnu.org/licenses/lgpl-3.0.html
  */
-package com.connexta.search.common;
+package com.connexta.search.query;
 
-import static com.connexta.search.common.configs.SolrConfiguration.QUERY_TERMS;
+import static com.connexta.search.query.configs.QueryStorageAdaptorConfiguration.QUERY_TERMS;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.common.exceptions.SearchException;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -37,30 +36,24 @@ import org.opengis.filter.expression.PropertyName;
 
 @Slf4j
 @AllArgsConstructor
-public class SearchManagerImpl implements SearchManager {
+public class SolrQueryStorageAdaptor implements QueryStorageAdaptor {
 
   public static final String EXT_EXTRACTED_TEXT = "ext.extracted.text";
 
   @NotNull private final SolrClient solrClient;
 
   @Override
-  public Set<URI> query(String cql) {
-    return query(cql, new FilterToSolr(null));
-  }
-
-  /** @throws SearchException if there was an error querying */
-  @VisibleForTesting
-  Set<URI> query(String cql, FilterToSolr filterToSolr) {
+  public Set<URI> query(String commonQL) {
     Filter filter;
     try {
-      filter = ECQL.toFilter(cql);
+      filter = ECQL.toFilter(commonQL);
     } catch (CQLException e) {
       try {
         // The ECQL class does not support an equals on id, ie `id=foo`, but CQL does.
-        filter = CQL.toFilter(cql);
+        filter = CQL.toFilter(commonQL);
       } catch (CQLException cqle) {
-        log.debug("Invalid CQL received: {}", cql, cqle);
-        throw new SearchException(BAD_REQUEST, "Invalid CQL received");
+        log.debug("Invalid CommonQL received: {}", commonQL, cqle);
+        throw new SearchException(BAD_REQUEST, "Invalid CommonQL received");
       }
     }
 
@@ -70,15 +63,16 @@ public class SearchManagerImpl implements SearchManager {
             .filter(attribute -> !QUERY_TERMS.contains(attribute))
             .collect(Collectors.toSet());
     if (!unsupportedAttributes.isEmpty()) {
-      throw new SearchException(BAD_REQUEST, "Received invalid attributes to index on");
+      throw new SearchException(BAD_REQUEST, "Received invalid attributes to query on");
     }
 
     String solrQueryStr;
     try {
-      solrQueryStr = filterToSolr.encodeToString(filter);
+      solrQueryStr = new FilterToSolr(null).encodeToString(filter);
     } catch (Exception e) {
-      log.debug("Unable to transform CQL {} to valid Solr query", cql, e);
-      throw new SearchException(INTERNAL_SERVER_ERROR, "Error processing CQL");
+      // TODO add test for this case
+      log.debug("Unable to transform CommonQL {} to valid Solr query", commonQL, e);
+      throw new SearchException(INTERNAL_SERVER_ERROR, "Error processing CommonQL");
     }
 
     SolrQuery solrQuery = new SolrQuery(solrQueryStr);
@@ -87,7 +81,7 @@ public class SearchManagerImpl implements SearchManager {
       response = solrClient.query(SolrConfiguration.SOLR_COLLECTION, solrQuery);
     } catch (SolrServerException | IOException e) {
       log.debug("Failed to query solr", e);
-      throw new SearchException(INTERNAL_SERVER_ERROR, "Error querying index");
+      throw new SearchException(INTERNAL_SERVER_ERROR, "Error querying");
     }
 
     final Set<URI> irmURIs = new HashSet<>();

@@ -6,7 +6,6 @@
  */
 package com.connexta.search.query;
 
-import com.connexta.search.common.SearchManager;
 import java.net.URI;
 import java.util.Set;
 import javax.validation.constraints.NotNull;
@@ -17,10 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class QueryServiceImpl implements QueryService {
 
-  @NotNull private final SearchManager searchManager;
+  @NotNull private final QueryStorageAdaptor queryStorageAdaptor;
 
   @Override
-  public Set<URI> find(final String cqlString) {
-    return searchManager.query(cqlString);
+  public Set<URI> find(final String commonQL) {
+    return queryStorageAdaptor.query(commonQL);
   }
 }

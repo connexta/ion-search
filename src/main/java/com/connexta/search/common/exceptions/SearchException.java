@@ -6,10 +6,8 @@
  */
 package com.connexta.search.common.exceptions;
 
-import com.connexta.search.common.SearchManager;
 import org.springframework.http.HttpStatus;
 
-/** This exception means the {@link SearchManager} was unable to successful complete a request. */
 public class SearchException extends DetailedResponseStatusException {
 
   public SearchException(HttpStatus status, String reason, Throwable cause) {

@@ -13,7 +13,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import com.connexta.search.common.SearchManager;
 import com.connexta.search.common.exceptions.SearchException;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -30,30 +29,30 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 class QueryServiceImplTest {
 
-  @Mock private SearchManager mockSearchManager;
+  @Mock private QueryStorageAdaptor mockQueryStorageAdaptor;
 
   private QueryService queryService;
 
   @BeforeEach
   void beforeEach() {
-    queryService = new QueryServiceImpl(mockSearchManager);
+    queryService = new QueryServiceImpl(mockQueryStorageAdaptor);
   }
 
   @AfterEach
   public void afterEach() {
-    verifyNoMoreInteractions(mockSearchManager);
+    verifyNoMoreInteractions(mockQueryStorageAdaptor);
   }
 
   @ParameterizedTest
   @MethodSource("exceptionsThrownSearchManager")
   void testSearchManagerExceptions(final RuntimeException runtimeException) {
     final String cql = "cql";
-    doThrow(runtimeException).when(mockSearchManager).query(cql);
+    doThrow(runtimeException).when(mockQueryStorageAdaptor).query(cql);
 
     final RuntimeException thrown =
         assertThrows(RuntimeException.class, () -> queryService.find(cql));
     assertThat(
-        "thrown exception is the exact same exception thrown by the SearchManager",
+        "thrown exception is the exact same exception thrown by the QueryStorageAdaptor",
         thrown,
         is(runtimeException));
   }
@@ -62,7 +61,7 @@ class QueryServiceImplTest {
   void testIndex() {
     final String cql = "cql";
     queryService.find(cql);
-    verify(mockSearchManager).query(cql);
+    verify(mockQueryStorageAdaptor).query(cql);
   }
 
   private static Stream<Arguments> exceptionsThrownSearchManager() {

@@ -4,7 +4,7 @@
  * Released under the GNU Lesser General Public License version 3; see
  * https://www.gnu.org/licenses/lgpl-3.0.html
  */
-package com.connexta.search.common;
+package com.connexta.search.query;
 
 import static com.connexta.search.common.configs.SolrConfiguration.IRM_URL_ATTRIBUTE;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -18,10 +18,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.connexta.search.common.configs.SolrConfiguration;
 import com.connexta.search.common.exceptions.SearchException;
-import com.connexta.search.index.ContentExtractor;
-import com.connexta.search.index.IonResourceLoader;
+import com.connexta.search.query.configs.QueryStorageAdaptorConfiguration;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -35,7 +33,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.geotools.data.solr.FilterToSolr;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,18 +43,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
-class SearchManagerImplTest {
+class SolrQueryStorageAdaptorTest {
 
-  @Mock private IndexRepository mockIndexRepository;
   @Mock private SolrClient mockSolrClient;
-  @Mock private ContentExtractor mockContentExtractor;
-  @Mock private IonResourceLoader mockGetInputStream;
 
-  private SearchManagerImpl searchManagerImpl;
+  private QueryStorageAdaptor queryStorageAdaptor;
 
   @BeforeEach
   void beforeEach() {
-    searchManagerImpl = new SearchManagerImpl(mockSolrClient);
+    queryStorageAdaptor = new SolrQueryStorageAdaptor(mockSolrClient);
   }
 
   // query tests
@@ -66,9 +60,9 @@ class SearchManagerImplTest {
   void testQueryInvalidEcql() {
     // expect
     SearchException e =
-        assertThrows(SearchException.class, () -> searchManagerImpl.query("thisIsInvalidEcql"));
+        assertThrows(SearchException.class, () -> queryStorageAdaptor.query("thisIsInvalidEcql"));
 
-    assertThat(e.getMessage(), containsString("Invalid CQL received"));
+    assertThat(e.getMessage(), containsString("Invalid CommonQL received"));
     assertThat(e.getStatus(), is(HttpStatus.BAD_REQUEST));
   }
 
@@ -90,7 +84,7 @@ class SearchManagerImplTest {
     assertThat(
         "Expected attributes do not match actual attributes. These collections need to be the same.",
         List.of(queryPairs.keySet()),
-        containsInAnyOrder(SolrConfiguration.QUERY_TERMS));
+        containsInAnyOrder(QueryStorageAdaptorConfiguration.QUERY_TERMS));
 
     String queryString =
         queryPairs.entrySet().stream()
@@ -100,7 +94,7 @@ class SearchManagerImplTest {
     when(mockSolrClient.query(anyString(), any())).thenReturn(queryResponse);
 
     // expect
-    Set<URI> result = searchManagerImpl.query(queryString);
+    Set<URI> result = queryStorageAdaptor.query(queryString);
     assertThat(result, containsInAnyOrder(new URI("something")));
   }
 
@@ -111,26 +105,10 @@ class SearchManagerImplTest {
 
     // expect
     SearchException e =
-        assertThrows(SearchException.class, () -> searchManagerImpl.query(unsupportedAttrQuery));
+        assertThrows(SearchException.class, () -> queryStorageAdaptor.query(unsupportedAttrQuery));
 
-    assertThat(e.getMessage(), containsString("Received invalid attributes to index on"));
+    assertThat(e.getMessage(), containsString("Received invalid attributes to query on"));
     assertThat(e.getStatus(), is(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  void testFilterToSolrQueryFails() throws Exception {
-    // setup
-    FilterToSolr filterToSolr = mock(FilterToSolr.class);
-    when(filterToSolr.encodeToString(any())).thenThrow(Exception.class);
-
-    final String cql = "id = 'value'";
-
-    // expect
-    SearchException e =
-        assertThrows(SearchException.class, () -> searchManagerImpl.query(cql, filterToSolr));
-
-    assertThat(e.getMessage(), containsString("Error processing CQL"));
-    assertThat(e.getStatus(), is(HttpStatus.INTERNAL_SERVER_ERROR));
   }
 
   @ParameterizedTest
@@ -142,9 +120,10 @@ class SearchManagerImplTest {
     when(mockSolrClient.query(anyString(), any())).thenThrow(throwableType);
 
     // expect
-    SearchException e = assertThrows(SearchException.class, () -> searchManagerImpl.query(idQuery));
+    SearchException e =
+        assertThrows(SearchException.class, () -> queryStorageAdaptor.query(idQuery));
 
-    assertThat(e.getMessage(), containsString("Error querying index"));
+    assertThat(e.getMessage(), containsString("Error querying"));
     assertThat(e.getStatus(), is(HttpStatus.INTERNAL_SERVER_ERROR));
   }
 
@@ -159,7 +138,7 @@ class SearchManagerImplTest {
 
     // expect
     final SearchException thrown =
-        assertThrows(SearchException.class, () -> searchManagerImpl.query(idQuery));
+        assertThrows(SearchException.class, () -> queryStorageAdaptor.query(idQuery));
     assertThat(thrown.getStatus(), is(HttpStatus.INTERNAL_SERVER_ERROR));
   }
 
@@ -172,7 +151,7 @@ class SearchManagerImplTest {
     when(mockSolrClient.query(anyString(), any())).thenReturn(queryResponse);
 
     // expect
-    assertThat(searchManagerImpl.query(idQuery), is(empty()));
+    assertThat(queryStorageAdaptor.query(idQuery), is(empty()));
   }
 
   @Test
@@ -186,7 +165,7 @@ class SearchManagerImplTest {
     when(mockSolrClient.query(anyString(), any())).thenReturn(queryResponse);
 
     // expect
-    assertThat(searchManagerImpl.query(idQuery), containsInAnyOrder(irmUri1, irmUri2));
+    assertThat(queryStorageAdaptor.query(idQuery), containsInAnyOrder(irmUri1, irmUri2));
   }
 
   private static QueryResponse mockQueryResponse(final String... irmUriStrings) {

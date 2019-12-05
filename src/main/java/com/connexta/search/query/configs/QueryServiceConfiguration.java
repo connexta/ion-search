@@ -6,9 +6,9 @@
  */
 package com.connexta.search.query.configs;
 
-import com.connexta.search.common.SearchManager;
 import com.connexta.search.query.QueryService;
 import com.connexta.search.query.QueryServiceImpl;
+import com.connexta.search.query.QueryStorageAdaptor;
 import javax.validation.constraints.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 public class QueryServiceConfiguration {
 
   @Bean
-  public QueryService queryService(@NotNull final SearchManager searchManager) {
-    return new QueryServiceImpl(searchManager);
+  public QueryService queryService(@NotNull final QueryStorageAdaptor queryStorageAdaptor) {
+    return new QueryServiceImpl(queryStorageAdaptor);
   }
 }
